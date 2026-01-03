@@ -1,18 +1,14 @@
-import Course from '../models/Course.model';
+import Course from "../models/Course.model";
 
-/**
- * Generate random alphanumeric code of specified length
- */
+//Generate random alphanumeric code of specified length
 export const generateCode = (length: number): string => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   return Array.from({ length }, () =>
     characters.charAt(Math.floor(Math.random() * characters.length))
-  ).join('');
+  ).join("");
 };
 
-/**
- * Generate unique 7-character course code
- */
+// Generate unique 7-character course code
 export const generateUniqueCourseCode = async (): Promise<string> => {
   let code: string;
   let isUnique = false;
@@ -25,13 +21,13 @@ export const generateUniqueCourseCode = async (): Promise<string> => {
     }
   }
 
-  throw new Error('Failed to generate unique course code');
+  throw new Error("Failed to generate unique course code");
 };
 
-/**
- * Generate unique 10-character group code
- */
-export const generateUniqueGroupCode = async (GroupModel: any): Promise<string> => {
+// Generate unique 10-character group code
+export const generateUniqueGroupCode = async (
+  GroupModel: any
+): Promise<string> => {
   let code: string;
   let isUnique = false;
 
@@ -43,5 +39,5 @@ export const generateUniqueGroupCode = async (GroupModel: any): Promise<string> 
     }
   }
 
-  throw new Error('Failed to generate unique group code');
+  throw new Error("Failed to generate unique group code");
 };
