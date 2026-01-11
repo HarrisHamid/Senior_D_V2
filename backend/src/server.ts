@@ -1,7 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db";
+import routes from "./routes";
 
 // Load environment variables
 dotenv.config();
@@ -17,7 +19,19 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
+// API Routes
+app.use("/api", routes);
+
+// Health check endpoint
+app.get("/", (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: "Senior Design Marketplace API",
+    version: "1.0.0"
+  });
+});
 
 // 404 Handler
 app.use((req: Request, res: Response) => {
@@ -27,6 +41,15 @@ app.use((req: Request, res: Response) => {
   });
 });
 
+// Error Handler
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error("Server error:", err);
+  res.status(500).json({
+    success: false,
+    error: "Internal server error",
+    message: process.env.NODE_ENV === "development" ? err.message : undefined
+  });
+});
 
 // Start Server
 const PORT = process.env.PORT || 5000;

@@ -1,10 +1,11 @@
 import { Router } from "express";
+import courseRoutes from "./course.routes";
+// Import other routes as you create them
 
 const router = Router();
 
-// Import route modules here as you create them
-// Example:
-// import userRoutes from "./userRoutes";
-// router.use("/users", userRoutes);
+router.use("/courses", courseRoutes);
+// Add other routes here
+
 
 export default router;
