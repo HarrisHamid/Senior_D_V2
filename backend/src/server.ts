@@ -5,11 +5,8 @@ import connectDB from "./config/db";
 import routes from "./routes";
 import { env, validateEnv } from "./config/env";
 
-// Validate environment variables (will throw error if missing required vars)
 validateEnv();
-
 const app = express();
-
 connectDB();
 
 // Middleware

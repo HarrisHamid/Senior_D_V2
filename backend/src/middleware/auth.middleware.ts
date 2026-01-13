@@ -1,12 +1,7 @@
 import { Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 import { AuthRequest } from "../types";
+import { verifyToken } from "../utils/jwt.utils";
 import User from "../models/User.model";
-
-interface JWTPayload {
-  userId: string;
-  role: string;
-}
 
 /**
  FLOW
@@ -45,10 +40,7 @@ export const authenticate = async (
     }
 
     // Verify token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "your-secret-key"
-    ) as JWTPayload;
+    const decoded = verifyToken(token);
 
     // Get user from database
     const user = await User.findById(decoded.userId).select("-password");

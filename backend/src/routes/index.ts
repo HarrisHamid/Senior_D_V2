@@ -1,11 +1,11 @@
 import { Router } from "express";
 import courseRoutes from "./course.routes";
-// Import other routes as you create them
+import authRoutes from "./auth.routes";
 
 const router = Router();
 
+router.use("/auth", authRoutes);
 router.use("/courses", courseRoutes);
-// Add other routes here
 
 
 export default router;
