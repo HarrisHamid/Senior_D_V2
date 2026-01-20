@@ -12,9 +12,13 @@ export interface JwtPayload {
 // Generate JWT token
 export const generateToken = (payload: JwtPayload): string => {
   // No need for checks or type assertions - env.JWT_SECRET is guaranteed to be a string!
-  return jwt.sign(payload, env.JWT_SECRET, {
+  if (!env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined");
+  }
+
+  return jwt.sign(payload as object, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRE,
-  });
+  } as jwt.SignOptions);
 };
 
 //Verify and decode JWT token
