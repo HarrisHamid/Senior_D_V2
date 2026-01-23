@@ -50,10 +50,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         token,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Error registering user";
     res.status(500).json({
       success: false,
-      error: error.message || "Error registering user",
+      error: message,
     });
   }
 };
@@ -109,10 +111,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         token,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Error logging in";
     res.status(500).json({
       success: false,
-      error: error.message || "Error logging in",
+      error: message,
     });
   }
 };
@@ -169,10 +173,12 @@ export const getCurrentUser = async (
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Error fetching user";
     res.status(500).json({
       success: false,
-      error: error.message || "Error fetching user",
+      error: message,
     });
   }
 };

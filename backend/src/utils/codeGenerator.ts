@@ -1,3 +1,4 @@
+import { Model } from "mongoose";
 import Course from "../models/Course.model";
 
 //Generate random alphanumeric code of specified length
@@ -11,7 +12,7 @@ export const generateCode = (length: number): string => {
 // Generate unique 7-character course code
 export const generateUniqueCourseCode = async (): Promise<string> => {
   let code: string;
-  let isUnique = false;
+  const isUnique = false;
 
   while (!isUnique) {
     code = generateCode(7);
@@ -26,10 +27,10 @@ export const generateUniqueCourseCode = async (): Promise<string> => {
 
 // Generate unique 10-character group code
 export const generateUniqueGroupCode = async (
-  GroupModel: any,
+  GroupModel: Model<{ groupCode: string }>,
 ): Promise<string> => {
   let code: string;
-  let isUnique = false;
+  const isUnique = false;
 
   while (!isUnique) {
     code = generateCode(10);
