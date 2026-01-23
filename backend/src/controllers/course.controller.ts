@@ -10,7 +10,7 @@ import { generateUniqueCourseCode } from "../utils/codeGenerator";
  */
 export const createCourse = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user;
@@ -74,7 +74,7 @@ export const createCourse = async (
  */
 export const getCourseById = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const { id } = req.params;
@@ -110,7 +110,7 @@ export const getCourseById = async (
  */
 export const getMyCourses = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user;
@@ -149,7 +149,7 @@ export const getMyCourses = async (
  */
 export const joinCourse = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user;
@@ -221,7 +221,7 @@ export const joinCourse = async (
  */
 export const closeCourse = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user;
@@ -290,7 +290,7 @@ export const closeCourse = async (
  */
 export const reopenCourse = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user;
@@ -359,7 +359,7 @@ export const reopenCourse = async (
  */
 export const getCourseStats = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user;

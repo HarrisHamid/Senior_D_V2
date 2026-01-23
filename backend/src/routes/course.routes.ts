@@ -22,34 +22,30 @@ router.post(
   "/",
   requireRole("Course Coordinator"),
   validateRequest(courseSchemas.create),
-  createCourse
+  createCourse,
 );
 
-router.get(
-  "/my-courses",
-  requireRole("Course Coordinator"),
-  getMyCourses
-);
+router.get("/my-courses", requireRole("Course Coordinator"), getMyCourses);
 
 router.patch(
   "/:id/close",
   requireRole("Course Coordinator"),
   validateRequest(courseSchemas.courseId),
-  closeCourse
+  closeCourse,
 );
 
 router.patch(
   "/:id/open",
   requireRole("Course Coordinator"),
   validateRequest(courseSchemas.courseId),
-  reopenCourse
+  reopenCourse,
 );
 
 router.get(
   "/:id/stats",
   requireRole("Course Coordinator"),
   validateRequest(courseSchemas.courseId),
-  getCourseStats
+  getCourseStats,
 );
 
 // Student routes
@@ -57,7 +53,7 @@ router.post(
   "/join",
   requireRole("Student"),
   validateRequest(courseSchemas.join),
-  joinCourse
+  joinCourse,
 );
 
 // Shared routes

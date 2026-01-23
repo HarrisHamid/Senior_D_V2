@@ -104,7 +104,7 @@ const CourseSchema = new Schema<ICourse>(
   },
   {
     timestamps: true, // automatically creates createdAt and updatedAt fields
-  }
+  },
 );
 
 // Compound indexes
@@ -115,7 +115,7 @@ CourseSchema.index({ userId: 1, closed: 1, year: -1 });
 CourseSchema.pre("save", async function (this: ICourse) {
   if (this.maxGroupSize < this.minGroupSize) {
     throw new Error(
-      "Maximum group size must be greater than or equal to minimum group size"
+      "Maximum group size must be greater than or equal to minimum group size",
     );
   }
 });
