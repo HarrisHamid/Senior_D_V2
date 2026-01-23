@@ -112,8 +112,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Error logging in";
+    const message = error instanceof Error ? error.message : "Error logging in";
     res.status(500).json({
       success: false,
       error: message,
