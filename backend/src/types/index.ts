@@ -1,10 +1,10 @@
-import { Request } from 'express';
+import { Request } from "express";
 
 export interface IUser {
   _id: string;
   name: string;
   email: string;
-  role: 'Student' | 'Course Coordinator';
+  role: "Student" | "Course Coordinator";
   verificationNeeded: boolean;
   course?: string;
   groupId?: string;

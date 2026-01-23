@@ -4,7 +4,7 @@ import Course from "../models/Course.model";
 export const generateCode = (length: number): string => {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   return Array.from({ length }, () =>
-    characters.charAt(Math.floor(Math.random() * characters.length))
+    characters.charAt(Math.floor(Math.random() * characters.length)),
   ).join("");
 };
 
@@ -26,7 +26,7 @@ export const generateUniqueCourseCode = async (): Promise<string> => {
 
 // Generate unique 10-character group code
 export const generateUniqueGroupCode = async (
-  GroupModel: any
+  GroupModel: any,
 ): Promise<string> => {
   let code: string;
   let isUnique = false;

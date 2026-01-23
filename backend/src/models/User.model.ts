@@ -68,7 +68,7 @@ const UserSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Mongoose Middleware hook to hash password before saving
@@ -83,7 +83,7 @@ UserSchema.pre("save", async function (this: IUser) {
 // the password the user typed in the login box matches
 // the scrambled version in the database
 UserSchema.methods.comparePassword = async function (
-  candidatePassword: string
+  candidatePassword: string,
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };

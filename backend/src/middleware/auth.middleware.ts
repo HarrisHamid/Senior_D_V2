@@ -18,7 +18,7 @@ import User from "../models/User.model";
 export const authenticate = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     // Get token from cookie or Authorization header

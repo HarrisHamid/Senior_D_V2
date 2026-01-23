@@ -133,7 +133,7 @@ export const logout = (_req: Request, res: Response): void => {
 // Get current user
 export const getCurrentUser = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     if (!req.user) {
