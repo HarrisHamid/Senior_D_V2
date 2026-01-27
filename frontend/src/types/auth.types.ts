@@ -1,8 +1,10 @@
+// Data shapes for auth related operations
+
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'Student' | 'Course Coordinator';
+  role: "Student" | "Course Coordinator";
   verificationNeeded?: boolean;
   course?: string;
   groupId?: string;
@@ -17,7 +19,7 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
-  role: 'Student' | 'Course Coordinator';
+  role: "Student" | "Course Coordinator";
 }
 
 export interface AuthResponse {
@@ -29,6 +31,8 @@ export interface AuthResponse {
   };
 }
 
+
+// Response shape for fetching current user
 export interface UserResponse {
   success: boolean;
   data: {
@@ -36,6 +40,7 @@ export interface UserResponse {
   };
 }
 
+// Error response shape
 export interface ApiError {
   success: false;
   error: string;

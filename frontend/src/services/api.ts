@@ -10,6 +10,8 @@ const api = axios.create({
   },
 });
 
+// This intercepts every HTTP response before it reaches your code
+// cleanr easier to undrstand error :)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
