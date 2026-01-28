@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Signup() {
   const [firstName, setFirstName] = useState('');
@@ -7,11 +8,44 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('student');
+  const [role, setRole] = useState<'Student' | 'Course Coordinator'>('Student');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Signup:', { firstName, lastName, email, password, confirmPassword, role });
+    setError('');
+
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await register({
+        name: `${firstName} ${lastName}`.trim(),
+        email,
+        password,
+        role,
+      });
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -31,6 +65,13 @@ export default function Signup() {
             <p className="text-gray-500">Join Stevens Senior Design Marketplace</p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Row */}
@@ -48,6 +89,7 @@ export default function Signup() {
                     focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
                     transition-all duration-200 ease-in-out"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               <div>
@@ -63,6 +105,7 @@ export default function Signup() {
                     focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
                     transition-all duration-200 ease-in-out"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -81,6 +124,7 @@ export default function Signup() {
                   transition-all duration-200 ease-in-out"
                 placeholder="your.email@stevens.edu"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -97,6 +141,7 @@ export default function Signup() {
                   focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
                   transition-all duration-200 ease-in-out"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -113,6 +158,7 @@ export default function Signup() {
                   focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
                   transition-all duration-200 ease-in-out"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -126,10 +172,11 @@ export default function Signup() {
                   <input
                     type="radio"
                     name="role"
-                    value="student"
-                    checked={role === 'student'}
-                    onChange={(e) => setRole(e.target.value)}
+                    value="Student"
+                    checked={role === 'Student'}
+                    onChange={(e) => setRole(e.target.value as 'Student' | 'Course Coordinator')}
                     className="w-4 h-4 text-[#9B2335] border-gray-300 focus:ring-[#9B2335]"
+                    disabled={isSubmitting}
                   />
                   <span className="ml-2 text-gray-700">Student</span>
                 </label>
@@ -137,10 +184,11 @@ export default function Signup() {
                   <input
                     type="radio"
                     name="role"
-                    value="coordinator"
-                    checked={role === 'coordinator'}
-                    onChange={(e) => setRole(e.target.value)}
+                    value="Course Coordinator"
+                    checked={role === 'Course Coordinator'}
+                    onChange={(e) => setRole(e.target.value as 'Student' | 'Course Coordinator')}
                     className="w-4 h-4 text-[#9B2335] border-gray-300 focus:ring-[#9B2335]"
+                    disabled={isSubmitting}
                   />
                   <span className="ml-2 text-gray-700">Course Coordinator</span>
                 </label>
@@ -149,12 +197,14 @@ export default function Signup() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="w-full py-3 px-4 bg-[#9B2335] text-white font-medium rounded-lg
                 hover:bg-[#7a1c2a] hover:shadow-lg
                 focus:ring-2 focus:ring-[#9B2335] focus:ring-offset-2 focus:outline-none
-                transition-all duration-200 ease-in-out"
+                transition-all duration-200 ease-in-out
+                disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 

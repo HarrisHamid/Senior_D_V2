@@ -1,13 +1,29 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login:', { email, password });
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      await login({ email, password });
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -27,6 +43,13 @@ export default function Login() {
             <p className="text-gray-500">Sign in to Stevens Senior Design Marketplace</p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -43,6 +66,7 @@ export default function Login() {
                   transition-all duration-200 ease-in-out"
                 placeholder="your.email@stevens.edu"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -68,17 +92,20 @@ export default function Login() {
                   focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
                   transition-all duration-200 ease-in-out"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="w-full py-3 px-4 bg-[#9B2335] text-white font-medium rounded-lg
                 hover:bg-[#7a1c2a] hover:shadow-lg
                 focus:ring-2 focus:ring-[#9B2335] focus:ring-offset-2 focus:outline-none
-                transition-all duration-200 ease-in-out"
+                transition-all duration-200 ease-in-out
+                disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
