@@ -1,22 +1,8 @@
-import { createContext, useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { authService } from "../services/auth.service";
-import type { User, LoginRequest, RegisterRequest } from "../types/auth.types";
-
-// contexts is reactgs built-in way to share data across
-//  many components without passing props manually at every level.
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (credentials: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
+import type { LoginRequest, RegisterRequest } from "../types/auth.types";
+import type { User } from "../types/auth.types";
+import { AuthContext } from "./AuthContextDef";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -32,7 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await authService.getCurrentUser();
       setUser(response.data.user);
     } catch {
-      setUser(null);
+      setUser(null); // User is not logged in or token expired
     } finally {
       setIsLoading(false);
     }
