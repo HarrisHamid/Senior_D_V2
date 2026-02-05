@@ -5,7 +5,7 @@ export interface IGroup extends Document {
   groupNumber: number;
   courseId: string;
   groupMembers: Types.ObjectId[];
-  groupCode: string;
+  groupCode?: string; // Optional - reach goal: auto-generate for invite links
   isOpen: boolean;
   interestedProjects: Types.ObjectId[];
   assignedProject: Types.ObjectId | null;
@@ -29,8 +29,8 @@ const GroupSchema = new Schema<IGroup>(
     },
     groupCode: {
       type: String,
-      required: [true, "Group code is required"],
       unique: true,
+      sparse: true, // Allows multiple nulls while enforcing uniqueness for non-null values
       index: true,
     },
     isOpen: {

@@ -12,7 +12,7 @@ export const generateCode = (length: number): string => {
 // Generate unique 7-character course code
 export const generateUniqueCourseCode = async (): Promise<string> => {
   let code: string;
-  const isUnique = false;
+  let isUnique = false;
 
   while (!isUnique) {
     code = generateCode(7);
@@ -30,7 +30,7 @@ export const generateUniqueGroupCode = async (
   GroupModel: Model<{ groupCode: string }>,
 ): Promise<string> => {
   let code: string;
-  const isUnique = false;
+  let isUnique = false;
 
   while (!isUnique) {
     code = generateCode(10);
@@ -42,3 +42,10 @@ export const generateUniqueGroupCode = async (
 
   throw new Error("Failed to generate unique group code");
 };
+
+// Quick test - remove after testing
+console.log("Testing generateCode:");
+console.log("7-char:", generateCode(7));
+console.log("7-char:", generateCode(7));
+console.log("10-char:", generateCode(10));
+console.log("10-char:", generateCode(10));
