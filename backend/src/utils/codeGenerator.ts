@@ -32,5 +32,3 @@ export const generateUniqueGroupCode = async (
     }
   }
 };
-
-
