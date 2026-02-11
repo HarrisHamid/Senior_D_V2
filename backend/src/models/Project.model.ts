@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, model, Types } from "mongoose";
+import { Document, Schema, model, Types } from "mongoose";
 
 // Typescript Interface
 export interface IProject extends Document {
