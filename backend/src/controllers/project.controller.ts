@@ -222,9 +222,7 @@ export const updateProject = async (
     });
   } catch (error) {
     console.error("Update project error:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to update project" });
+    res.status(500).json({ success: false, error: "Failed to update project" });
   }
 };
 
@@ -283,9 +281,7 @@ export const deleteProject = async (
     });
   } catch (error) {
     console.error("Delete project error:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to delete project" });
+    res.status(500).json({ success: false, error: "Failed to delete project" });
   }
 };
 
