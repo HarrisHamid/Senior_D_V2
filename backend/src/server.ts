@@ -5,9 +5,7 @@ import connectDB from "./config/db";
 import routes from "./routes";
 import { env, validateEnv } from "./config/env";
 
-validateEnv();
 const app = express();
-connectDB();
 
 // Middleware
 app.use(
@@ -50,9 +48,16 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Start Server
-const PORT = parseInt(env.PORT, 10);
-app.listen(PORT, () => {
-  console.log(`Server running in ${env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`API available at http://localhost:${PORT}`);
-});
+// Only start the server when not in test mode
+if (process.env.NODE_ENV !== "test") {
+  validateEnv();
+  connectDB();
+
+  const PORT = parseInt(env.PORT, 10);
+  app.listen(PORT, () => {
+    console.log(`Server running in ${env.NODE_ENV} mode on port ${PORT}`);
+    console.log(`API available at http://localhost:${PORT}`);
+  });
+}
+
+export default app;
