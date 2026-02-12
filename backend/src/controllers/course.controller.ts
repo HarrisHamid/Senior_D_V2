@@ -1,7 +1,10 @@
 import { Response } from "express";
+import mongoose from "mongoose";
 import { AuthRequest } from "../types";
 import Course from "../models/Course.model";
 import User from "../models/User.model";
+import { Group } from "../models/Group.model";
+import { Project } from "../models/Project.model";
 import { generateUniqueCourseCode } from "../utils/codeGenerator";
 
 /**
@@ -77,6 +80,15 @@ export const getCourseById = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: "Not authenticated",
+      });
+      return;
+    }
+
     const { id } = req.params;
 
     const course = await Course.findById(id);
@@ -85,6 +97,23 @@ export const getCourseById = async (
       res.status(404).json({
         success: false,
         error: "Course not found",
+      });
+      return;
+    }
+
+    const isCoordinatorOwner =
+      user.role === "Course Coordinator" && String(course.userId) === user._id;
+
+    let isEnrolledStudent = false;
+    if (user.role === "Student") {
+      const dbUser = await User.findById(user._id).select("course");
+      isEnrolledStudent = dbUser?.course === id;
+    }
+
+    if (!isCoordinatorOwner && !isEnrolledStudent) {
+      res.status(403).json({
+        success: false,
+        error: "You are not authorized to view this course",
       });
       return;
     }
@@ -247,7 +276,7 @@ export const closeCourse = async (
     }
 
     // Verify ownership
-    if (course.userId !== user._id) {
+    if (String(course.userId) !== user._id) {
       res.status(403).json({
         success: false,
         error: "You can only close your own courses",
@@ -264,14 +293,44 @@ export const closeCourse = async (
       return;
     }
 
-    // Close the course
-    course.closed = true;
-    await course.save();
+    // Close course and all related projects/groups atomically
+    const session = await mongoose.startSession();
+
+    let updatedCourse = null;
+    let updatedProjects = 0;
+    let updatedGroups = 0;
+
+    await session.withTransaction(async () => {
+      updatedCourse = await Course.findByIdAndUpdate(
+        id,
+        { closed: true },
+        { new: true, session },
+      );
+
+      const projectsResult = await Project.updateMany(
+        { courseId: id },
+        { isOpen: false },
+        { session },
+      );
+
+      const groupsResult = await Group.updateMany(
+        { courseId: id },
+        { isOpen: false },
+        { session },
+      );
+
+      updatedProjects = projectsResult.modifiedCount;
+      updatedGroups = groupsResult.modifiedCount;
+    });
+
+    session.endSession();
 
     res.status(200).json({
       success: true,
       data: {
-        course,
+        course: updatedCourse,
+        updatedProjects,
+        updatedGroups,
       },
       message: "Course closed successfully",
     });
@@ -316,7 +375,7 @@ export const reopenCourse = async (
     }
 
     // Verify ownership
-    if (course.userId !== user._id) {
+    if (String(course.userId) !== user._id) {
       res.status(403).json({
         success: false,
         error: "You can only reopen your own courses",
@@ -333,14 +392,44 @@ export const reopenCourse = async (
       return;
     }
 
-    // Reopen the course
-    course.closed = false;
-    await course.save();
+    // Reopen the course and only reopen unassigned projects/groups atomically
+    const session = await mongoose.startSession();
+
+    let updatedCourse = null;
+    let reopenedProjects = 0;
+    let reopenedGroups = 0;
+
+    await session.withTransaction(async () => {
+      updatedCourse = await Course.findByIdAndUpdate(
+        id,
+        { closed: false },
+        { new: true, session },
+      );
+
+      const projectsResult = await Project.updateMany(
+        { courseId: id, assignedGroup: null },
+        { isOpen: true },
+        { session },
+      );
+
+      const groupsResult = await Group.updateMany(
+        { courseId: id, assignedProject: null },
+        { isOpen: true },
+        { session },
+      );
+
+      reopenedProjects = projectsResult.modifiedCount;
+      reopenedGroups = groupsResult.modifiedCount;
+    });
+
+    session.endSession();
 
     res.status(200).json({
       success: true,
       data: {
-        course,
+        course: updatedCourse,
+        reopenedProjects,
+        reopenedGroups,
       },
       message: "Course reopened successfully",
     });
@@ -385,7 +474,7 @@ export const getCourseStats = async (
     }
 
     // Verify ownership
-    if (course.userId !== user._id) {
+    if (String(course.userId) !== user._id) {
       res.status(403).json({
         success: false,
         error: "You can only view stats for your own courses",
@@ -393,19 +482,31 @@ export const getCourseStats = async (
       return;
     }
 
-    // Count enrolled students
-    const enrolledStudents = await User.countDocuments({
-      course: course._id.toString(),
-    });
+    const courseId = course._id.toString();
 
-    // Count students in groups
-    const studentsInGroups = await User.countDocuments({
-      course: course._id.toString(),
-      groupId: { $ne: null },
-    });
+    const [
+      totalStudents,
+      studentsInGroups,
+      totalGroups,
+      openGroups,
+      matchedGroups,
+      totalProjects,
+      openProjects,
+      matchedProjects,
+    ] = await Promise.all([
+      User.countDocuments({ course: courseId }),
+      User.countDocuments({ course: courseId, groupId: { $ne: null } }),
+      Group.countDocuments({ courseId }),
+      Group.countDocuments({ courseId, isOpen: true }),
+      Group.countDocuments({ courseId, assignedProject: { $ne: null } }),
+      Project.countDocuments({ courseId }),
+      Project.countDocuments({ courseId, isOpen: true }),
+      Project.countDocuments({ courseId, assignedGroup: { $ne: null } }),
+    ]);
 
-    // Count students without groups
-    const studentsWithoutGroups = enrolledStudents - studentsInGroups;
+    const studentsWithoutGroups = totalStudents - studentsInGroups;
+    const closedGroups = totalGroups - openGroups;
+    const closedProjects = totalProjects - openProjects;
 
     res.status(200).json({
       success: true,
@@ -420,10 +521,20 @@ export const getCourseStats = async (
           closed: course.closed,
         },
         stats: {
-          totalStudents: enrolledStudents,
+          totalStudents,
           studentsInGroups,
           studentsWithoutGroups,
-          totalGroups: course.lastGroupNumber,
+          totalGroups,
+          openGroups,
+          closedGroups,
+          matchedGroups,
+          unmatchedGroups: totalGroups - matchedGroups,
+          totalProjects,
+          openProjects,
+          closedProjects,
+          matchedProjects,
+          unmatchedProjects: totalProjects - matchedProjects,
+          totalMatches: Math.min(matchedProjects, matchedGroups),
           minGroupSize: course.minGroupSize,
           maxGroupSize: course.maxGroupSize,
         },
