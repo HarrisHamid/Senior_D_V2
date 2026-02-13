@@ -130,7 +130,10 @@ describe("Auth Routes - /api/auth", () => {
     it("should login with correct credentials and return 200", async () => {
       const res = await request(app)
         .post("/api/auth/login")
-        .send({ email: defaultStudent.email, password: defaultStudent.password });
+        .send({
+          email: defaultStudent.email,
+          password: defaultStudent.password,
+        });
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -142,7 +145,10 @@ describe("Auth Routes - /api/auth", () => {
     it("should not return password in the login response", async () => {
       const res = await request(app)
         .post("/api/auth/login")
-        .send({ email: defaultStudent.email, password: defaultStudent.password });
+        .send({
+          email: defaultStudent.email,
+          password: defaultStudent.password,
+        });
 
       expect(res.body.data.user.password).toBeUndefined();
     });
@@ -150,7 +156,10 @@ describe("Auth Routes - /api/auth", () => {
     it("should set a token cookie on login", async () => {
       const res = await request(app)
         .post("/api/auth/login")
-        .send({ email: defaultStudent.email, password: defaultStudent.password });
+        .send({
+          email: defaultStudent.email,
+          password: defaultStudent.password,
+        });
 
       const cookies = res.headers["set-cookie"] as unknown as string[];
       expect(cookies).toBeDefined();

@@ -30,9 +30,7 @@ describe("Course Routes - /api/courses", () => {
   });
 
   // Helper: create a course and return its data + coordinator token
-  const createCourse = async (
-    coordinator?: TestUser,
-  ) => {
+  const createCourse = async (coordinator?: TestUser) => {
     const { token, userId } = await registerAndGetToken(
       coordinator || defaultCoordinator,
     );
@@ -304,9 +302,7 @@ describe("Course Routes - /api/courses", () => {
     it("should return 401 when no token is provided", async () => {
       const { course } = await createCourse();
 
-      const res = await request(app).patch(
-        `/api/courses/${course._id}/close`,
-      );
+      const res = await request(app).patch(`/api/courses/${course._id}/close`);
 
       expect(res.status).toBe(401);
     });
@@ -392,9 +388,7 @@ describe("Course Routes - /api/courses", () => {
     it("should return 401 when no token is provided", async () => {
       const { course } = await createCourse();
 
-      const res = await request(app).patch(
-        `/api/courses/${course._id}/open`,
-      );
+      const res = await request(app).patch(`/api/courses/${course._id}/open`);
 
       expect(res.status).toBe(401);
     });
@@ -507,9 +501,7 @@ describe("Course Routes - /api/courses", () => {
     it("should return 401 when no token is provided", async () => {
       const { course } = await createCourse();
 
-      const res = await request(app).get(
-        `/api/courses/${course._id}/stats`,
-      );
+      const res = await request(app).get(`/api/courses/${course._id}/stats`);
 
       expect(res.status).toBe(401);
     });

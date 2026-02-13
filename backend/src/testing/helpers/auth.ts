@@ -37,7 +37,9 @@ export const loginAndGetToken = async (
   email: string,
   password: string,
 ): Promise<{ token: string; userId: string }> => {
-  const res = await request(app).post("/api/auth/login").send({ email, password });
+  const res = await request(app)
+    .post("/api/auth/login")
+    .send({ email, password });
 
   return {
     token: res.body.data.token,
