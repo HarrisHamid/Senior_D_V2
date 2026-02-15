@@ -39,7 +39,7 @@ const Group = () => {
     toast.success("You have left the group");
   };
 
-  const handleRemoveInterest = (projectId: string) => {
+  const handleRemoveInterest = () => {
     toast.success("Interest removed from project");
   };
 
@@ -199,7 +199,7 @@ const Group = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRemoveInterest(project.id)}
+                          onClick={() => handleRemoveInterest()}
                           className="text-destructive hover:text-destructive"
                         >
                           <X className="h-4 w-4" />

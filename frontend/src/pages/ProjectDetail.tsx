@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Mail, FileText, Users, Building2 } from "lucide-react";
+import { ArrowLeft, Mail, Users, Building2 } from "lucide-react";
 import { mockProjects, mockGroups } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
