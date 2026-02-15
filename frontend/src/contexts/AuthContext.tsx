@@ -1,14 +1,29 @@
-import { useState, useEffect, type ReactNode } from "react";
-import { authService } from "../services/auth.service";
-import type { LoginRequest, RegisterRequest } from "../types/auth.types";
-import type { User } from "../types/auth.types";
-import { AuthContext } from "./AuthContextDef";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
+import type { User, LoginRequest, RegisterRequest } from "@/types";
+import { authService } from "@/services/auth.service";
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (credentials: LoginRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is already logged in on app load
+  // Check for existing session on mount
   useEffect(() => {
     checkAuth();
   }, []);
@@ -16,9 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAuth = async () => {
     try {
       const response = await authService.getCurrentUser();
-      setUser(response.data.user);
-    } catch {
-      setUser(null); // User is not logged in or token expired
+      if (response.success && response.data.user) {
+        setUser(response.data.user);
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -26,17 +44,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (credentials: LoginRequest) => {
     const response = await authService.login(credentials);
-    setUser(response.data.user);
+    if (response.success && response.data.user) {
+      setUser(response.data.user);
+    }
   };
 
   const register = async (data: RegisterRequest) => {
     const response = await authService.register(data);
-    setUser(response.data.user);
+    if (response.success && response.data.user) {
+      setUser(response.data.user);
+    }
   };
 
   const logout = async () => {
-    await authService.logout();
-    setUser(null);
+    try {
+      await authService.logout();
+    } finally {
+      setUser(null);
+    }
   };
 
   return (
@@ -53,4 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

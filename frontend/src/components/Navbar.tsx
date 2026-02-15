@@ -1,39 +1,182 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import { NavLink } from "@/components/NavLinks";
+import { Menu, X, LogOut, User as UserIcon, HelpCircle } from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export default function Navbar() {
-  const navigate = useNavigate();
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    navigate('/logout');
-  };
+  if (!user) return null;
+
+  const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
-    <nav className="bg-[#9B2335] text-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link
-            to="/"
-            className="flex items-center gap-3
-              hover:opacity-90
-              transition-all duration-200 ease-in-out"
-          >
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <span className="text-[#9B2335] text-sm font-bold">S</span>
+    <nav className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link to="/dashboard" className="flex items-center space-x-2">
+            <div className="h-10 w-10 rounded bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">
+                S
+              </span>
             </div>
-            <span className="text-lg font-semibold">Stevens Marketplace</span>
+            <span className="hidden sm:block text-lg font-semibold text-foreground">
+              Stevens Senior Design
+            </span>
           </Link>
 
-          <button
-            onClick={handleLogout}
-            className="py-2 px-6 bg-white text-[#9B2335] font-medium rounded-lg
-              hover:bg-gray-100 hover:shadow-lg
-              focus:ring-2 focus:ring-white focus:outline-none
-              transition-all duration-200 ease-in-out"
-          >
-            Log Out
-          </button>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex md:items-center md:space-x-6">
+            <NavLink
+              to="/dashboard"
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+              activeClassName="text-primary"
+            >
+              Dashboard
+            </NavLink>
+            <NavLink
+              to="/marketplace"
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+              activeClassName="text-primary"
+            >
+              Marketplace
+            </NavLink>
+            <NavLink
+              to="/course"
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+              activeClassName="text-primary"
+            >
+              My Course
+            </NavLink>
+            <NavLink
+              to="/group"
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+              activeClassName="text-primary"
+            >
+              My Group
+            </NavLink>
+
+            {/* User Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <UserIcon className="h-4 w-4" />
+                  <span>{user.name}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="cursor-pointer">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/faq" className="cursor-pointer">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    FAQ
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="cursor-pointer text-destructive"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <Button variant="ghost" size="sm" onClick={toggleMenu}>
+              {isOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="md:hidden border-t bg-card">
+          <div className="space-y-1 px-4 pb-3 pt-2">
+            <NavLink
+              to="/dashboard"
+              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+              activeClassName="bg-muted text-primary"
+              onClick={toggleMenu}
+            >
+              Dashboard
+            </NavLink>
+            <NavLink
+              to="/marketplace"
+              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+              activeClassName="bg-muted text-primary"
+              onClick={toggleMenu}
+            >
+              Marketplace
+            </NavLink>
+            <NavLink
+              to="/course"
+              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+              activeClassName="bg-muted text-primary"
+              onClick={toggleMenu}
+            >
+              My Course
+            </NavLink>
+            <NavLink
+              to="/group"
+              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+              activeClassName="bg-muted text-primary"
+              onClick={toggleMenu}
+            >
+              My Group
+            </NavLink>
+            <Link
+              to="/profile"
+              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+              onClick={toggleMenu}
+            >
+              Profile
+            </Link>
+            <Link
+              to="/faq"
+              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+              onClick={toggleMenu}
+            >
+              FAQ
+            </Link>
+            <button
+              onClick={() => {
+                logout();
+                toggleMenu();
+              }}
+              className="block w-full text-left px-3 py-2 text-base font-medium text-destructive hover:bg-muted rounded-md"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
-}
+};
+
+export default Navbar;

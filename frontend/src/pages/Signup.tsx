@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/useAuth';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Signup() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'Student' | 'Course Coordinator'>('Student');
-  const [error, setError] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<"Student" | "Course Coordinator">("Student");
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { register } = useAuth();
@@ -17,17 +17,17 @@ export default function Signup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     // Validate password length
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -40,9 +40,9 @@ export default function Signup() {
         password,
         role,
       });
-      navigate('/');
+      navigate("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -62,7 +62,9 @@ export default function Signup() {
           {/* Header */}
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
-            <p className="text-gray-500">Join Stevens Senior Design Marketplace</p>
+            <p className="text-gray-500">
+              Join Stevens Senior Design Marketplace
+            </p>
           </div>
 
           {/* Error Message */}
@@ -77,7 +79,10 @@ export default function Signup() {
             {/* Name Row */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   First Name
                 </label>
                 <input
@@ -93,7 +98,10 @@ export default function Signup() {
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Last Name
                 </label>
                 <input
@@ -111,7 +119,10 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Email
               </label>
               <input
@@ -129,7 +140,10 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Password
               </label>
               <input
@@ -146,7 +160,10 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Confirm Password
               </label>
               <input
@@ -173,8 +190,12 @@ export default function Signup() {
                     type="radio"
                     name="role"
                     value="Student"
-                    checked={role === 'Student'}
-                    onChange={(e) => setRole(e.target.value as 'Student' | 'Course Coordinator')}
+                    checked={role === "Student"}
+                    onChange={(e) =>
+                      setRole(
+                        e.target.value as "Student" | "Course Coordinator",
+                      )
+                    }
                     className="w-4 h-4 text-[#9B2335] border-gray-300 focus:ring-[#9B2335]"
                     disabled={isSubmitting}
                   />
@@ -185,8 +206,12 @@ export default function Signup() {
                     type="radio"
                     name="role"
                     value="Course Coordinator"
-                    checked={role === 'Course Coordinator'}
-                    onChange={(e) => setRole(e.target.value as 'Student' | 'Course Coordinator')}
+                    checked={role === "Course Coordinator"}
+                    onChange={(e) =>
+                      setRole(
+                        e.target.value as "Student" | "Course Coordinator",
+                      )
+                    }
                     className="w-4 h-4 text-[#9B2335] border-gray-300 focus:ring-[#9B2335]"
                     disabled={isSubmitting}
                   />
@@ -204,13 +229,13 @@ export default function Signup() {
                 transition-all duration-200 ease-in-out
                 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
           {/* Footer */}
           <p className="text-center text-gray-600">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link
               to="/login"
               className="text-[#9B2335] font-medium hover:underline
