@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { BookOpen, Users, Settings, Download, Copy } from "lucide-react";
 import { mockCourses, mockProjects, mockGroups } from "@/data/mockData";
-import { useAuth } from "@/contexts/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const Course = () => {
@@ -18,15 +18,15 @@ const Course = () => {
 
   const isCoordinator = user?.role === "Course Coordinator";
 
-  const courseProjects = mockProjects.filter((p) => p.courseId === course._id);
-  const courseGroups = mockGroups.filter((g) => g.courseId === course._id);
+  const courseProjects = mockProjects.filter((p) => p.courseId === course.id);
+  const courseGroups = mockGroups.filter((g) => g.courseId === course.id);
 
   const filteredProjects = courseProjects.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(course.courseCode);
+    navigator.clipboard.writeText(course.code);
     toast.success("Course code copied to clipboard");
   };
 
@@ -46,12 +46,12 @@ const Course = () => {
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-6 w-6 text-primary" />
                   <h1 className="text-3xl font-bold text-foreground">
-                    {course.program}
+                    {course.programName}
                   </h1>
                 </div>
                 <p className="text-lg text-muted-foreground">
-                  {course.courseNumber} - Section {course.courseSection} •{" "}
-                  {course.season} {course.year}
+                  {course.courseNumber} - Section {course.section} •{" "}
+                  {course.semester} {course.year}
                 </p>
                 <div className="flex items-center gap-3 pt-2">
                   <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
@@ -59,14 +59,14 @@ const Course = () => {
                       Course Code:
                     </span>
                     <span className="font-mono font-bold text-foreground">
-                      {course.courseCode}
+                      {course.code}
                     </span>
                     <Button variant="ghost" size="sm" onClick={handleCopyCode}>
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Badge variant={!course.closed ? "default" : "secondary"}>
-                    {!course.closed ? "Open" : "Closed"}
+                  <Badge variant={course.isOpen ? "default" : "secondary"}>
+                    {course.isOpen ? "Open" : "Closed"}
                   </Badge>
                 </div>
               </div>
@@ -106,7 +106,7 @@ const Course = () => {
                 <div className="space-y-3">
                   {filteredProjects.map((project) => (
                     <div
-                      key={project._id}
+                      key={project.id}
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex-1">
@@ -147,7 +147,7 @@ const Course = () => {
                         asChild
                         className="ml-4"
                       >
-                        <Link to={`/project/${project._id}`}>View</Link>
+                        <Link to={`/project/${project.id}`}>View</Link>
                       </Button>
                     </div>
                   ))}
@@ -171,7 +171,7 @@ const Course = () => {
                 <div className="space-y-3">
                   {courseGroups.map((group) => (
                     <div
-                      key={group._id}
+                      key={group.id}
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex-1">
@@ -181,14 +181,16 @@ const Course = () => {
                             Group {group.groupNumber}
                           </h3>
                           <Badge
-                            variant={group.isOpen ? "default" : "secondary"}
+                            variant={
+                              group.status === "Open" ? "default" : "secondary"
+                            }
                           >
-                            {group.isOpen ? "Open" : "Closed"}
+                            {group.status}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {group.groupMembers.length} member
-                          {group.groupMembers.length !== 1 ? "s" : ""} •{" "}
+                          {group.members.length} member
+                          {group.members.length !== 1 ? "s" : ""} •{" "}
                           {group.interestedProjects.length} interested project
                           {group.interestedProjects.length !== 1 ? "s" : ""}
                         </p>
@@ -222,7 +224,7 @@ const Course = () => {
                       Control whether students can join this course
                     </p>
                     <Button variant="outline">
-                      {!course.closed ? "Close Course" : "Open Course"}
+                      {course.isOpen ? "Close Course" : "Open Course"}
                     </Button>
                   </div>
                   <div className="pt-4 border-t">
@@ -230,7 +232,8 @@ const Course = () => {
                       Group Size Settings
                     </h3>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Min: {course.minGroupSize} • Max: {course.maxGroupSize}
+                      {/* Min/Max group size hardcoded or removed as they are not in Course type */}
+                      Min: 3 • Max: 5
                     </p>
                   </div>
                   <div className="pt-4 border-t">
