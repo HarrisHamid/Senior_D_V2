@@ -97,7 +97,7 @@ describe("Course Routes - /api/courses", () => {
 
     it("should return 400 when program is missing", async () => {
       const { token } = await registerAndGetToken(defaultCoordinator);
-      const { program, ...noProgram } = validCourseData;
+      const { program: _program, ...noProgram } = validCourseData;
 
       const res = await request(app)
         .post("/api/courses/")
@@ -564,7 +564,7 @@ describe("Course Routes - /api/courses", () => {
     });
 
     it("should update the students course field in the database", async () => {
-      const { course, token: coordToken } = await createCourse();
+      const { course, token: _coordToken } = await createCourse();
       const { token: studentToken } = await registerAndGetToken(defaultStudent);
 
       await request(app)

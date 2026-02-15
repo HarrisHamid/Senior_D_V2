@@ -78,7 +78,7 @@ describe("Auth Routes - /api/auth", () => {
     });
 
     it("should return 500 when name is missing", async () => {
-      const { name, ...noName } = defaultStudent;
+      const { name: _name, ...noName } = defaultStudent;
       const res = await request(app).post("/api/auth/register").send(noName);
 
       expect(res.status).toBe(500);
@@ -86,7 +86,7 @@ describe("Auth Routes - /api/auth", () => {
     });
 
     it("should return 500 when email is missing", async () => {
-      const { email, ...noEmail } = defaultStudent;
+      const { email: _email, ...noEmail } = defaultStudent;
       const res = await request(app).post("/api/auth/register").send(noEmail);
 
       expect(res.status).toBe(500);
@@ -94,7 +94,7 @@ describe("Auth Routes - /api/auth", () => {
     });
 
     it("should return 500 when password is missing", async () => {
-      const { password, ...noPassword } = defaultStudent;
+      const { password: _password, ...noPassword } = defaultStudent;
       const res = await request(app)
         .post("/api/auth/register")
         .send(noPassword);
@@ -104,7 +104,7 @@ describe("Auth Routes - /api/auth", () => {
     });
 
     it("should return 500 when role is missing", async () => {
-      const { role, ...noRole } = defaultStudent;
+      const { role: _role, ...noRole } = defaultStudent;
       const res = await request(app).post("/api/auth/register").send(noRole);
 
       expect(res.status).toBe(500);
