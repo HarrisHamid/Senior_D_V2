@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { GraduationCap, Users, FolderOpen, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
+
 const Home = () => {
     const [courseCode, setCourseCode] = useState('');
     const navigate = useNavigate();
