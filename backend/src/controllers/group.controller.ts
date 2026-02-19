@@ -18,16 +18,17 @@ export const createNewGroup = async (
 
     const { courseId } = req.body;
     if (!courseId) {
-      res.status(400).json({ success: false, message: "Course ID is required" });
+      res
+        .status(400)
+        .json({ success: false, message: "Course ID is required" });
       return;
     }
 
     const groupCode = await generateUniqueGroupCode(
-      Group as unknown as import("mongoose").Model<{ groupCode: string }>
+      Group as unknown as import("mongoose").Model<{ groupCode: string }>,
     );
 
-    const groupNumber =
-      (await Group.countDocuments({ courseId })) + 1;
+    const groupNumber = (await Group.countDocuments({ courseId })) + 1;
 
     const newGroup = await Group.create({
       groupNumber,
