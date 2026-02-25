@@ -19,7 +19,7 @@ router.patch("/", validateRequest(userSchemas.updateProfile), updateProfile);
 router.patch(
   "/password",
   validateRequest(userSchemas.changePassword),
-  changePassword
+  changePassword,
 );
 
 export default router;
