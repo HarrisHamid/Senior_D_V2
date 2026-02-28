@@ -83,7 +83,7 @@ export const joinGroup = async (
       return;
     }
 
-    if (group.groupMembers.includes(new Types.ObjectId(user._id))) {
+    if (group.groupMembers.some((id) => id.toString() === user._id)) {
       res.status(400).json({ success: false, message: "Already in group" });
       return;
     }
