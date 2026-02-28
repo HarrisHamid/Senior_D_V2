@@ -48,11 +48,7 @@ router.get(
   getAllInterestedGroups,
 );
 
-router.get(
-  "/:groupId",
-  validateRequest(groupSchemas.groupId),
-  getGroupById,
-);
+router.get("/:groupId", validateRequest(groupSchemas.groupId), getGroupById);
 
 // Student-only routes with :groupId param
 router.delete(

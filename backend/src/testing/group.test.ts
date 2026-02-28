@@ -45,8 +45,11 @@ describe("Group Routes - /api/groups", () => {
 
   // Helper: register coordinator + course + register student + student creates group
   const setupGroup = async (student?: TestUser, coordinator?: TestUser) => {
-    const { coordToken, userId: coordUserId, course } =
-      await setupCourse(coordinator);
+    const {
+      coordToken,
+      userId: coordUserId,
+      course,
+    } = await setupCourse(coordinator);
     const { token: studentToken, userId: studentId } =
       await registerAndGetToken(student || defaultStudent);
 
@@ -532,7 +535,8 @@ describe("Group Routes - /api/groups", () => {
   // =====================================================================
   describe("POST /api/groups/:groupId/interested-projects - Add Interest", () => {
     it("should add a project to interestedProjects and return 200", async () => {
-      const { studentToken, coordToken, coordUserId, course, group } = await setupGroup();
+      const { studentToken, coordToken, coordUserId, course, group } =
+        await setupGroup();
       const project = await createProjectInDB(course._id, coordUserId);
 
       const res = await request(app)
@@ -546,7 +550,8 @@ describe("Group Routes - /api/groups", () => {
     });
 
     it("should return 400 when project is already in interestedProjects", async () => {
-      const { studentToken, coordToken, coordUserId, course, group } = await setupGroup();
+      const { studentToken, coordToken, coordUserId, course, group } =
+        await setupGroup();
       const project = await createProjectInDB(course._id, coordUserId);
 
       await request(app)
@@ -564,7 +569,8 @@ describe("Group Routes - /api/groups", () => {
     });
 
     it("should return 400 when interestedProjects already has 4 entries", async () => {
-      const { studentToken, coordToken, coordUserId, course, group } = await setupGroup();
+      const { studentToken, coordToken, coordUserId, course, group } =
+        await setupGroup();
 
       // Add 4 projects directly
       const projectIds = await Promise.all(
@@ -611,7 +617,8 @@ describe("Group Routes - /api/groups", () => {
     });
 
     it("should return 404 when group does not exist", async () => {
-      const { studentToken, coordToken, coordUserId, course } = await setupGroup();
+      const { studentToken, coordToken, coordUserId, course } =
+        await setupGroup();
       const project = await createProjectInDB(course._id, coordUserId);
       const fakeGroupId = new mongoose.Types.ObjectId().toString();
 
@@ -629,7 +636,8 @@ describe("Group Routes - /api/groups", () => {
   // =====================================================================
   describe("DELETE /api/groups/:groupId/interested-projects - Remove Interest", () => {
     it("should remove a project from interestedProjects and return 200", async () => {
-      const { studentToken, coordToken, coordUserId, course, group } = await setupGroup();
+      const { studentToken, coordToken, coordUserId, course, group } =
+        await setupGroup();
       const project = await createProjectInDB(course._id, coordUserId);
 
       // Add first
@@ -672,7 +680,8 @@ describe("Group Routes - /api/groups", () => {
     });
 
     it("should return 404 when group does not exist", async () => {
-      const { studentToken, coordToken, coordUserId, course } = await setupGroup();
+      const { studentToken, coordToken, coordUserId, course } =
+        await setupGroup();
       const project = await createProjectInDB(course._id, coordUserId);
       const fakeGroupId = new mongoose.Types.ObjectId().toString();
 
@@ -690,7 +699,8 @@ describe("Group Routes - /api/groups", () => {
   // =====================================================================
   describe("GET /api/groups/interested/:projectId - Get Interested Groups", () => {
     it("should return groups interested in a project with numberOfMembers", async () => {
-      const { studentToken, coordToken, coordUserId, course, group } = await setupGroup();
+      const { studentToken, coordToken, coordUserId, course, group } =
+        await setupGroup();
       const project = await createProjectInDB(course._id, coordUserId);
 
       await request(app)
