@@ -135,11 +135,27 @@ export const getProjectsByCourse = async (
       filter.assignedGroup = { $ne: null };
     }
 
-    const projects = await Project.find(filter).sort({ createdAt: -1 });
+    const page = parseInt(query.page as string) || 1;
+    const limit = Math.min(parseInt(query.limit as string) || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const [projects, total] = await Promise.all([
+      Project.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Project.countDocuments(filter),
+    ]);
 
     res.status(200).json({
       success: true,
-      data: { projects, count: projects.length },
+      data: {
+        projects,
+        count: projects.length,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
     });
   } catch (error) {
     console.error("Get projects error:", error);
