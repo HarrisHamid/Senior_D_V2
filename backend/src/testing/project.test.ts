@@ -442,9 +442,7 @@ describe("Project Routes - /api/projects", () => {
     it("should return 401 when no token is provided", async () => {
       const { course } = await setupProject();
 
-      const res = await request(app).get(
-        `/api/projects/course/${course._id}`,
-      );
+      const res = await request(app).get(`/api/projects/course/${course._id}`);
 
       expect(res.status).toBe(401);
     });
