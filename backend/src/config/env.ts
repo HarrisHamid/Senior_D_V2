@@ -38,6 +38,19 @@ export const env = {
   PORT: getEnvVarWithDefault("PORT", "5000"),
   NODE_ENV: getEnvVarWithDefault("NODE_ENV", "development"),
   CORS_ORIGIN: getEnvVarWithDefault("CORS_ORIGIN", "http://localhost:5173"),
+  EMAIL_PROVIDER: getEnvVarWithDefault("EMAIL_PROVIDER", "console"),
+  EMAIL_FROM: getEnvVarWithDefault(
+    "EMAIL_FROM",
+    "no-reply@seniordesignmarketplace.local",
+  ),
+  VERIFICATION_CODE_LENGTH: getEnvVarWithDefault(
+    "VERIFICATION_CODE_LENGTH",
+    "6",
+  ),
+  VERIFICATION_CODE_TTL_MINUTES: getEnvVarWithDefault(
+    "VERIFICATION_CODE_TTL_MINUTES",
+    "10",
+  ),
 } as const;
 
 // Validate all required env vars on app startup

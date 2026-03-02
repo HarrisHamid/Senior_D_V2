@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import User from "../models/User.model"; // User model, how does it work here
 import { generateToken, sendTokenCookie } from "../utils/jwt.utils";
 import { AuthRequest } from "../types";
+import {
+  issueVerificationCode,
+  validateVerificationCode,
+} from "../services/verification.service";
 
 // Register a new user
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -24,7 +28,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       email,
       password,
       role,
+      verificationNeeded: true,
     });
+
+    await issueVerificationCode(user._id, user.email);
 
     // Generate JWT token
     const token = generateToken({
@@ -46,6 +53,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           name: user.name,
           email: user.email,
           role: user.role,
+          verificationNeeded: user.verificationNeeded,
         },
         token,
       },
@@ -107,6 +115,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           name: user.name,
           email: user.email,
           role: user.role,
+          verificationNeeded: user.verificationNeeded,
         },
         token,
       },
@@ -175,6 +184,117 @@ export const getCurrentUser = async (
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Error fetching user";
+    res.status(500).json({
+      success: false,
+      error: message,
+    });
+  }
+};
+
+export const resendVerificationCode = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: "Not authenticated",
+      });
+      return;
+    }
+
+    if (!req.user.verificationNeeded) {
+      res.status(400).json({
+        success: false,
+        error: "Email is already verified",
+      });
+      return;
+    }
+
+    await issueVerificationCode(req.user._id, req.user.email);
+
+    res.status(200).json({
+      success: true,
+      message: "Verification code sent",
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Error sending verification code";
+
+    res.status(500).json({
+      success: false,
+      error: message,
+    });
+  }
+};
+
+export const verifyEmailCode = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: "Not authenticated",
+      });
+      return;
+    }
+
+    const { code } = req.body as { code?: string };
+    if (!code || typeof code !== "string") {
+      res.status(400).json({
+        success: false,
+        error: "Verification code is required",
+      });
+      return;
+    }
+
+    const isValid = await validateVerificationCode(
+      req.user._id,
+      req.user.email,
+      code,
+    );
+
+    if (!isValid) {
+      res.status(400).json({
+        success: false,
+        error: "Invalid or expired verification code",
+      });
+      return;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { verificationNeeded: false },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      data: {
+        user: {
+          id: updatedUser._id,
+          email: updatedUser.email,
+          verificationNeeded: updatedUser.verificationNeeded,
+        },
+      },
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Error verifying email";
     res.status(500).json({
       success: false,
       error: message,

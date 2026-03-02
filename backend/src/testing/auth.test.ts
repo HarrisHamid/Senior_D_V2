@@ -2,6 +2,7 @@
 process.env.JWT_SECRET = "test-jwt-secret-key-for-testing";
 process.env.MONGO_URI = "mongodb://localhost:27017/test-placeholder";
 process.env.NODE_ENV = "test";
+process.env.EMAIL_PROVIDER = "disabled";
 
 import jwt from "jsonwebtoken";
 import request from "supertest";
@@ -10,6 +11,8 @@ import { connectTestDB, disconnectTestDB, clearTestDB } from "./helpers/db";
 import { defaultCoordinator, defaultStudent } from "./helpers/auth";
 import { generateToken, verifyToken, JwtPayload } from "../utils/jwt.utils";
 import { env } from "../config/env";
+import VerificationCode from "../models/VerificationCode.model";
+import { hashVerificationCode } from "../services/verification.service";
 
 const samplePayload: JwtPayload = {
   userId: "64abc123def456789012abcd",
@@ -133,6 +136,7 @@ describe("Auth Routes - /api/auth", () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.user.email).toBe(defaultStudent.email);
       expect(res.body.data.user.role).toBe("Student");
+      expect(res.body.data.user.verificationNeeded).toBe(true);
       expect(res.body.data.token).toBeDefined();
     });
 
@@ -372,6 +376,113 @@ describe("Auth Routes - /api/auth", () => {
 
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
+    });
+  });
+});
+
+describe("Email Verification Routes", () => {
+  beforeAll(async () => {
+    await connectTestDB();
+  });
+
+  afterAll(async () => {
+    await disconnectTestDB();
+  });
+
+  afterEach(async () => {
+    await clearTestDB();
+  });
+
+  describe("POST /api/auth/verification/resend", () => {
+    it("should return 401 when no auth token is provided", async () => {
+      const res = await request(app).post("/api/auth/verification/resend");
+
+      expect(res.status).toBe(401);
+      expect(res.body.success).toBe(false);
+    });
+
+    it("should resend a verification code for unverified users", async () => {
+      const registerRes = await request(app)
+        .post("/api/auth/register")
+        .send(defaultStudent);
+      const token = registerRes.body.data.token;
+
+      const res = await request(app)
+        .post("/api/auth/verification/resend")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+
+      const codeRecord = await VerificationCode.findOne({
+        email: defaultStudent.email,
+      });
+      expect(codeRecord).not.toBeNull();
+    });
+  });
+
+  describe("POST /api/auth/verification/verify", () => {
+    it("should verify email and set verificationNeeded to false", async () => {
+      const registerRes = await request(app)
+        .post("/api/auth/register")
+        .send(defaultStudent);
+      const token = registerRes.body.data.token;
+      const userId = registerRes.body.data.user.id;
+
+      await VerificationCode.findOneAndUpdate(
+        { userId, email: defaultStudent.email },
+        {
+          userId,
+          email: defaultStudent.email,
+          codeHash: hashVerificationCode("123456"),
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        },
+        { upsert: true, new: true },
+      );
+
+      const verifyRes = await request(app)
+        .post("/api/auth/verification/verify")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ code: "123456" });
+
+      expect(verifyRes.status).toBe(200);
+      expect(verifyRes.body.success).toBe(true);
+      expect(verifyRes.body.data.user.verificationNeeded).toBe(false);
+
+      const meRes = await request(app)
+        .get("/api/auth/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(meRes.status).toBe(200);
+      expect(meRes.body.data.user.verificationNeeded).toBe(false);
+    });
+
+    it("should reject an expired verification code", async () => {
+      const registerRes = await request(app)
+        .post("/api/auth/register")
+        .send(defaultStudent);
+      const token = registerRes.body.data.token;
+      const userId = registerRes.body.data.user.id;
+
+      await VerificationCode.findOneAndUpdate(
+        { userId, email: defaultStudent.email },
+        {
+          userId,
+          email: defaultStudent.email,
+          codeHash: hashVerificationCode("654321"),
+          expiresAt: new Date(Date.now() - 60 * 1000),
+        },
+        { upsert: true, new: true },
+      );
+
+      const verifyRes = await request(app)
+        .post("/api/auth/verification/verify")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ code: "654321" });
+
+      expect(verifyRes.status).toBe(400);
+      expect(verifyRes.body.success).toBe(false);
+      expect(verifyRes.body.error).toBe("Invalid or expired verification code");
     });
   });
 });

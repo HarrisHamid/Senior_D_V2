@@ -4,6 +4,8 @@ import {
   login,
   logout,
   getCurrentUser,
+  resendVerificationCode,
+  verifyEmailCode,
 } from "../controllers/auth.controller";
 import { authenticate } from "../middleware/auth.middleware";
 
@@ -16,5 +18,7 @@ router.post("/logout", logout);
 
 // Protected routes (require authentication)
 router.get("/me", authenticate, getCurrentUser);
+router.post("/verification/resend", authenticate, resendVerificationCode);
+router.post("/verification/verify", authenticate, verifyEmailCode);
 
 export default router;
