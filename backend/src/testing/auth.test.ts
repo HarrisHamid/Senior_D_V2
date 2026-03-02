@@ -8,11 +8,7 @@ import request from "supertest";
 import app from "../server";
 import { connectTestDB, disconnectTestDB, clearTestDB } from "./helpers/db";
 import { defaultCoordinator, defaultStudent } from "./helpers/auth";
-import {
-  generateToken,
-  verifyToken,
-  JwtPayload,
-} from "../utils/jwt.utils";
+import { generateToken, verifyToken, JwtPayload } from "../utils/jwt.utils";
 import { env } from "../config/env";
 
 const samplePayload: JwtPayload = {
@@ -97,7 +93,9 @@ describe("JWT Token - generateToken / verifyToken", () => {
       const forgedToken = jwt.sign(samplePayload as object, "wrong-secret", {
         expiresIn: "7d",
       });
-      expect(() => verifyToken(forgedToken)).toThrow("Invalid or expired token");
+      expect(() => verifyToken(forgedToken)).toThrow(
+        "Invalid or expired token",
+      );
     });
 
     it("generateToken should throw when JWT_SECRET is missing", () => {
