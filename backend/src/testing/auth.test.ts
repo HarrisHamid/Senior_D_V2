@@ -3,10 +3,113 @@ process.env.JWT_SECRET = "test-jwt-secret-key-for-testing";
 process.env.MONGO_URI = "mongodb://localhost:27017/test-placeholder";
 process.env.NODE_ENV = "test";
 
+import jwt from "jsonwebtoken";
 import request from "supertest";
 import app from "../server";
 import { connectTestDB, disconnectTestDB, clearTestDB } from "./helpers/db";
 import { defaultCoordinator, defaultStudent } from "./helpers/auth";
+import {
+  generateToken,
+  verifyToken,
+  JwtPayload,
+} from "../utils/jwt.utils";
+import { env } from "../config/env";
+
+const samplePayload: JwtPayload = {
+  userId: "64abc123def456789012abcd",
+  email: "jwt-test@example.com",
+  role: "Student",
+};
+
+describe("JWT Token - generateToken / verifyToken", () => {
+  describe("Valid token generation", () => {
+    it("should return a non-empty JWT string with three base64url segments", () => {
+      const token = generateToken(samplePayload);
+      expect(typeof token).toBe("string");
+      expect(token.length).toBeGreaterThan(0);
+      expect(token.split(".")).toHaveLength(3);
+    });
+  });
+
+  describe("Token contains required claims", () => {
+    it("should include exp and iat standard claims", () => {
+      const token = generateToken(samplePayload);
+      const decoded = jwt.decode(token) as Record<string, unknown>;
+      expect(decoded).toHaveProperty("exp");
+      expect(decoded).toHaveProperty("iat");
+      expect(typeof decoded.exp).toBe("number");
+      expect(typeof decoded.iat).toBe("number");
+    });
+  });
+
+  describe("Custom payload inclusion", () => {
+    it("should encode userId, email, and role in the token", () => {
+      const token = generateToken(samplePayload);
+      const decoded = jwt.decode(token) as Record<string, unknown>;
+      expect(decoded.userId).toBe(samplePayload.userId);
+      expect(decoded.email).toBe(samplePayload.email);
+      expect(decoded.role).toBe(samplePayload.role);
+    });
+
+    it("should round-trip correctly through verifyToken", () => {
+      const token = generateToken(samplePayload);
+      const verified = verifyToken(token);
+      expect(verified.userId).toBe(samplePayload.userId);
+      expect(verified.email).toBe(samplePayload.email);
+      expect(verified.role).toBe(samplePayload.role);
+    });
+  });
+
+  describe("Token expiration setting", () => {
+    it("should set exp to 7 days after iat", () => {
+      const token = generateToken(samplePayload);
+      const decoded = jwt.decode(token) as Record<string, unknown>;
+      const exp = decoded.exp as number;
+      const iat = decoded.iat as number;
+      const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+      expect(exp - iat).toBe(sevenDaysInSeconds);
+    });
+
+    it("should set iat to approximately the current time", () => {
+      const before = Math.floor(Date.now() / 1000);
+      const token = generateToken(samplePayload);
+      const after = Math.floor(Date.now() / 1000);
+      const decoded = jwt.decode(token) as Record<string, unknown>;
+      expect(decoded.iat as number).toBeGreaterThanOrEqual(before);
+      expect(decoded.iat as number).toBeLessThanOrEqual(after);
+    });
+  });
+
+  describe("Invalid secret handling", () => {
+    it("should throw when verifying a token signed with a different secret", () => {
+      const token = generateToken(samplePayload);
+      expect(() => jwt.verify(token, "wrong-secret")).toThrow();
+    });
+
+    it("verifyToken should throw 'Invalid or expired token' for a tampered signature", () => {
+      const token = generateToken(samplePayload);
+      const [header, payload] = token.split(".");
+      const tampered = `${header}.${payload}.invalidsignature`;
+      expect(() => verifyToken(tampered)).toThrow("Invalid or expired token");
+    });
+
+    it("verifyToken should throw 'Invalid or expired token' for a token signed with the wrong secret", () => {
+      const forgedToken = jwt.sign(samplePayload as object, "wrong-secret", {
+        expiresIn: "7d",
+      });
+      expect(() => verifyToken(forgedToken)).toThrow("Invalid or expired token");
+    });
+
+    it("generateToken should throw when JWT_SECRET is missing", () => {
+      const original = (env as { JWT_SECRET: string }).JWT_SECRET;
+      (env as { JWT_SECRET: string }).JWT_SECRET = "";
+      expect(() => generateToken(samplePayload)).toThrow(
+        "JWT_SECRET is not defined",
+      );
+      (env as { JWT_SECRET: string }).JWT_SECRET = original;
+    });
+  });
+});
 
 describe("Auth Routes - /api/auth", () => {
   beforeAll(async () => {
