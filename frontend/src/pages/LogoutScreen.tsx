@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 export default function LogoutScreen() {
   return (
@@ -14,8 +14,12 @@ export default function LogoutScreen() {
 
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-gray-900">You've Been Logged Out</h1>
-            <p className="text-gray-500">Thank you for visiting Stevens Senior Design Marketplace</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              You've Been Logged Out
+            </h1>
+            <p className="text-gray-500">
+              Thank you for visiting Stevens Senior Design Marketplace
+            </p>
           </div>
 
           {/* Actions */}
