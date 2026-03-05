@@ -15,6 +15,9 @@ import {
   TestUser,
 } from "./helpers/auth";
 import { validCourseData } from "./helpers/fixtures";
+import { Group } from "../models/Group.model";
+import { Project } from "../models/Project.model";
+import User from "../models/User.model";
 
 describe("Course Routes - /api/courses", () => {
   beforeAll(async () => {
@@ -241,9 +244,14 @@ describe("Course Routes - /api/courses", () => {
       expect(res.body.data.course._id).toBe(course._id);
     });
 
-    it("should return the course when called by a Student", async () => {
+    it("should return the course when called by an enrolled Student", async () => {
       const { course } = await createCourse();
       const { token: studentToken } = await registerAndGetToken(defaultStudent);
+
+      await request(app)
+        .post("/api/courses/join")
+        .set(authHeader(studentToken))
+        .send({ courseCode: course.courseCode });
 
       const res = await request(app)
         .get(`/api/courses/${course._id}`)
@@ -251,6 +259,18 @@ describe("Course Routes - /api/courses", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.data.course._id).toBe(course._id);
+    });
+
+    it("should return 403 when student is not enrolled in the course", async () => {
+      const { course } = await createCourse();
+      const { token: studentToken } = await registerAndGetToken(defaultStudent);
+
+      const res = await request(app)
+        .get(`/api/courses/${course._id}`)
+        .set(authHeader(studentToken));
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
     });
 
     it("should return 404 when course ID does not exist", async () => {
@@ -297,6 +317,77 @@ describe("Course Routes - /api/courses", () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.course.closed).toBe(true);
+    });
+
+    it("should close all related projects and groups", async () => {
+      const { token, userId, course } = await createCourse();
+
+      const openGroup = await Group.create({
+        groupNumber: 1,
+        courseId: course._id,
+        groupMembers: [],
+        isOpen: true,
+        interestedProjects: [],
+        assignedProject: null,
+      });
+
+      const assignedProject = await Project.create({
+        courseId: String(course._id),
+        userId,
+        name: "Unassigned Project",
+        description: "Unassigned",
+        advisors: [],
+        sponsor: "Sponsor",
+        contacts: [],
+        majors: [],
+        year: validCourseData.year,
+        internal: true,
+        assignedGroup: null,
+        isOpen: true,
+      });
+
+      await Group.findByIdAndUpdate(openGroup._id, {
+        assignedProject: assignedProject._id,
+      });
+
+      await Project.create({
+        courseId: String(course._id),
+        userId,
+        name: "Unassigned Project",
+        description: "Unassigned",
+        advisors: [],
+        sponsor: "Sponsor",
+        contacts: [],
+        majors: [],
+        year: validCourseData.year,
+        internal: true,
+        assignedGroup: null,
+        isOpen: true,
+      });
+
+      const openGroup2 = await Group.create({
+        groupNumber: 2,
+        courseId: course._id,
+        groupMembers: [],
+        isOpen: true,
+        interestedProjects: [],
+        assignedProject: null,
+      });
+
+      await request(app)
+        .patch(`/api/courses/${course._id}/close`)
+        .set(authHeader(token));
+
+      const [groups, projects] = await Promise.all([
+        Group.find({ courseId: course._id }),
+        Project.find({ courseId: course._id }),
+      ]);
+
+      expect(groups).toHaveLength(2);
+      expect(projects).toHaveLength(2);
+      expect(groups.every((g) => g.isOpen === false)).toBe(true);
+      expect(projects.every((p) => p.isOpen === false)).toBe(true);
+      expect(openGroup2.isOpen).toBe(true);
     });
 
     it("should return 401 when no token is provided", async () => {
@@ -383,6 +474,84 @@ describe("Course Routes - /api/courses", () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.course.closed).toBe(false);
+    });
+
+    it("should only reopen unassigned projects and groups", async () => {
+      const { token, userId, course } = await createCourse();
+
+      const assignedGroup = await Group.create({
+        groupNumber: 1,
+        courseId: course._id,
+        groupMembers: [],
+        isOpen: true,
+        interestedProjects: [],
+        assignedProject: null,
+      });
+
+      const assignedProject = await Project.create({
+        courseId: String(course._id),
+        userId,
+        name: "Unassigned Project",
+        description: "Unassigned",
+        advisors: [],
+        sponsor: "Sponsor",
+        contacts: [],
+        majors: [],
+        year: validCourseData.year,
+        internal: true,
+        assignedGroup: null,
+        isOpen: true,
+      });
+
+      await Group.findByIdAndUpdate(assignedGroup._id, {
+        assignedProject: assignedProject._id,
+      });
+
+      const unassignedGroup = await Group.create({
+        groupNumber: 2,
+        courseId: course._id,
+        groupMembers: [],
+        isOpen: true,
+        interestedProjects: [],
+        assignedProject: null,
+      });
+
+      const unassignedProject = await Project.create({
+        courseId: String(course._id),
+        userId,
+        name: "Unassigned Project",
+        description: "Unassigned",
+        advisors: [],
+        sponsor: "Sponsor",
+        contacts: [],
+        majors: [],
+        year: validCourseData.year,
+        internal: true,
+        assignedGroup: null,
+        isOpen: true,
+      });
+
+      await request(app)
+        .patch(`/api/courses/${course._id}/close`)
+        .set(authHeader(token));
+
+      await request(app)
+        .patch(`/api/courses/${course._id}/open`)
+        .set(authHeader(token));
+
+      const [freshAssignedGroup, freshUnassignedGroup] = await Promise.all([
+        Group.findById(assignedGroup._id),
+        Group.findById(unassignedGroup._id),
+      ]);
+      const [freshAssignedProject, freshUnassignedProject] = await Promise.all([
+        Project.findById(assignedProject._id),
+        Project.findById(unassignedProject._id),
+      ]);
+
+      expect(freshAssignedGroup?.isOpen).toBe(false);
+      expect(freshAssignedProject?.isOpen).toBe(false);
+      expect(freshUnassignedGroup?.isOpen).toBe(true);
+      expect(freshUnassignedProject?.isOpen).toBe(true);
     });
 
     it("should return 401 when no token is provided", async () => {
@@ -496,6 +665,111 @@ describe("Course Routes - /api/courses", () => {
       expect(res.body.data.course.courseNumber).toBe(
         validCourseData.courseNumber,
       );
+    });
+
+    it("should include group/project and match counts", async () => {
+      const { token, userId, course } = await createCourse();
+
+      const studentA: TestUser = {
+        name: "Student A",
+        email: "studA@test.com",
+        password: "Password123!",
+        role: "Student",
+      };
+      const studentB: TestUser = {
+        name: "Student B",
+        email: "studB@test.com",
+        password: "Password123!",
+        role: "Student",
+      };
+
+      const [
+        { token: studentAToken, userId: studentAId },
+        { userId: studentBId },
+      ] = await Promise.all([
+        registerAndGetToken(studentA),
+        registerAndGetToken(studentB),
+      ]);
+
+      await request(app)
+        .post("/api/courses/join")
+        .set(authHeader(studentAToken))
+        .send({ courseCode: course.courseCode });
+
+      await User.findByIdAndUpdate(studentBId, {
+        course: course._id,
+      });
+
+      const matchedGroup = await Group.create({
+        groupNumber: 1,
+        courseId: String(course._id),
+        groupMembers: [new mongoose.Types.ObjectId(studentAId)],
+        isOpen: false,
+        interestedProjects: [],
+        assignedProject: null,
+      });
+
+      const matchedProject = await Project.create({
+        courseId: String(course._id),
+        userId,
+        name: "Matched",
+        description: "Matched",
+        advisors: [],
+        sponsor: "Sponsor",
+        contacts: [],
+        majors: [],
+        year: validCourseData.year,
+        internal: true,
+        assignedGroup: matchedGroup._id,
+        isOpen: false,
+      });
+
+      await Group.findByIdAndUpdate(matchedGroup._id, {
+        assignedProject: matchedProject._id,
+      });
+
+      await Group.create({
+        groupNumber: 2,
+        courseId: String(course._id),
+        groupMembers: [],
+        isOpen: true,
+        interestedProjects: [],
+        assignedProject: null,
+      });
+
+      await Project.create({
+        courseId: String(course._id),
+        userId,
+        name: "Open",
+        description: "Open",
+        advisors: [],
+        sponsor: "Sponsor",
+        contacts: [],
+        majors: [],
+        year: validCourseData.year,
+        internal: true,
+        assignedGroup: null,
+        isOpen: true,
+      });
+
+      await User.findByIdAndUpdate(studentAId, {
+        groupId: String(matchedGroup._id),
+      });
+
+      const res = await request(app)
+        .get(`/api/courses/${course._id}/stats`)
+        .set(authHeader(token));
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.stats.totalGroups).toBe(2);
+      expect(res.body.data.stats.openGroups).toBe(1);
+      expect(res.body.data.stats.matchedGroups).toBe(1);
+      expect(res.body.data.stats.totalProjects).toBe(2);
+      expect(res.body.data.stats.openProjects).toBe(1);
+      expect(res.body.data.stats.matchedProjects).toBe(1);
+      expect(res.body.data.stats.totalStudents).toBe(2);
+      expect(res.body.data.stats.studentsInGroups).toBe(1);
+      expect(res.body.data.stats.studentsWithoutGroups).toBe(1);
     });
 
     it("should return 401 when no token is provided", async () => {
