@@ -3,6 +3,8 @@ import { AuthRequest } from "../types";
 import Course from "../models/Course.model";
 import User from "../models/User.model";
 import { generateUniqueCourseCode } from "../utils/codeGenerator";
+import { Project } from "../models/Project.model";
+import { Group } from "../models/Group.model";
 
 /**
  * Create a new course (Course Coordinator only)
@@ -85,6 +87,27 @@ export const getCourseById = async (
       res.status(404).json({
         success: false,
         error: "Course not found",
+      });
+      return;
+    }
+
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: "Not authenticated",
+      });
+      return;
+    }
+
+    const isCoordinatorOwner =
+      user.role === "Course Coordinator" && course.userId === user._id;
+    const isEnrolledStudent = user.role === "Student" && user.course === id;
+
+    if (!isCoordinatorOwner && !isEnrolledStudent) {
+      res.status(403).json({
+        success: false,
+        error: "You do not have access to this course",
       });
       return;
     }
@@ -266,7 +289,12 @@ export const closeCourse = async (
 
     // Close the course
     course.closed = true;
-    await course.save();
+
+    await Promise.all([
+      course.save(),
+      Project.updateMany({ courseId: id }, { isOpen: false }),
+      Group.updateMany({ courseId: id }, { isOpen: false }),
+    ]);
 
     res.status(200).json({
       success: true,
@@ -335,8 +363,17 @@ export const reopenCourse = async (
 
     // Reopen the course
     course.closed = false;
-    await course.save();
-
+    await Promise.all([
+      course.save(),
+      Project.updateMany(
+        { courseId: id, assignedGroup: null },
+        { isOpen: true },
+      ),
+      Group.updateMany(
+        { courseId: id, assignedProject: null },
+        { isOpen: true },
+      ),
+    ]);
     res.status(200).json({
       success: true,
       data: {
@@ -393,16 +430,36 @@ export const getCourseStats = async (
       return;
     }
 
-    // Count enrolled students
-    const enrolledStudents = await User.countDocuments({
-      course: course._id.toString(),
-    });
+    const courseId = course._id.toString();
 
-    // Count students in groups
-    const studentsInGroups = await User.countDocuments({
-      course: course._id.toString(),
-      groupId: { $ne: null },
-    });
+    const [
+      enrolledStudents,
+      studentsInGroups,
+      totalGroups,
+      openGroups,
+      matchedGroups,
+      totalProjects,
+      openProjects,
+      matchedProjects,
+    ] = await Promise.all([
+      User.countDocuments({ course: courseId }),
+      User.countDocuments({
+        course: courseId,
+        groupId: { $nin: [null, ""] },
+      }),
+      Group.countDocuments({ courseId }),
+      Group.countDocuments({ courseId, isOpen: true }),
+      Group.countDocuments({
+        courseId,
+        assignedProject: { $ne: null },
+      }),
+      Project.countDocuments({ courseId }),
+      Project.countDocuments({ courseId, isOpen: true }),
+      Project.countDocuments({
+        courseId,
+        assignedGroup: { $ne: null },
+      }),
+    ]);
 
     // Count students without groups
     const studentsWithoutGroups = enrolledStudents - studentsInGroups;
@@ -423,7 +480,12 @@ export const getCourseStats = async (
           totalStudents: enrolledStudents,
           studentsInGroups,
           studentsWithoutGroups,
-          totalGroups: course.lastGroupNumber,
+          totalGroups,
+          openGroups,
+          matchedGroups,
+          totalProjects,
+          openProjects,
+          matchedProjects,
           minGroupSize: course.minGroupSize,
           maxGroupSize: course.maxGroupSize,
         },
