@@ -1,5 +1,5 @@
 // Auth & User Types
-export type UserRole = "Student" | "Course Coordinator";
+export type UserRole = "student" | "course coordinator";
 
 export interface User {
   id: string;

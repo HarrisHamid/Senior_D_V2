@@ -7,6 +7,10 @@ import {
 } from "react";
 import type { User, LoginRequest, RegisterRequest } from "@/types";
 import { authService } from "@/services/auth.service";
+import {
+  userService,
+  type UpdateProfileRequest,
+} from "@/services/user.service";
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +19,7 @@ interface AuthContextType {
   login: (credentials: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (data: UpdateProfileRequest) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,6 +69,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateUser = async (data: UpdateProfileRequest) => {
+    const response = await userService.updateProfile(data);
+    if (response.success && response.data.user) {
+      setUser(response.data.user);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -73,6 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
+        updateUser,
       }}
     >
       {children}
