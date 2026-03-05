@@ -233,7 +233,7 @@ export default function Signup() {
             </button>
           </form>
 
-          {/* Footer */}
+          {/* Footer  */}
           <p className="text-center text-gray-600">
             Already have an account?{" "}
             <Link
