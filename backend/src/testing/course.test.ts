@@ -332,18 +332,18 @@ describe("Course Routes - /api/courses", () => {
       });
 
       const assignedProject = await Project.create({
-        courseId: course._id,
+        courseId: String(course._id),
         userId,
-        name: "Assigned Project",
-        description: "Assigned",
+        name: "Unassigned Project",
+        description: "Unassigned",
         advisors: [],
         sponsor: "Sponsor",
         contacts: [],
         majors: [],
         year: validCourseData.year,
         internal: true,
-        assignedGroup: openGroup._id,
-        isOpen: false,
+        assignedGroup: null,
+        isOpen: true,
       });
 
       await Group.findByIdAndUpdate(openGroup._id, {
@@ -351,7 +351,7 @@ describe("Course Routes - /api/courses", () => {
       });
 
       await Project.create({
-        courseId: course._id,
+        courseId: String(course._id),
         userId,
         name: "Unassigned Project",
         description: "Unassigned",
@@ -489,18 +489,18 @@ describe("Course Routes - /api/courses", () => {
       });
 
       const assignedProject = await Project.create({
-        courseId: course._id,
+        courseId: String(course._id),
         userId,
-        name: "Assigned Project",
-        description: "Assigned",
+        name: "Unassigned Project",
+        description: "Unassigned",
         advisors: [],
         sponsor: "Sponsor",
         contacts: [],
         majors: [],
         year: validCourseData.year,
         internal: true,
-        assignedGroup: assignedGroup._id,
-        isOpen: false,
+        assignedGroup: null,
+        isOpen: true,
       });
 
       await Group.findByIdAndUpdate(assignedGroup._id, {
@@ -517,7 +517,7 @@ describe("Course Routes - /api/courses", () => {
       });
 
       const unassignedProject = await Project.create({
-        courseId: course._id,
+        courseId: String(course._id),
         userId,
         name: "Unassigned Project",
         description: "Unassigned",
@@ -702,15 +702,15 @@ describe("Course Routes - /api/courses", () => {
 
       const matchedGroup = await Group.create({
         groupNumber: 1,
-        courseId: course._id,
-        groupMembers: [studentAId],
+        courseId: String(course._id),
+        groupMembers: [new mongoose.Types.ObjectId(studentAId)],
         isOpen: false,
         interestedProjects: [],
         assignedProject: null,
       });
 
       const matchedProject = await Project.create({
-        courseId: course._id,
+        courseId: String(course._id),
         userId,
         name: "Matched",
         description: "Matched",
@@ -730,7 +730,7 @@ describe("Course Routes - /api/courses", () => {
 
       await Group.create({
         groupNumber: 2,
-        courseId: course._id,
+        courseId: String(course._id),
         groupMembers: [],
         isOpen: true,
         interestedProjects: [],
@@ -738,7 +738,7 @@ describe("Course Routes - /api/courses", () => {
       });
 
       await Project.create({
-        courseId: course._id,
+        courseId: String(course._id),
         userId,
         name: "Open",
         description: "Open",
@@ -752,7 +752,9 @@ describe("Course Routes - /api/courses", () => {
         isOpen: true,
       });
 
-      await User.findByIdAndUpdate(studentAId, { groupId: matchedGroup._id });
+      await User.findByIdAndUpdate(studentAId, {
+        groupId: String(matchedGroup._id),
+      });
 
       const res = await request(app)
         .get(`/api/courses/${course._id}/stats`)
