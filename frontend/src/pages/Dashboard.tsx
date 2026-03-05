@@ -18,7 +18,7 @@ const Dashboard = () => {
 
   if (!user) return null;
 
-  if (user.role === "Course Coordinator") {
+  if (user.role === "course coordinator") {
     return <CoordinatorDashboard />;
   }
 
