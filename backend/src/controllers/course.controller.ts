@@ -363,10 +363,18 @@ export const reopenCourse = async (
 
     // Reopen the course
     course.closed = false;
+
+    // Derive assigned project IDs from groups (source of truth for assignments)
+    const assignedGroups = await Group.find(
+      { courseId: id, assignedProject: { $ne: null } },
+      { assignedProject: 1 },
+    );
+    const assignedProjectIds = assignedGroups.map((g) => g.assignedProject);
+
     await Promise.all([
       course.save(),
       Project.updateMany(
-        { courseId: id, assignedGroup: null },
+        { courseId: id, _id: { $nin: assignedProjectIds } },
         { isOpen: true },
       ),
       Group.updateMany(
