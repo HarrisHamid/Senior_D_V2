@@ -32,7 +32,6 @@ const VerificationCodeSchema = new Schema<IVerificationCode>(
     expiresAt: {
       type: Date,
       required: true,
-      index: true,
     },
   },
   {
