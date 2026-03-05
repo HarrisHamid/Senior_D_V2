@@ -16,7 +16,7 @@ const Course = () => {
   const [course] = useState(mockCourses[0]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const isCoordinator = user?.role === "Course Coordinator";
+  const isCoordinator = user?.role === "course coordinator";
 
   const courseProjects = mockProjects.filter((p) => p.courseId === course.id);
   const courseGroups = mockGroups.filter((g) => g.courseId === course.id);
@@ -195,7 +195,7 @@ const Course = () => {
                           {group.interestedProjects.length !== 1 ? "s" : ""}
                         </p>
                       </div>
-                      {user?.role === "Student" && (
+                      {user?.role === "student" && (
                         <Button variant="outline" size="sm" asChild>
                           <Link to="/group">View</Link>
                         </Button>

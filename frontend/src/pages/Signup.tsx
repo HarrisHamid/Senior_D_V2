@@ -8,7 +8,7 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<"Student" | "Course Coordinator">("Student");
+  const [role, setRole] = useState<"student" | "course coordinator">("student");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -189,11 +189,11 @@ export default function Signup() {
                   <input
                     type="radio"
                     name="role"
-                    value="Student"
-                    checked={role === "Student"}
+                    value="student"
+                    checked={role === "student"}
                     onChange={(e) =>
                       setRole(
-                        e.target.value as "Student" | "Course Coordinator",
+                        e.target.value as "student" | "course coordinator",
                       )
                     }
                     className="w-4 h-4 text-[#9B2335] border-gray-300 focus:ring-[#9B2335]"
@@ -205,11 +205,11 @@ export default function Signup() {
                   <input
                     type="radio"
                     name="role"
-                    value="Course Coordinator"
-                    checked={role === "Course Coordinator"}
+                    value="course coordinator"
+                    checked={role === "course coordinator"}
                     onChange={(e) =>
                       setRole(
-                        e.target.value as "Student" | "Course Coordinator",
+                        e.target.value as "student" | "course coordinator",
                       )
                     }
                     className="w-4 h-4 text-[#9B2335] border-gray-300 focus:ring-[#9B2335]"
@@ -233,7 +233,7 @@ export default function Signup() {
             </button>
           </form>
 
-          {/* Footer */}
+          {/* Footer  */}
           <p className="text-center text-gray-600">
             Already have an account?{" "}
             <Link

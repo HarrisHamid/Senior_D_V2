@@ -190,7 +190,7 @@ const ProjectDetail = () => {
           </Card>
 
           {/* For Students */}
-          {user?.role === "Student" && project.status === "Open" && (
+          {user?.role === "student" && project.status === "Open" && (
             <Card>
               <CardHeader>
                 <CardTitle>Show Interest</CardTitle>
@@ -211,7 +211,7 @@ const ProjectDetail = () => {
           )}
 
           {/* For Coordinators */}
-          {user?.role === "Course Coordinator" && (
+          {user?.role === "course coordinator" && (
             <Card>
               <CardHeader>
                 <CardTitle>Interested Groups</CardTitle>
