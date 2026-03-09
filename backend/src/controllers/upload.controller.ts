@@ -81,7 +81,9 @@ export const listFiles = async (
       return;
     }
 
-    const files = await UploadedFile.find({ projectId }).sort({ createdAt: -1 });
+    const files = await UploadedFile.find({ projectId }).sort({
+      createdAt: -1,
+    });
 
     res.status(200).json({
       success: true,
@@ -123,7 +125,9 @@ export const downloadFile = async (
 
     res.download(file.path, file.originalName, (err) => {
       if (err && !res.headersSent) {
-        res.status(500).json({ success: false, error: "Failed to download file" });
+        res
+          .status(500)
+          .json({ success: false, error: "Failed to download file" });
       }
     });
   } catch (error) {

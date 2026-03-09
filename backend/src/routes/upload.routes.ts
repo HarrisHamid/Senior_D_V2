@@ -21,11 +21,7 @@ router.post(
   uploadFile,
 );
 
-router.get(
-  "/:projectId",
-  validateRequest(uploadSchemas.listFiles),
-  listFiles,
-);
+router.get("/:projectId", validateRequest(uploadSchemas.listFiles), listFiles);
 
 router.get(
   "/:projectId/:fileId",
