@@ -34,6 +34,7 @@ const UploadedFileSchema = new Schema<IUploadedFile>(
     path: {
       type: String,
       required: [true, "File path is required"],
+      unique: true,
     },
     mimetype: {
       type: String,
