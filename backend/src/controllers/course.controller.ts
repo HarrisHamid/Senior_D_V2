@@ -5,6 +5,7 @@ import User from "../models/User.model";
 import { generateUniqueCourseCode } from "../utils/codeGenerator";
 import { Project } from "../models/Project.model";
 import { Group } from "../models/Group.model";
+import { buildXlsxBuffer } from "../utils/xlsxBuilder";
 
 /**
  * Create a new course (Course Coordinator only)
@@ -504,6 +505,195 @@ export const getCourseStats = async (
     res.status(500).json({
       success: false,
       error: "Failed to retrieve course statistics",
+    });
+  }
+};
+
+/**
+ * Export course data to Excel (Course Coordinator only)
+ * GET /api/courses/:id/export
+ */
+export const exportCourseData = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: "Not authenticated",
+      });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const course = await Course.findById(id);
+    if (!course) {
+      res.status(404).json({
+        success: false,
+        error: "Course not found",
+      });
+      return;
+    }
+
+    if (course.userId !== user._id) {
+      res.status(403).json({
+        success: false,
+        error: "You can only export your own courses",
+      });
+      return;
+    }
+
+    const [projects, groups] = await Promise.all([
+      Project.find({ courseId: id })
+        .sort({ createdAt: 1 })
+        .populate({ path: "assignedGroup", select: "groupNumber" }),
+      Group.find({ courseId: id })
+        .sort({ groupNumber: 1 })
+        .populate({ path: "groupMembers", select: "name email" })
+        .populate({ path: "assignedProject", select: "name" })
+        .populate({ path: "interestedProjects", select: "name" }),
+    ]);
+
+    const overviewRows: string[][] = [
+      ["Field", "Value"],
+      ["Program", course.program],
+      ["Course Number", course.courseNumber],
+      ["Course Section", course.courseSection],
+      ["Season", course.season],
+      ["Year", String(course.year)],
+      ["Course Code", course.courseCode],
+      ["Coordinator Name", course.name],
+      ["Coordinator Email", course.email],
+      ["Course Closed", course.closed ? "Yes" : "No"],
+      ["Minimum Group Size", String(course.minGroupSize)],
+      ["Maximum Group Size", String(course.maxGroupSize)],
+      ["Total Projects", String(projects.length)],
+      ["Total Groups", String(groups.length)],
+    ];
+
+    const projectRows: string[][] = [
+      [
+        "Project ID",
+        "Project Name",
+        "Description",
+        "Sponsor",
+        "Advisors",
+        "Contacts",
+        "Majors",
+        "Year",
+        "Internal",
+        "Open",
+        "Assigned Group",
+      ],
+    ];
+
+    for (const project of projects) {
+      const assignedGroupNumber =
+        project.assignedGroup && typeof project.assignedGroup === "object"
+          ? (project.assignedGroup as { groupNumber?: number }).groupNumber
+          : null;
+
+      projectRows.push([
+        project._id.toString(),
+        project.name,
+        project.description,
+        project.sponsor,
+        project.advisors
+          .map((advisor) => `${advisor.name} <${advisor.email}>`)
+          .join("; "),
+        project.contacts
+          .map((contact) => `${contact.name} <${contact.email}>`)
+          .join("; "),
+        project.majors.map((major) => major.major).join(", "),
+        String(project.year),
+        project.internal ? "Yes" : "No",
+        project.isOpen ? "Yes" : "No",
+        typeof assignedGroupNumber === "number"
+          ? `Group ${assignedGroupNumber}`
+          : "Unassigned",
+      ]);
+    }
+
+    const groupRows: string[][] = [
+      [
+        "Group ID",
+        "Group Number",
+        "Group Code",
+        "Open",
+        "Members",
+        "Interested Projects",
+        "Assigned Project",
+      ],
+    ];
+
+    for (const group of groups) {
+      const groupMembers = Array.isArray(group.groupMembers)
+        ? group.groupMembers
+            .map((member) => {
+              if (typeof member === "object" && member !== null) {
+                const maybeMember = member as { name?: string; email?: string };
+                if (maybeMember.name && maybeMember.email) {
+                  return `${maybeMember.name} <${maybeMember.email}>`;
+                }
+              }
+              return "";
+            })
+            .filter(Boolean)
+            .join("; ")
+        : "";
+
+      const interestedProjectNames = Array.isArray(group.interestedProjects)
+        ? group.interestedProjects
+            .map((project) => {
+              if (typeof project === "object" && project !== null) {
+                return (project as { name?: string }).name || "";
+              }
+              return "";
+            })
+            .filter(Boolean)
+            .join("; ")
+        : "";
+
+      const assignedProjectName =
+        group.assignedProject && typeof group.assignedProject === "object"
+          ? ((group.assignedProject as { name?: string }).name ?? "Unassigned")
+          : "Unassigned";
+
+      groupRows.push([
+        group._id.toString(),
+        String(group.groupNumber),
+        group.groupCode || "",
+        group.isOpen ? "Yes" : "No",
+        groupMembers,
+        interestedProjectNames,
+        assignedProjectName,
+      ]);
+    }
+
+    const buffer = buildXlsxBuffer([
+      { name: "Course Overview", rows: overviewRows },
+      { name: "Projects", rows: projectRows },
+      { name: "Groups", rows: groupRows },
+    ]);
+
+    const safeProgram = course.program.replace(/[^a-zA-Z0-9-_]/g, "_");
+    const fileName = `${safeProgram}_${course.courseNumber}_${course.year}_export.xlsx`;
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+
+    res.status(200).send(buffer);
+  } catch (error) {
+    console.error("Export course data error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to export course data",
     });
   }
 };

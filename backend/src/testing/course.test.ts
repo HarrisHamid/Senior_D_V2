@@ -305,6 +305,83 @@ describe("Course Routes - /api/courses", () => {
     });
   });
 
+  // GET /api/courses/:id/export
+  describe("GET /api/courses/:id/export", () => {
+    it("should export course, project, and group data as an Excel file", async () => {
+      const { token, userId, course } = await createCourse();
+
+      const project = await Project.create({
+        courseId: String(course._id),
+        userId,
+        name: "Project Alpha",
+        description: "Important project",
+        advisors: [{ name: "Advisor One", email: "advisor@test.com" }],
+        sponsor: "MegaSponsor",
+        contacts: [{ name: "Contact One", email: "contact@test.com" }],
+        majors: [{ major: "Computer Science" }],
+        year: validCourseData.year,
+        internal: false,
+        assignedGroup: null,
+        isOpen: true,
+      });
+
+      await Group.create({
+        groupNumber: 7,
+        courseId: String(course._id),
+        groupMembers: [],
+        groupCode: "TEAM777",
+        isOpen: true,
+        interestedProjects: [project._id],
+        assignedProject: project._id,
+      });
+
+      const res = await request(app)
+        .get(`/api/courses/${course._id}/export`)
+        .set(authHeader(token))
+        .buffer(true)
+        .parse((response, callback) => {
+          const chunks: Buffer[] = [];
+          response.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+          response.on("end", () => callback(null, Buffer.concat(chunks)));
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.headers["content-type"]).toContain(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      );
+      expect(res.headers["content-disposition"]).toContain("attachment;");
+
+      const payload = res.body as Buffer;
+      expect(Buffer.isBuffer(payload)).toBe(true);
+      expect(payload.subarray(0, 2).toString()).toBe("PK");
+
+      const textPayload = payload.toString("utf8");
+      expect(textPayload).toContain("Course Overview");
+      expect(textPayload).toContain("Project Alpha");
+      expect(textPayload).toContain("MegaSponsor");
+      expect(textPayload).toContain("Group Number");
+    });
+
+    it("should return 403 when coordinator tries to export another coordinator course", async () => {
+      const { course } = await createCourse();
+
+      const coord2: TestUser = {
+        name: "Coordinator Two",
+        email: "coord2-export@test.com",
+        password: "Password123!",
+        role: "Course Coordinator",
+      };
+      const { token: token2 } = await registerAndGetToken(coord2);
+
+      const res = await request(app)
+        .get(`/api/courses/${course._id}/export`)
+        .set(authHeader(token2));
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+    });
+  });
+
   // PATCH /api/courses/:id/close
   describe("PATCH /api/courses/:id/close", () => {
     it("should close an open course when called by its coordinator", async () => {

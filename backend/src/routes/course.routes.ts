@@ -7,6 +7,7 @@ import {
   closeCourse,
   reopenCourse,
   getCourseStats,
+  exportCourseData,
 } from "../controllers/course.controller";
 import { authenticate, requireRole } from "../middleware/auth.middleware";
 import { validateRequest } from "../middleware/validation.middleware";
@@ -46,6 +47,13 @@ router.get(
   requireRole("Course Coordinator"),
   validateRequest(courseSchemas.courseId),
   getCourseStats,
+);
+
+router.get(
+  "/:id/export",
+  requireRole("Course Coordinator"),
+  validateRequest(courseSchemas.courseId),
+  exportCourseData,
 );
 
 // Student routes
