@@ -24,6 +24,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const normalizeRole = (role: string): "student" | "course coordinator" => {
+  const normalized = role.trim().toLowerCase();
+  return normalized === "course coordinator" ? "course coordinator" : "student";
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +42,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.getCurrentUser();
       if (response.success && response.data.user) {
-        setUser(response.data.user);
+        setUser({
+          ...response.data.user,
+          role: normalizeRole(response.data.user.role),
+        });
       }
     } catch (error) {
       console.error("Auth check failed:", error);
@@ -50,14 +58,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (credentials: LoginRequest) => {
     const response = await authService.login(credentials);
     if (response.success && response.data.user) {
-      setUser(response.data.user);
+      setUser({
+        ...response.data.user,
+        role: normalizeRole(response.data.user.role),
+      });
     }
   };
 
   const register = async (data: RegisterRequest) => {
     const response = await authService.register(data);
     if (response.success && response.data.user) {
-      setUser(response.data.user);
+      setUser({
+        ...response.data.user,
+        role: normalizeRole(response.data.user.role),
+      });
     }
   };
 
@@ -72,7 +86,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const updateUser = async (data: UpdateProfileRequest) => {
     const response = await userService.updateProfile(data);
     if (response.success && response.data.user) {
-      setUser(response.data.user);
+      setUser({
+        ...response.data.user,
+        role: normalizeRole(response.data.user.role),
+      });
     }
   };
 

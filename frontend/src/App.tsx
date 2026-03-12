@@ -10,21 +10,32 @@ import Dashboard from "./pages/Dashboard";
 import Group from "./pages/Group";
 import Profile from "./pages/Profile";
 import { Toaster } from "@/components/ui/sonner";
+import ProtectedRoute from "@/components/routing/ProtectedRoute";
+import PublicOnlyRoute from "@/components/routing/PublicOnlyRoute";
+import RoleRoute from "@/components/routing/RoleRoute";
 
 function App() {
   return (
     <>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/logout" element={<LogoutScreen />} />
-        <Route path="/course" element={<Course />} />
-        <Route path="/project/:id" element={<ProjectDetail />} />
-        <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/group" element={<Group />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/logout" element={<LogoutScreen />} />
+          <Route path="/course" element={<Course />} />
+          <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+
+          <Route element={<RoleRoute allowedRoles={["student"]} />}>
+            <Route path="/group" element={<Group />} />
+          </Route>
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster />
