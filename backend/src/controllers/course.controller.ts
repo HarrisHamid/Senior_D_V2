@@ -234,10 +234,7 @@ export const exportCourseData = async (
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${fileName}"`,
-    );
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
 
     res.status(200).send(buffer);
   } catch (error) {

@@ -79,7 +79,10 @@ export const createCourse = async (
 export const getMyCourses = async (
   userId: string,
 ): Promise<{ courses: ICourse[]; count: number }> => {
-  const courses = await Course.find({ userId }).sort({ year: -1, createdAt: -1 });
+  const courses = await Course.find({ userId }).sort({
+    year: -1,
+    createdAt: -1,
+  });
   return { courses, count: courses.length };
 };
 
