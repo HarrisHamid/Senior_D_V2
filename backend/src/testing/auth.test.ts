@@ -224,6 +224,32 @@ describe("Auth Routes - /api/auth", () => {
       expect(res.status).toBe(500);
       expect(res.body.success).toBe(false);
     });
+
+    it("should return 429 after exceeding authLimiter threshold on register", async () => {
+      for (let i = 0; i < 10; i += 1) {
+        const response = await request(app)
+          .post("/api/auth/register")
+          .send({
+            ...defaultStudent,
+            email: `rate-limit-${i}@example.com`,
+          });
+
+        expect([201, 400, 500]).toContain(response.status);
+      }
+
+      const blocked = await request(app)
+        .post("/api/auth/register")
+        .send({
+          ...defaultStudent,
+          email: "rate-limit-blocked@example.com",
+        });
+
+      expect(blocked.status).toBe(429);
+      expect(blocked.body).toEqual({
+        success: false,
+        error: "Too many requests",
+      });
+    });
   });
 
   // POST /api/auth/login
@@ -418,6 +444,31 @@ describe("Email Verification Routes", () => {
         email: defaultStudent.email,
       });
       expect(codeRecord).not.toBeNull();
+    });
+
+    it("should return 429 after exceeding verificationLimiter threshold", async () => {
+      const registerRes = await request(app)
+        .post("/api/auth/register")
+        .send(defaultStudent);
+      const token = registerRes.body.data.token;
+
+      for (let i = 0; i < 5; i += 1) {
+        const response = await request(app)
+          .post("/api/auth/verification/resend")
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(200);
+      }
+
+      const blocked = await request(app)
+        .post("/api/auth/verification/resend")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(blocked.status).toBe(429);
+      expect(blocked.body).toEqual({
+        success: false,
+        error: "Too many requests",
+      });
     });
   });
 

@@ -1,3 +1,4 @@
+import { resetRateLimiters } from "../../middleware/rateLimiter";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
@@ -18,6 +19,7 @@ export const disconnectTestDB = async (): Promise<void> => {
 };
 
 export const clearTestDB = async (): Promise<void> => {
+  resetRateLimiters();
   const collections = mongoose.connection.collections;
   for (const key in collections) {
     await collections[key].deleteMany({});

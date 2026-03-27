@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/db";
 import routes from "./routes";
 import { env, validateEnv } from "./config/env";
+import { generalLimiter } from "./middleware/rateLimiter";
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // API Routes
-app.use("/api", routes);
+app.use("/api", generalLimiter, routes);
 
 // Health check endpoint
 app.get("/", (_req: Request, res: Response) => {
