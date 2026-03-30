@@ -2,6 +2,7 @@ import { Response } from "express";
 import { Types } from "mongoose";
 import { AuthRequest } from "../types";
 import { Group } from "../models/Group.model";
+import { Project } from "../models/Project.model";
 import { generateUniqueGroupCode } from "../utils/codeGenerator";
 
 // Create new group
@@ -259,11 +260,58 @@ export const addInterestedProject = async (
       return;
     }
 
-    if (
-      group.interestedProjects.length >= 4 ||
-      group.interestedProjects.includes(new Types.ObjectId(projectId))
-    ) {
-      res.status(400).json({ success: false, message: "Cannot add project" });
+    // Verify the project exists
+    const project = await Project.findById(projectId);
+    if (!project) {
+      res.status(404).json({ success: false, message: "Project not found" });
+      return;
+    }
+
+    // Verify project belongs to the same course as the group
+    if (project.courseId !== group.courseId) {
+      res.status(400).json({
+        success: false,
+        message: "Project and group must belong to the same course",
+      });
+      return;
+    }
+
+    // Verify project is not already assigned to a group
+    if (project.assignedGroup) {
+      res.status(400).json({
+        success: false,
+        message: "Project is already assigned to a group",
+      });
+      return;
+    }
+
+    // Verify group is not already assigned to a project
+    if (group.assignedProject) {
+      res.status(400).json({
+        success: false,
+        message: "Group is already assigned to a project",
+      });
+      return;
+    }
+
+    // Verify group has not exceeded max-4 interest limit
+    if (group.interestedProjects.length >= 4) {
+      res.status(400).json({
+        success: false,
+        message: "Cannot add project: interest limit of 4 reached",
+      });
+      return;
+    }
+
+    // Prevent duplicates
+    const alreadyInterested = group.interestedProjects.some(
+      (id) => id.toString() === projectId,
+    );
+    if (alreadyInterested) {
+      res.status(400).json({
+        success: false,
+        message: "Cannot add project: already in interested list",
+      });
       return;
     }
 
@@ -296,6 +344,17 @@ export const removeInterestedProject = async (
     const group = await Group.findById(groupId);
     if (!group) {
       res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    const projectExists = group.interestedProjects.some(
+      (id) => id.toString() === projectId,
+    );
+    if (!projectExists) {
+      res.status(400).json({
+        success: false,
+        message: "Project not found in interested list",
+      });
       return;
     }
 
