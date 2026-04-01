@@ -46,13 +46,13 @@ async function seed(): Promise<void> {
         name: "Dr. Sarah Chen",
         email: "s.chen@stevens.edu",
         password: DEV_PASSWORD,
-        role: "Course Coordinator",
+        role: "course coordinator",
       }).save(),
       new User({
         name: "Dr. Michael Torres",
         email: "m.torres@stevens.edu",
         password: DEV_PASSWORD,
-        role: "Course Coordinator",
+        role: "course coordinator",
       }).save(),
     ]);
 
@@ -121,7 +121,7 @@ async function seed(): Promise<void> {
         name,
         email,
         password: DEV_PASSWORD,
-        role: "Student",
+        role: "student",
         course: courseId,
       }).save();
 

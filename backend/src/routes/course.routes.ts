@@ -21,37 +21,37 @@ router.use(authenticate);
 // Coordinator routes
 router.post(
   "/",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(courseSchemas.create),
   createCourse,
 );
 
-router.get("/my-courses", requireRole("Course Coordinator"), getMyCourses);
+router.get("/my-courses", requireRole("course coordinator"), getMyCourses);
 
 router.patch(
   "/:id/close",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(courseSchemas.courseId),
   closeCourse,
 );
 
 router.patch(
   "/:id/open",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(courseSchemas.courseId),
   reopenCourse,
 );
 
 router.get(
   "/:id/stats",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(courseSchemas.courseId),
   getCourseStats,
 );
 
 router.get(
   "/:id/export",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(courseSchemas.courseId),
   exportCourseData,
 );
@@ -59,7 +59,7 @@ router.get(
 // Student routes
 router.post(
   "/join",
-  requireRole("Student"),
+  requireRole("student"),
   validateRequest(courseSchemas.join),
   joinCourse,
 );

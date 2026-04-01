@@ -201,7 +201,7 @@ describe("Course Routes - /api/courses", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 
@@ -369,7 +369,7 @@ describe("Course Routes - /api/courses", () => {
         name: "Coordinator Two",
         email: "coord2-export@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 
@@ -493,7 +493,7 @@ describe("Course Routes - /api/courses", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 
@@ -662,7 +662,7 @@ describe("Course Routes - /api/courses", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 
@@ -751,13 +751,13 @@ describe("Course Routes - /api/courses", () => {
         name: "Student A",
         email: "studA@test.com",
         password: "Password123!",
-        role: "Student",
+        role: "student",
       };
       const studentB: TestUser = {
         name: "Student B",
         email: "studB@test.com",
         password: "Password123!",
-        role: "Student",
+        role: "student",
       };
 
       const [
@@ -875,7 +875,7 @@ describe("Course Routes - /api/courses", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 
@@ -1011,7 +1011,7 @@ describe("Course Routes - /api/courses", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { course: course2 } = await createCourse(coord2);
 

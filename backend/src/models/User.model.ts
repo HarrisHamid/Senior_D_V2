@@ -7,7 +7,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: "Student" | "Course Coordinator";
+  role: "student" | "course coordinator";
   verificationNeeded: boolean;
   course?: string;
   groupId?: string;

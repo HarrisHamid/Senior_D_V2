@@ -6,7 +6,7 @@ import { env } from "../config/env";
 export interface JwtPayload {
   userId: string;
   email: string;
-  role: "Student" | "Course Coordinator";
+  role: "student" | "course coordinator";
 }
 
 // Generate JWT token

@@ -5,21 +5,21 @@ export interface TestUser {
   name: string;
   email: string;
   password: string;
-  role: "Student" | "Course Coordinator";
+  role: "student" | "course coordinator";
 }
 
 export const defaultCoordinator: TestUser = {
   name: "Test Coordinator",
   email: "coordinator@test.com",
   password: "Password123!",
-  role: "Course Coordinator",
+  role: "course coordinator",
 };
 
 export const defaultStudent: TestUser = {
   name: "Test Student",
   email: "student@test.com",
   password: "Password123!",
-  role: "Student",
+  role: "student",
 };
 
 export const registerAndGetToken = async (
