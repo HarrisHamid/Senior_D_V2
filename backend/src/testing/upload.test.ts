@@ -331,7 +331,7 @@ describe("Upload Routes - /api/uploads", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: coord2Token } = await registerAndGetToken(coord2);
 

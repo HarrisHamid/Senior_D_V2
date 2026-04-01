@@ -4,7 +4,7 @@ export interface IUser {
   _id: string;
   name: string;
   email: string;
-  role: "Student" | "Course Coordinator";
+  role: "student" | "course coordinator";
   verificationNeeded: boolean;
   course?: string;
   groupId?: string;

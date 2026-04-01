@@ -22,14 +22,14 @@ router.use(authenticate);
 // Student-only routes
 router.post(
   "/",
-  requireRole("Student"),
+  requireRole("student"),
   validateRequest(groupSchemas.create),
   createNewGroup,
 );
 
 router.patch(
   "/join",
-  requireRole("Student"),
+  requireRole("student"),
   validateRequest(groupSchemas.join),
   joinGroup,
 );
@@ -53,28 +53,28 @@ router.get("/:groupId", validateRequest(groupSchemas.groupId), getGroupById);
 // Student-only routes with :groupId param
 router.delete(
   "/:groupId/leave",
-  requireRole("Student"),
+  requireRole("student"),
   validateRequest(groupSchemas.groupId),
   leaveGroup,
 );
 
 router.patch(
   "/:groupId/toggle-status",
-  requireRole("Student"),
+  requireRole("student"),
   validateRequest(groupSchemas.groupId),
   toggleStatus,
 );
 
 router.post(
   "/:groupId/interested-projects",
-  requireRole("Student"),
+  requireRole("student"),
   validateRequest(groupSchemas.interestedProject),
   addInterestedProject,
 );
 
 router.delete(
   "/:groupId/interested-projects",
-  requireRole("Student"),
+  requireRole("student"),
   validateRequest(groupSchemas.interestedProject),
   removeInterestedProject,
 );

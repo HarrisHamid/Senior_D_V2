@@ -17,7 +17,7 @@ import { hashVerificationCode } from "../services/verification.service";
 const samplePayload: JwtPayload = {
   userId: "64abc123def456789012abcd",
   email: "jwt-test@example.com",
-  role: "Student",
+  role: "student",
 };
 
 describe("JWT Token - generateToken / verifyToken", () => {
@@ -135,7 +135,7 @@ describe("Auth Routes - /api/auth", () => {
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.user.email).toBe(defaultStudent.email);
-      expect(res.body.data.user.role).toBe("Student");
+      expect(res.body.data.user.role).toBe("student");
       expect(res.body.data.user.verificationNeeded).toBe(true);
       expect(res.body.data.token).toBeDefined();
     });
@@ -147,7 +147,7 @@ describe("Auth Routes - /api/auth", () => {
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.user.role).toBe("Course Coordinator");
+      expect(res.body.data.user.role).toBe("course coordinator");
       expect(res.body.data.token).toBeDefined();
     });
 
@@ -268,7 +268,7 @@ describe("Auth Routes - /api/auth", () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.token).toBeDefined();
       expect(res.body.data.user.email).toBe(defaultStudent.email);
-      expect(res.body.data.user.role).toBe("Student");
+      expect(res.body.data.user.role).toBe("student");
     });
 
     it("should not return password in the login response", async () => {
@@ -355,7 +355,7 @@ describe("Auth Routes - /api/auth", () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.user.email).toBe(defaultStudent.email);
-      expect(res.body.data.user.role).toBe("Student");
+      expect(res.body.data.user.role).toBe("student");
       expect(res.body.data.user.name).toBe(defaultStudent.name);
     });
 

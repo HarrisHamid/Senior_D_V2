@@ -130,7 +130,7 @@ describe("Project Routes - /api/projects", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 
@@ -555,7 +555,7 @@ describe("Project Routes - /api/projects", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 
@@ -650,7 +650,7 @@ describe("Project Routes - /api/projects", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 
@@ -900,7 +900,7 @@ describe("Project Routes - /api/projects", () => {
         name: "Coordinator Two",
         email: "coord2@test.com",
         password: "Password123!",
-        role: "Course Coordinator",
+        role: "course coordinator",
       };
       const { token: token2 } = await registerAndGetToken(coord2);
 

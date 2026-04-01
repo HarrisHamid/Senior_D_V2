@@ -20,35 +20,35 @@ router.use(authenticate);
 // Coordinator-only routes
 router.post(
   "/",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(projectSchemas.create),
   createProject,
 );
 
 router.patch(
   "/:id",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(projectSchemas.update),
   updateProject,
 );
 
 router.delete(
   "/:id",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(projectSchemas.projectId),
   deleteProject,
 );
 
 router.post(
   "/:id/assign-group",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(projectSchemas.assignGroup),
   assignGroupToProject,
 );
 
 router.patch(
   "/:id/unassign-group",
-  requireRole("Course Coordinator"),
+  requireRole("course coordinator"),
   validateRequest(projectSchemas.assignGroup),
   unassignGroupFromProject,
 );

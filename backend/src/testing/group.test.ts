@@ -98,7 +98,7 @@ describe("Group Routes - /api/groups", () => {
         name: "Student Two",
         email: "student2@test.com",
         password: "Password123!",
-        role: "Student",
+        role: "student",
       });
 
       const res = await request(app)
@@ -179,7 +179,7 @@ describe("Group Routes - /api/groups", () => {
         name: "Student Two",
         email: "student2@test.com",
         password: "Password123!",
-        role: "Student",
+        role: "student",
       });
 
       const res = await request(app)
@@ -204,7 +204,7 @@ describe("Group Routes - /api/groups", () => {
         name: "Student Two",
         email: "student2@test.com",
         password: "Password123!",
-        role: "Student",
+        role: "student",
       });
 
       const res = await request(app)

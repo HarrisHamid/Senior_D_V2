@@ -99,8 +99,8 @@ export const getCourseById = async (
   }
 
   const isCoordinatorOwner =
-    userRole === "Course Coordinator" && course.userId === userId;
-  const isEnrolledStudent = userRole === "Student" && userCourseId === id;
+    userRole === "course coordinator" && course.userId === userId;
+  const isEnrolledStudent = userRole === "student" && userCourseId === id;
 
   if (!isCoordinatorOwner && !isEnrolledStudent) {
     throw new CourseServiceError(403, "You do not have access to this course");

@@ -160,7 +160,7 @@ export const deleteFile = async (
     }
 
     const isUploader = file.uploadedBy.toString() === user._id;
-    const isCoordinator = user.role === "Course Coordinator";
+    const isCoordinator = user.role === "course coordinator";
 
     let isOwningCoordinator = false;
     if (isCoordinator) {
