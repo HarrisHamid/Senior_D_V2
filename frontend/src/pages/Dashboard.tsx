@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -12,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { BookOpen, Users, FolderOpen, Plus, BarChart3 } from "lucide-react";
 import { mockCourses, mockProjects, mockGroups } from "@/data/mockData";
 import Navbar from "@/components/Navbar";
+import { courseService } from "@/services/course.service";
+import type { CourseData } from "@/services/course.service";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -191,12 +194,18 @@ const StudentDashboard = () => {
 };
 
 const CoordinatorDashboard = () => {
-  const managedCourses = mockCourses;
+  const [managedCourses, setManagedCourses] = useState<CourseData[]>([]);
   const totalProjects = mockProjects.length;
   const totalGroups = mockGroups.length;
   const matchedProjects = mockProjects.filter(
     (p) => p.status === "Assigned",
   ).length;
+
+  useEffect(() => {
+    courseService.getMyCourses().then((res) => {
+      setManagedCourses(res.data.courses);
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -328,25 +337,28 @@ const CoordinatorDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {managedCourses.length === 0 && (
+                <p className="text-sm text-muted-foreground">No courses yet. Create one to get started.</p>
+              )}
               {managedCourses.map((course) => (
                 <div
-                  key={course.id}
+                  key={course._id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground">
-                      {course.programName}
+                      {course.program}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {course.courseNumber} - Section {course.section} •{" "}
-                      {course.semester} {course.year}
+                      {course.courseNumber} - Section {course.courseSection} •{" "}
+                      {course.season} {course.year}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge variant={course.isOpen ? "default" : "secondary"}>
-                        {course.isOpen ? "Open" : "Closed"}
+                      <Badge variant={course.closed ? "secondary" : "default"}>
+                        {course.closed ? "Closed" : "Open"}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        Code: {course.code}
+                        Code: {course.courseCode}
                       </span>
                     </div>
                   </div>
