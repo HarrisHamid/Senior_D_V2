@@ -9,6 +9,7 @@ import Marketplace from "./pages/Marketplace";
 import Dashboard from "./pages/Dashboard";
 import Group from "./pages/Group";
 import Profile from "./pages/Profile";
+import CreateCourse from "./pages/CreateCourse";
 import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/routing/ProtectedRoute";
 import PublicOnlyRoute from "@/components/routing/PublicOnlyRoute";
@@ -34,6 +35,10 @@ function App() {
 
           <Route element={<RoleRoute allowedRoles={["student"]} />}>
             <Route path="/group" element={<Group />} />
+          </Route>
+
+          <Route element={<RoleRoute allowedRoles={["course coordinator"]} />}>
+            <Route path="/course/create" element={<CreateCourse />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
