@@ -45,8 +45,8 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: [true, "Role is required"],
       enum: {
-        values: ["Student", "Course Coordinator"],
-        message: "Role must be either Student or Course Coordinator",
+        values: ["student", "course coordinator"],
+        message: "Role must be either student or course coordinator",
       },
     },
     verificationNeeded: {
