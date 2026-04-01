@@ -11,9 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Users, FolderOpen, Plus, BarChart3 } from "lucide-react";
-import { mockCourses, mockProjects, mockGroups } from "@/data/mockData";
+import { mockCourses, mockGroups } from "@/data/mockData"; // TODO: replace student dashboard with real data
 import Navbar from "@/components/Navbar";
 import { courseService } from "@/services/course.service";
+import { projectService } from "@/services/project.service";
 import type { CourseData } from "@/services/course.service";
 
 const Dashboard = () => {
@@ -106,9 +107,7 @@ const StudentDashboard = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-3xl font-bold text-foreground">
-                  {mockProjects.filter((p) => p.status === "Open").length}
-                </p>
+                <p className="text-3xl font-bold text-foreground">—</p>
                 <p className="text-sm text-muted-foreground">
                   Available projects
                 </p>
@@ -195,15 +194,20 @@ const StudentDashboard = () => {
 
 const CoordinatorDashboard = () => {
   const [managedCourses, setManagedCourses] = useState<CourseData[]>([]);
-  const totalProjects = mockProjects.length;
-  const totalGroups = mockGroups.length;
-  const matchedProjects = mockProjects.filter(
-    (p) => p.status === "Assigned",
-  ).length;
+  const [totalProjects, setTotalProjects] = useState<number | null>(null);
 
   useEffect(() => {
-    courseService.getMyCourses().then((res) => {
-      setManagedCourses(res.data.courses);
+    courseService.getMyCourses().then(async (res) => {
+      const courses = res.data.courses;
+      setManagedCourses(courses);
+      if (courses.length > 0) {
+        const results = await Promise.all(
+          courses.map((c) => projectService.getProjectsByCourse(c._id)),
+        );
+        setTotalProjects(results.reduce((sum, r) => sum + r.data.count, 0));
+      } else {
+        setTotalProjects(0);
+      }
     });
   }, []);
 
@@ -246,7 +250,7 @@ const CoordinatorDashboard = () => {
                     Total Projects
                   </p>
                   <p className="text-3xl font-bold text-foreground">
-                    {totalProjects}
+                    {totalProjects ?? "—"}
                   </p>
                 </div>
                 <FolderOpen className="h-8 w-8 text-primary" />
@@ -261,9 +265,7 @@ const CoordinatorDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Total Groups
                   </p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {totalGroups}
-                  </p>
+                  <p className="text-3xl font-bold text-foreground">—</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
               </div>
@@ -277,9 +279,7 @@ const CoordinatorDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Matched
                   </p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {matchedProjects}
-                  </p>
+                  <p className="text-3xl font-bold text-foreground">—</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-primary" />
               </div>
@@ -363,7 +363,7 @@ const CoordinatorDashboard = () => {
                     </div>
                   </div>
                   <Button variant="outline" size="sm" asChild>
-                    <Link to="/course">Manage</Link>
+                    <Link to={`/course?courseId=${course._id}`}>Manage</Link>
                   </Button>
                 </div>
               ))}
