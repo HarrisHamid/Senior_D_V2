@@ -1,12 +1,78 @@
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
-import { mockProjects, majors } from "@/data/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+import { projectService } from "@/services/project.service";
+import { courseService } from "@/services/course.service";
+import type { ProjectData } from "@/services/project.service";
 import { FilterBar, type FilterConfig } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
 
+const MAJORS = [
+  "Computer Science",
+  "Computer Engineering",
+  "Software Engineering",
+  "Electrical Engineering",
+  "Mechanical Engineering",
+  "Biomedical Engineering",
+  "Cybersecurity",
+  "Data Science",
+  "Psychology",
+];
+
+const projectStatus = (p: ProjectData) => {
+  if (p.assignedGroup) return "Assigned";
+  if (p.isOpen) return "Open";
+  return "Closed";
+};
+
 const Marketplace = () => {
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const [projects, setProjects] = useState<ProjectData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [noCourse, setNoCourse] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchProjects = async () => {
+      try {
+        if (user.role === "student") {
+          if (!user.course) {
+            setNoCourse(true);
+            setLoading(false);
+            return;
+          }
+          const res = await projectService.getProjectsByCourse(user.course);
+          setProjects(res.data.projects);
+        } else {
+          const coursesRes = await courseService.getMyCourses();
+          const courses = coursesRes.data.courses;
+          if (courses.length === 0) {
+            setNoCourse(true);
+            setLoading(false);
+            return;
+          }
+          const results = await Promise.all(
+            courses.map((c) => projectService.getProjectsByCourse(c._id)),
+          );
+          setProjects(results.flatMap((r) => r.data.projects));
+        }
+      } catch {
+        // leave projects empty — shown via empty state
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [user]);
+
+  const availableYears = [...new Set(projects.map((p) => p.year))].sort(
+    (a, b) => b - a,
+  );
 
   const filterConfigs: FilterConfig[] = [
     {
@@ -19,7 +85,7 @@ const Marketplace = () => {
       id: "majors",
       label: "Required Majors",
       type: "checkbox",
-      options: majors.map((m) => ({ id: `major-${m}`, label: m, value: m })),
+      options: MAJORS.map((m) => ({ id: `major-${m}`, label: m, value: m })),
     },
     {
       id: "status",
@@ -44,10 +110,11 @@ const Marketplace = () => {
       id: "year",
       label: "Year",
       type: "radio",
-      options: [
-        { id: "year-2024", label: "2024", value: "2024" },
-        { id: "year-2025", label: "2025", value: "2025" },
-      ],
+      options: availableYears.map((y) => ({
+        id: `year-${y}`,
+        label: String(y),
+        value: String(y),
+      })),
     },
   ];
 
@@ -57,36 +124,28 @@ const Marketplace = () => {
   const typeFilter = searchParams.get("type") || "all";
   const yearFilter = searchParams.get("year") || "all";
 
-  const filteredProjects = mockProjects.filter((project) => {
-    // Search filter
+  const filteredProjects = projects.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchQuery.toLowerCase());
+      project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.sponsor.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Majors filter
     const matchesMajors =
       selectedMajors.length === 0 ||
-      project.requiredMajors.some((rm) => selectedMajors.includes(rm.major));
+      project.majors.some((rm) => selectedMajors.includes(rm.major));
 
-    // Status filter
-    const matchesStatus =
-      statusFilter === "all" || project.status === statusFilter;
+    const status = projectStatus(project);
+    const matchesStatus = statusFilter === "all" || status === statusFilter;
 
-    // Type filter
     const matchesType =
-      typeFilter === "all" || project.sponsorType === typeFilter;
+      typeFilter === "all" ||
+      (typeFilter === "Internal" && project.internal) ||
+      (typeFilter === "External" && !project.internal);
 
-    // Year filter
     const matchesYear =
       yearFilter === "all" || project.year.toString() === yearFilter;
 
-    return (
-      matchesSearch &&
-      matchesMajors &&
-      matchesStatus &&
-      matchesType &&
-      matchesYear
-    );
+    return matchesSearch && matchesMajors && matchesStatus && matchesType && matchesYear;
   });
 
   return (
@@ -102,34 +161,56 @@ const Marketplace = () => {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
-          <aside className="lg:w-64 space-y-6">
-            <FilterBar configs={filterConfigs} />
-          </aside>
+        {noCourse ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground">
+                {user?.role === "student"
+                  ? "You are not enrolled in a course yet."
+                  : "You have no courses yet. "}
+                {user?.role === "course coordinator" && (
+                  <Link to="/course/create" className="text-primary underline">
+                    Create a course
+                  </Link>
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-6">
+            <aside className="lg:w-64 space-y-6">
+              <FilterBar configs={filterConfigs} />
+            </aside>
 
-          {/* Projects Grid */}
-          <div className="flex-1">
-            <div className="mb-4 text-sm text-muted-foreground">
-              Showing {filteredProjects.length} of {mockProjects.length}{" "}
-              projects
+            <div className="flex-1">
+              {loading ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">
+                  Loading projects…
+                </p>
+              ) : (
+                <>
+                  <div className="mb-4 text-sm text-muted-foreground">
+                    Showing {filteredProjects.length} of {projects.length} projects
+                  </div>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {filteredProjects.map((project) => (
+                      <ProjectCard key={project._id} project={project} />
+                    ))}
+                  </div>
+                  {filteredProjects.length === 0 && (
+                    <Card>
+                      <CardContent className="py-12 text-center">
+                        <p className="text-muted-foreground">
+                          No projects match your filters
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              )}
             </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              {filteredProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-            {filteredProjects.length === 0 && (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">
-                    No projects match your filters
-                  </p>
-                </CardContent>
-              </Card>
-            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

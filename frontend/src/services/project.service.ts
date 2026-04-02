@@ -4,12 +4,12 @@ export interface CreateProjectRequest {
   courseId: string;
   name: string;
   description: string;
-  advisors: { name: string; email: string }[];
+  advisors?: { name: string; email: string }[];
   sponsor: string;
-  contacts: { name: string; email: string }[];
-  majors: { major: string }[];
+  contacts?: { name: string; email: string }[];
+  majors?: { major: string }[];
   year: number;
-  internal: boolean;
+  internal?: boolean;
 }
 
 export interface UpdateProjectRequest {

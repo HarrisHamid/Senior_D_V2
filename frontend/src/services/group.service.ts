@@ -1,51 +1,73 @@
-import api from './api';
+import api from "./api";
 
-export const GroupService = {
-  createNewGroup: async (courseId: string) => {
-    const response = await api.post('/groups', { courseId });
+export interface GroupData {
+  _id: string;
+  courseId: string;
+  groupNumber: number;
+  groupCode?: string;
+  isOpen: boolean;
+  groupMembers: string[];
+  interestedProjects: string[];
+  assignedProject: string | null;
+  numberOfMembers?: number;
+}
+
+// API returns data as a direct array: { success, data: GroupData[] }
+export interface GroupsResponse {
+  success: boolean;
+  data: GroupData[];
+}
+
+export interface GroupResponse {
+  success: boolean;
+  data: { group: GroupData };
+}
+
+export const groupService = {
+  async createNewGroup(courseId: string): Promise<GroupResponse> {
+    const response = await api.post<GroupResponse>("/groups", { courseId });
     return response.data;
   },
 
-  joinGroup: async (code: string) => {
-    const response = await api.patch('/groups/join', { code });
+  async joinGroup(code: string): Promise<GroupResponse> {
+    const response = await api.patch<GroupResponse>("/groups/join", { code });
     return response.data;
   },
 
-  getAllGroupsByCourse: async (courseId: string) => {
-    const response = await api.get(`/groups/course/${courseId}`);
-    // Assuming backend returns { data: Group[] } or just Group[]
+  async getAllGroupsByCourse(courseId: string): Promise<GroupsResponse> {
+    const response = await api.get<GroupsResponse>(`/groups/course/${courseId}`);
     return response.data;
   },
 
-  getAllInterestedGroups: async (projectId: string) => {
-    const response = await api.get(`/groups/interested/${projectId}`);
+  async getAllInterestedGroups(projectId: string): Promise<GroupsResponse> {
+    const response = await api.get<GroupsResponse>(`/groups/interested/${projectId}`);
     return response.data;
   },
 
-  getGroupById: async (groupId: string) => {
-    const response = await api.get(`/groups/${groupId}`);
+  async getGroupById(groupId: string): Promise<GroupResponse> {
+    const response = await api.get<GroupResponse>(`/groups/${groupId}`);
     return response.data;
   },
 
-  leaveGroup: async (groupId: string) => {
-    const response = await api.delete(`/groups/${groupId}/leave`);
+  async leaveGroup(groupId: string): Promise<GroupResponse> {
+    const response = await api.delete<GroupResponse>(`/groups/${groupId}/leave`);
     return response.data;
   },
 
-  toggleStatus: async (groupId: string) => {
-    const response = await api.patch(`/groups/${groupId}/toggle-status`);
+  async toggleStatus(groupId: string): Promise<GroupResponse> {
+    const response = await api.patch<GroupResponse>(`/groups/${groupId}/toggle-status`);
     return response.data;
   },
 
-  addInterestedProject: async (groupId: string, projectId: string) => {
-    const response = await api.post(`/groups/${groupId}/interested-projects`, { projectId });
+  async addInterestedProject(groupId: string, projectId: string): Promise<GroupResponse> {
+    const response = await api.post<GroupResponse>(`/groups/${groupId}/interested-projects`, { projectId });
     return response.data;
   },
 
-  removeInterestedProject: async (groupId: string, projectId: string) => {
-    const response = await api.delete(`/groups/${groupId}/interested-projects`, {
-      data: { projectId } // axios requires body in `data` prop for DELETE
+  async removeInterestedProject(groupId: string, projectId: string): Promise<GroupResponse> {
+    const response = await api.delete<GroupResponse>(`/groups/${groupId}/interested-projects`, {
+      data: { projectId },
     });
     return response.data;
-  }
+  },
 };

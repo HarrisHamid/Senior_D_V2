@@ -10,11 +10,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { BookOpen, Users, FolderOpen, Plus, BarChart3 } from "lucide-react";
-import { mockCourses, mockProjects, mockGroups } from "@/data/mockData";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { courseService } from "@/services/course.service";
+import { projectService } from "@/services/project.service";
+import { groupService } from "@/services/group.service";
 import type { CourseData } from "@/services/course.service";
+import type { GroupData } from "@/services/group.service";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -29,8 +33,49 @@ const Dashboard = () => {
 };
 
 const StudentDashboard = () => {
-  const currentCourse = mockCourses[0];
-  const myGroup = mockGroups[0];
+  const { user } = useAuth();
+  const { refreshUser } = useAuth();
+  const [course, setCourse] = useState<CourseData | null>(null);
+  const [group, setGroup] = useState<GroupData | null>(null);
+  const [projectCount, setProjectCount] = useState<number | null>(null);
+  const [courseCode, setCourseCode] = useState("");
+  const [enrolling, setEnrolling] = useState(false);
+
+  const handleEnroll = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (courseCode.trim().length !== 7) {
+      toast.error("Please enter a valid 7-character course code");
+      return;
+    }
+    setEnrolling(true);
+    try {
+      await courseService.joinCourse({ courseCode: courseCode.trim().toUpperCase() });
+      toast.success("Enrolled successfully!");
+      await refreshUser();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to enroll");
+    } finally {
+      setEnrolling(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user?.course) return;
+
+    courseService.getCourseById(user.course).then((res) => {
+      setCourse(res.data.course);
+    }).catch(() => {});
+
+    projectService.getProjectsByCourse(user.course).then((res) => {
+      setProjectCount(res.data.pagination.total);
+    }).catch(() => {});
+
+    if (user.groupId) {
+      groupService.getGroupById(user.groupId).then((res) => {
+        setGroup(res.data.group);
+      }).catch(() => {});
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,20 +98,39 @@ const StudentDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div>
-                <p className="font-semibold text-foreground">
-                  {currentCourse.programName}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {currentCourse.courseNumber} - Section {currentCourse.section}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {currentCourse.semester} {currentCourse.year}
-                </p>
-              </div>
-              <Button variant="outline" size="sm" asChild className="w-full">
-                <Link to="/course">View Course</Link>
-              </Button>
+              {course ? (
+                <>
+                  <div>
+                    <p className="font-semibold text-foreground">{course.program}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {course.courseNumber} - Section {course.courseSection}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {course.season} {course.year}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" asChild className="w-full">
+                    <Link to="/course">View Course</Link>
+                  </Button>
+                </>
+              ) : (
+                <form onSubmit={handleEnroll} className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Not enrolled in a course yet.
+                  </p>
+                  <Input
+                    placeholder="Enter 7-character code"
+                    value={courseCode}
+                    onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
+                    maxLength={7}
+                    className="uppercase"
+                    disabled={enrolling}
+                  />
+                  <Button type="submit" size="sm" className="w-full" disabled={enrolling}>
+                    {enrolling ? "Enrolling…" : "Enroll"}
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
 
@@ -79,24 +143,32 @@ const StudentDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div>
-                <p className="font-semibold text-foreground">
-                  Group {myGroup.groupNumber}
+              {group ? (
+                <>
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      Group {group.groupNumber}
+                    </p>
+                    <Badge variant={group.isOpen ? "default" : "secondary"} className="mt-1">
+                      {group.isOpen ? "Open" : "Closed"}
+                    </Badge>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {group.numberOfMembers ?? group.groupMembers.length} members
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" asChild className="w-full">
+                    <Link to="/group">View Group</Link>
+                  </Button>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Not in a group yet.
                 </p>
-                <Badge variant="secondary" className="mt-1">
-                  {myGroup.status}
-                </Badge>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {myGroup.members.length} members
-                </p>
-              </div>
-              <Button variant="outline" size="sm" asChild className="w-full">
-                <Link to="/group">View Group</Link>
-              </Button>
+              )}
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
+          {/* Available Projects */}
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -107,10 +179,10 @@ const StudentDashboard = () => {
             <CardContent className="space-y-3">
               <div>
                 <p className="text-3xl font-bold text-foreground">
-                  {mockProjects.filter((p) => p.status === "Open").length}
+                  {projectCount ?? "—"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Available projects
+                  Projects in your course
                 </p>
               </div>
               <Button size="sm" asChild className="w-full">
@@ -128,10 +200,7 @@ const StudentDashboard = () => {
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Button variant="outline" asChild>
-              <Link
-                to="/marketplace"
-                className="h-auto py-4 flex flex-col gap-2"
-              >
+              <Link to="/marketplace" className="h-auto py-4 flex flex-col gap-2">
                 <FolderOpen className="h-6 w-6" />
                 Browse Projects
               </Link>
@@ -150,44 +219,6 @@ const StudentDashboard = () => {
             </Button>
           </CardContent>
         </Card>
-
-        {/* Recent Activity */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 pb-3 border-b">
-                <div className="h-2 w-2 rounded-full bg-primary mt-2" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">
-                    Your group showed interest in AI Healthcare project
-                  </p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 pb-3 border-b">
-                <div className="h-2 w-2 rounded-full bg-muted mt-2" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">
-                    New project added: Smart Campus Energy Management
-                  </p>
-                  <p className="text-xs text-muted-foreground">1 day ago</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-2 w-2 rounded-full bg-muted mt-2" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">
-                    You joined the course CS 492 - Section A
-                  </p>
-                  <p className="text-xs text-muted-foreground">3 days ago</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
@@ -195,15 +226,20 @@ const StudentDashboard = () => {
 
 const CoordinatorDashboard = () => {
   const [managedCourses, setManagedCourses] = useState<CourseData[]>([]);
-  const totalProjects = mockProjects.length;
-  const totalGroups = mockGroups.length;
-  const matchedProjects = mockProjects.filter(
-    (p) => p.status === "Assigned",
-  ).length;
+  const [totalProjects, setTotalProjects] = useState<number | null>(null);
 
   useEffect(() => {
-    courseService.getMyCourses().then((res) => {
-      setManagedCourses(res.data.courses);
+    courseService.getMyCourses().then(async (res) => {
+      const courses = res.data.courses;
+      setManagedCourses(courses);
+      if (courses.length > 0) {
+        const results = await Promise.all(
+          courses.map((c) => projectService.getProjectsByCourse(c._id)),
+        );
+        setTotalProjects(results.reduce((sum, r) => sum + r.data.count, 0));
+      } else {
+        setTotalProjects(0);
+      }
     });
   }, []);
 
@@ -246,7 +282,7 @@ const CoordinatorDashboard = () => {
                     Total Projects
                   </p>
                   <p className="text-3xl font-bold text-foreground">
-                    {totalProjects}
+                    {totalProjects ?? "—"}
                   </p>
                 </div>
                 <FolderOpen className="h-8 w-8 text-primary" />
@@ -261,9 +297,7 @@ const CoordinatorDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Total Groups
                   </p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {totalGroups}
-                  </p>
+                  <p className="text-3xl font-bold text-foreground">—</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
               </div>
@@ -277,9 +311,7 @@ const CoordinatorDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Matched
                   </p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {matchedProjects}
-                  </p>
+                  <p className="text-3xl font-bold text-foreground">—</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-primary" />
               </div>
@@ -363,7 +395,7 @@ const CoordinatorDashboard = () => {
                     </div>
                   </div>
                   <Button variant="outline" size="sm" asChild>
-                    <Link to="/course">Manage</Link>
+                    <Link to={`/course?courseId=${course._id}`}>Manage</Link>
                   </Button>
                 </div>
               ))}
