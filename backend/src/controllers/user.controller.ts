@@ -105,6 +105,9 @@ export const updateProfile = async (
           name: user.name,
           email: user.email,
           role: user.role,
+          verificationNeeded: user.verificationNeeded,
+          course: user.course,
+          groupId: user.groupId,
         },
       },
     });
