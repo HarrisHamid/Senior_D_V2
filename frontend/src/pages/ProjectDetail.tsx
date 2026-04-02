@@ -4,11 +4,20 @@ import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail, Users, Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { projectService } from "@/services/project.service";
 import type { ProjectData } from "@/services/project.service";
+import { groupService } from "@/services/group.service";
 
 const statusLabel = (project: ProjectData) => {
   if (project.assignedGroup) return "Assigned";
@@ -16,7 +25,9 @@ const statusLabel = (project: ProjectData) => {
   return "Closed";
 };
 
-const statusVariant = (project: ProjectData): "default" | "secondary" | "outline" => {
+const statusVariant = (
+  project: ProjectData,
+): "default" | "secondary" | "outline" => {
   if (project.assignedGroup) return "outline";
   if (project.isOpen) return "default";
   return "secondary";
@@ -28,20 +39,58 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
 
   const [project, setProject] = useState<ProjectData | null>(null);
+  const [interestedGroups, setInterestedGroups] = useState<any[]>([]);
+  const [allGroups, setAllGroups] = useState<any[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState("");
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     projectService
       .getProjectById(id)
-      .then((res) => setProject(res.data.project))
+      .then(async (res) => {
+        const p = res.data.project;
+        setProject(p);
+        if (user?.role === "course coordinator") {
+          const [interestedRes, allGroupsRes] = await Promise.all([
+            groupService.getAllInterestedGroups(id),
+            groupService.getAllGroupsByCourse(p.courseId),
+          ]);
+          setInterestedGroups(interestedRes.data ?? []);
+          setAllGroups(allGroupsRes.data ?? []);
+        }
+      })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, user?.role]);
 
-  const handleShowInterest = () => {
-    toast.success("Interest registered successfully!");
+  const handleShowInterest = async () => {
+    if (!user?.groupId) {
+      toast.error("You need to be in a group to express interest.");
+      return;
+    }
+    try {
+      await groupService.addInterestedProject(user.groupId, id!);
+      toast.success("Interest registered successfully!");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error ?? "Failed to register interest.");
+    }
+  };
+
+  const handleAssignGroup = async (groupId: string) => {
+    if (!groupId) return;
+    setAssigning(true);
+    try {
+      const res = await projectService.assignGroup(id!, { groupId });
+      setProject(res.data.project);
+      toast.success("Group assigned successfully!");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error ?? "Failed to assign group.");
+    } finally {
+      setAssigning(false);
+    }
   };
 
   if (loading) {
@@ -163,10 +212,14 @@ const ProjectDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="font-medium text-foreground mb-3">{project.sponsor}</p>
+              <p className="font-medium text-foreground mb-3">
+                {project.sponsor}
+              </p>
               {project.contacts.length > 0 && (
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">Contacts</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Contacts
+                  </p>
                   {project.contacts.map((contact, idx) => (
                     <div
                       key={idx}
@@ -210,25 +263,27 @@ const ProjectDetail = () => {
           )}
 
           {/* For Students */}
-          {user?.role === "student" && project.isOpen && !project.assignedGroup && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Show Interest</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Your group can show interest in up to 4 projects. This will
-                  notify the course coordinator.
-                </p>
-                <Button
-                  onClick={handleShowInterest}
-                  className="w-full sm:w-auto"
-                >
-                  Express Interest
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          {user?.role === "student" &&
+            project.isOpen &&
+            !project.assignedGroup && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Show Interest</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Your group can show interest in up to 4 projects. This will
+                    notify the course coordinator.
+                  </p>
+                  <Button
+                    onClick={handleShowInterest}
+                    className="w-full sm:w-auto"
+                  >
+                    Express Interest
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
           {/* For Coordinators */}
           {user?.role === "course coordinator" && (
@@ -236,10 +291,78 @@ const ProjectDetail = () => {
               <CardHeader>
                 <CardTitle>Interested Groups</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  No groups have shown interest yet.
-                </p>
+              <CardContent className="space-y-4">
+                {interestedGroups.length > 0 ? (
+                  <div className="space-y-3">
+                    {interestedGroups.map((group) => (
+                      <div
+                        key={group._id}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            Group {group.groupNumber}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {group.members.length} members
+                          </p>
+                        </div>
+                        {!project.assignedGroup && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={assigning}
+                            onClick={() => handleAssignGroup(group._id)}
+                          >
+                            Assign
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No groups have shown interest yet.
+                  </p>
+                )}
+
+                {!project.assignedGroup && allGroups.length > 0 && (
+                  <div className="pt-4 border-t">
+                    <Label className="text-sm font-medium mb-2 block">
+                      Assign any group
+                    </Label>
+                    <div className="flex gap-2">
+                      <Select
+                        value={selectedGroup}
+                        onValueChange={setSelectedGroup}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select a group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allGroups.map((group) => (
+                            <SelectItem key={group._id} value={group._id}>
+                              Group {group.groupNumber} ({group.members.length}{" "}
+                              members)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        disabled={!selectedGroup || assigning}
+                        onClick={() => handleAssignGroup(selectedGroup)}
+                      >
+                        Assign
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {project.assignedGroup && (
+                  <p className="text-sm text-muted-foreground">
+                    This project has been assigned to a group.
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
