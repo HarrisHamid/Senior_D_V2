@@ -304,7 +304,7 @@ const ProjectDetail = () => {
                             Group {group.groupNumber}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {group.members.length} members
+                            {group.groupMembers?.length ?? 0} members
                           </p>
                         </div>
                         {!project.assignedGroup && (
@@ -342,7 +342,7 @@ const ProjectDetail = () => {
                         <SelectContent>
                           {allGroups.map((group) => (
                             <SelectItem key={group._id} value={group._id}>
-                              Group {group.groupNumber} ({group.members.length}{" "}
+                              Group {group.groupNumber} ({group.groupMembers?.length ?? 0}{" "}
                               members)
                             </SelectItem>
                           ))}

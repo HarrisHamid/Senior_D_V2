@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,35 +13,95 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Copy, Users, X, Lock, Unlock } from "lucide-react";
-import { mockGroups, mockProjects } from "@/data/mockData";
 import { toast } from "sonner";
+import { groupService } from "@/services/group.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Group = () => {
-  const [myGroup] = useState(mockGroups[0]);
-  const [groupStatus, setGroupStatus] = useState(myGroup.status);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const interestedProjects = mockProjects.filter((p) =>
-    myGroup.interestedProjects.includes(p.id),
-  );
+  const [myGroup, setMyGroup] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.groupId) {
+      setLoading(false);
+      return;
+    }
+    groupService
+      .getGroupById(user.groupId)
+      .then((res) => setMyGroup(res.data.group))
+      .catch(() => toast.error("Failed to load group."))
+      .finally(() => setLoading(false));
+  }, [user?.groupId]);
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(myGroup.code);
+    navigator.clipboard.writeText(myGroup.groupCode);
     toast.success("Group code copied to clipboard");
   };
 
-  const handleToggleStatus = () => {
-    const newStatus = groupStatus === "Open" ? "Closed" : "Open";
-    setGroupStatus(newStatus);
-    toast.success(`Group status changed to ${newStatus}`);
+  const handleToggleStatus = async () => {
+    try {
+      const res = await groupService.toggleStatus(myGroup._id);
+      setMyGroup(res.data.group);
+      const newStatus = res.data.group.isOpen ? "Open" : "Closed";
+      toast.success(`Group status changed to ${newStatus}`);
+    } catch {
+      toast.error("Failed to update group status.");
+    }
   };
 
-  const handleLeaveGroup = () => {
-    toast.success("You have left the group");
+  const handleLeaveGroup = async () => {
+    try {
+      await groupService.leaveGroup(myGroup._id);
+      toast.success("You have left the group");
+      navigate("/dashboard");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error ?? "Failed to leave group.");
+    }
   };
 
-  const handleRemoveInterest = () => {
-    toast.success("Interest removed from project");
+  const handleRemoveInterest = async (projectId: string) => {
+    try {
+      const res = await groupService.removeInterestedProject(myGroup._id, projectId);
+      setMyGroup(res.data.group);
+      toast.success("Interest removed from project");
+    } catch {
+      toast.error("Failed to remove interest.");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="mx-auto max-w-4xl px-4 py-16 text-center">
+          <p className="text-muted-foreground">Loading group…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!myGroup) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="mx-auto max-w-4xl px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold mb-2">You're not in a group</h1>
+          <p className="text-muted-foreground mb-6">
+            Create a new group or join one with a group code from the dashboard.
+          </p>
+          <Button asChild>
+            <Link to="/dashboard">Go to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const interestedProjects = myGroup.interestedProjects ?? [];
+  const members = myGroup.groupMembers ?? [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,10 +124,8 @@ const Group = () => {
                   Group {myGroup.groupNumber}
                 </CardTitle>
                 <div className="flex items-center gap-2">
-                  <Badge
-                    variant={groupStatus === "Open" ? "default" : "secondary"}
-                  >
-                    {groupStatus}
+                  <Badge variant={myGroup.isOpen ? "default" : "secondary"}>
+                    {myGroup.isOpen ? "Open" : "Closed"}
                   </Badge>
                   <Button
                     variant="outline"
@@ -75,7 +133,7 @@ const Group = () => {
                     onClick={handleToggleStatus}
                     className="gap-2"
                   >
-                    {groupStatus === "Open" ? (
+                    {myGroup.isOpen ? (
                       <>
                         <Lock className="h-4 w-4" />
                         Close Group
@@ -97,7 +155,7 @@ const Group = () => {
                     Group Code
                   </p>
                   <p className="text-2xl font-mono font-bold text-foreground">
-                    {myGroup.code}
+                    {myGroup.groupCode}
                   </p>
                 </div>
                 <Button
@@ -119,13 +177,13 @@ const Group = () => {
           {/* Members */}
           <Card>
             <CardHeader>
-              <CardTitle>Members ({myGroup.members.length})</CardTitle>
+              <CardTitle>Members ({members.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {myGroup.members.map((member) => (
+                {members.map((member: any) => (
                   <div
-                    key={member.userId}
+                    key={member._id}
                     className="flex items-center justify-between p-3 border rounded-lg"
                   >
                     <div>
@@ -157,9 +215,9 @@ const Group = () => {
             <CardContent>
               {interestedProjects.length > 0 ? (
                 <div className="space-y-3">
-                  {interestedProjects.map((project) => (
+                  {interestedProjects.map((project: any) => (
                     <div
-                      key={project.id}
+                      key={project._id}
                       className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex-1">
@@ -168,20 +226,16 @@ const Group = () => {
                             {project.name}
                           </h3>
                           <Badge
-                            variant={
-                              project.status === "Open"
-                                ? "default"
-                                : "secondary"
-                            }
+                            variant={project.isOpen ? "default" : "secondary"}
                           >
-                            {project.status}
+                            {project.assignedGroup ? "Assigned" : project.isOpen ? "Open" : "Closed"}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {project.description}
                         </p>
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {project.requiredMajors.map((rm, idx) => (
+                          {(project.majors ?? []).map((rm: any, idx: number) => (
                             <Badge
                               key={idx}
                               variant="outline"
@@ -194,12 +248,12 @@ const Group = () => {
                       </div>
                       <div className="flex gap-2 ml-4">
                         <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/project/${project.id}`}>View</Link>
+                          <Link to={`/project/${project._id}`}>View</Link>
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRemoveInterest()}
+                          onClick={() => handleRemoveInterest(project._id)}
                           className="text-destructive hover:text-destructive"
                         >
                           <X className="h-4 w-4" />
@@ -242,7 +296,9 @@ const Group = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline">Cancel</Button>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogTrigger>
                     <Button variant="destructive" onClick={handleLeaveGroup}>
                       Leave Group
                     </Button>
