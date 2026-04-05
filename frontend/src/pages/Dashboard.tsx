@@ -227,18 +227,26 @@ const StudentDashboard = () => {
 const CoordinatorDashboard = () => {
   const [managedCourses, setManagedCourses] = useState<CourseData[]>([]);
   const [totalProjects, setTotalProjects] = useState<number | null>(null);
+  const [totalGroups, setTotalGroups] = useState<number | null>(null);
+  const [matchedCount, setMatchedCount] = useState<number | null>(null);
 
   useEffect(() => {
     courseService.getMyCourses().then(async (res) => {
       const courses = res.data.courses;
       setManagedCourses(courses);
       if (courses.length > 0) {
-        const results = await Promise.all(
-          courses.map((c) => projectService.getProjectsByCourse(c._id)),
-        );
-        setTotalProjects(results.reduce((sum, r) => sum + r.data.count, 0));
+        const [projectResults, groupResults] = await Promise.all([
+          Promise.all(courses.map((c) => projectService.getProjectsByCourse(c._id))),
+          Promise.all(courses.map((c) => groupService.getAllGroupsByCourse(c._id))),
+        ]);
+        setTotalProjects(projectResults.reduce((sum, r) => sum + r.data.count, 0));
+        setTotalGroups(groupResults.reduce((sum, r) => sum + r.data.length, 0));
+        const allProjects = projectResults.flatMap((r) => r.data.projects);
+        setMatchedCount(allProjects.filter((p) => p.assignedGroup !== null).length);
       } else {
         setTotalProjects(0);
+        setTotalGroups(0);
+        setMatchedCount(0);
       }
     });
   }, []);
@@ -297,7 +305,7 @@ const CoordinatorDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Total Groups
                   </p>
-                  <p className="text-3xl font-bold text-foreground">—</p>
+                  <p className="text-3xl font-bold text-foreground">{totalGroups ?? "—"}</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
               </div>
@@ -311,7 +319,7 @@ const CoordinatorDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Matched
                   </p>
-                  <p className="text-3xl font-bold text-foreground">—</p>
+                  <p className="text-3xl font-bold text-foreground">{matchedCount ?? "—"}</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-primary" />
               </div>
