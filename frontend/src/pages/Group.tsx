@@ -17,34 +17,58 @@ import { toast } from "sonner";
 import { groupService } from "@/services/group.service";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface PopulatedMember {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+interface PopulatedProject {
+  _id: string;
+  name: string;
+  description: string;
+  isOpen: boolean;
+  assignedGroup: string | null;
+  majors: { major: string }[];
+}
+
+interface PopulatedGroup {
+  _id: string;
+  groupNumber: number;
+  groupCode?: string;
+  isOpen: boolean;
+  groupMembers: PopulatedMember[];
+  interestedProjects: PopulatedProject[];
+  assignedProject: string | null;
+}
+
 const Group = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [myGroup, setMyGroup] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [myGroup, setMyGroup] = useState<PopulatedGroup | null>(null);
+  const [loading, setLoading] = useState(() => !!user?.groupId);
 
   useEffect(() => {
-    if (!user?.groupId) {
-      setLoading(false);
-      return;
-    }
+    if (!user?.groupId) return;
     groupService
       .getGroupById(user.groupId)
-      .then((res) => setMyGroup(res.data.group))
+      .then((res) => setMyGroup(res.data.group as unknown as PopulatedGroup))
       .catch(() => toast.error("Failed to load group."))
       .finally(() => setLoading(false));
   }, [user?.groupId]);
 
   const handleCopyCode = () => {
+    if (!myGroup?.groupCode) return;
     navigator.clipboard.writeText(myGroup.groupCode);
     toast.success("Group code copied to clipboard");
   };
 
   const handleToggleStatus = async () => {
+    if (!myGroup) return;
     try {
       const res = await groupService.toggleStatus(myGroup._id);
-      setMyGroup(res.data.group);
+      setMyGroup(res.data.group as unknown as PopulatedGroup);
       const newStatus = res.data.group.isOpen ? "Open" : "Closed";
       toast.success(`Group status changed to ${newStatus}`);
     } catch {
@@ -53,19 +77,26 @@ const Group = () => {
   };
 
   const handleLeaveGroup = async () => {
+    if (!myGroup) return;
     try {
       await groupService.leaveGroup(myGroup._id);
       toast.success("You have left the group");
       navigate("/dashboard");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error ?? "Failed to leave group.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to leave group.";
+      toast.error(message);
     }
   };
 
   const handleRemoveInterest = async (projectId: string) => {
+    if (!myGroup) return;
     try {
-      const res = await groupService.removeInterestedProject(myGroup._id, projectId);
-      setMyGroup(res.data.group);
+      const res = await groupService.removeInterestedProject(
+        myGroup._id,
+        projectId,
+      );
+      setMyGroup(res.data.group as unknown as PopulatedGroup);
       toast.success("Interest removed from project");
     } catch {
       toast.error("Failed to remove interest.");
@@ -181,7 +212,7 @@ const Group = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {members.map((member: any) => (
+                {members.map((member: PopulatedMember) => (
                   <div
                     key={member._id}
                     className="flex items-center justify-between p-3 border rounded-lg"
@@ -215,7 +246,7 @@ const Group = () => {
             <CardContent>
               {interestedProjects.length > 0 ? (
                 <div className="space-y-3">
-                  {interestedProjects.map((project: any) => (
+                  {interestedProjects.map((project: PopulatedProject) => (
                     <div
                       key={project._id}
                       className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -228,22 +259,28 @@ const Group = () => {
                           <Badge
                             variant={project.isOpen ? "default" : "secondary"}
                           >
-                            {project.assignedGroup ? "Assigned" : project.isOpen ? "Open" : "Closed"}
+                            {project.assignedGroup
+                              ? "Assigned"
+                              : project.isOpen
+                                ? "Open"
+                                : "Closed"}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {project.description}
                         </p>
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {(project.majors ?? []).map((rm: any, idx: number) => (
-                            <Badge
-                              key={idx}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {rm.major}
-                            </Badge>
-                          ))}
+                          {(project.majors ?? []).map(
+                            (rm: { major: string }, idx: number) => (
+                              <Badge
+                                key={idx}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {rm.major}
+                              </Badge>
+                            ),
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-2 ml-4">

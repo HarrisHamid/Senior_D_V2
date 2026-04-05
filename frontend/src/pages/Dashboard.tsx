@@ -49,7 +49,9 @@ const StudentDashboard = () => {
     }
     setEnrolling(true);
     try {
-      await courseService.joinCourse({ courseCode: courseCode.trim().toUpperCase() });
+      await courseService.joinCourse({
+        courseCode: courseCode.trim().toUpperCase(),
+      });
       toast.success("Enrolled successfully!");
       await refreshUser();
     } catch (err) {
@@ -62,18 +64,27 @@ const StudentDashboard = () => {
   useEffect(() => {
     if (!user?.course) return;
 
-    courseService.getCourseById(user.course).then((res) => {
-      setCourse(res.data.course);
-    }).catch(() => {});
+    courseService
+      .getCourseById(user.course)
+      .then((res) => {
+        setCourse(res.data.course);
+      })
+      .catch(() => {});
 
-    projectService.getProjectsByCourse(user.course).then((res) => {
-      setProjectCount(res.data.pagination.total);
-    }).catch(() => {});
+    projectService
+      .getProjectsByCourse(user.course)
+      .then((res) => {
+        setProjectCount(res.data.pagination.total);
+      })
+      .catch(() => {});
 
     if (user.groupId) {
-      groupService.getGroupById(user.groupId).then((res) => {
-        setGroup(res.data.group);
-      }).catch(() => {});
+      groupService
+        .getGroupById(user.groupId)
+        .then((res) => {
+          setGroup(res.data.group);
+        })
+        .catch(() => {});
     }
   }, [user]);
 
@@ -101,7 +112,9 @@ const StudentDashboard = () => {
               {course ? (
                 <>
                   <div>
-                    <p className="font-semibold text-foreground">{course.program}</p>
+                    <p className="font-semibold text-foreground">
+                      {course.program}
+                    </p>
                     <p className="text-sm text-muted-foreground">
                       {course.courseNumber} - Section {course.courseSection}
                     </p>
@@ -109,7 +122,12 @@ const StudentDashboard = () => {
                       {course.season} {course.year}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" asChild className="w-full">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full"
+                  >
                     <Link to="/course">View Course</Link>
                   </Button>
                 </>
@@ -121,12 +139,19 @@ const StudentDashboard = () => {
                   <Input
                     placeholder="Enter 7-character code"
                     value={courseCode}
-                    onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
+                    onChange={(e) =>
+                      setCourseCode(e.target.value.toUpperCase())
+                    }
                     maxLength={7}
                     className="uppercase"
                     disabled={enrolling}
                   />
-                  <Button type="submit" size="sm" className="w-full" disabled={enrolling}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="w-full"
+                    disabled={enrolling}
+                  >
                     {enrolling ? "Enrolling…" : "Enroll"}
                   </Button>
                 </form>
@@ -149,14 +174,23 @@ const StudentDashboard = () => {
                     <p className="font-semibold text-foreground">
                       Group {group.groupNumber}
                     </p>
-                    <Badge variant={group.isOpen ? "default" : "secondary"} className="mt-1">
+                    <Badge
+                      variant={group.isOpen ? "default" : "secondary"}
+                      className="mt-1"
+                    >
                       {group.isOpen ? "Open" : "Closed"}
                     </Badge>
                     <p className="text-sm text-muted-foreground mt-2">
-                      {group.numberOfMembers ?? group.groupMembers.length} members
+                      {group.numberOfMembers ?? group.groupMembers.length}{" "}
+                      members
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" asChild className="w-full">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full"
+                  >
                     <Link to="/group">View Group</Link>
                   </Button>
                 </>
@@ -200,7 +234,10 @@ const StudentDashboard = () => {
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Button variant="outline" asChild>
-              <Link to="/marketplace" className="h-auto py-4 flex flex-col gap-2">
+              <Link
+                to="/marketplace"
+                className="h-auto py-4 flex flex-col gap-2"
+              >
                 <FolderOpen className="h-6 w-6" />
                 Browse Projects
               </Link>
@@ -236,13 +273,21 @@ const CoordinatorDashboard = () => {
       setManagedCourses(courses);
       if (courses.length > 0) {
         const [projectResults, groupResults] = await Promise.all([
-          Promise.all(courses.map((c) => projectService.getProjectsByCourse(c._id))),
-          Promise.all(courses.map((c) => groupService.getAllGroupsByCourse(c._id))),
+          Promise.all(
+            courses.map((c) => projectService.getProjectsByCourse(c._id)),
+          ),
+          Promise.all(
+            courses.map((c) => groupService.getAllGroupsByCourse(c._id)),
+          ),
         ]);
-        setTotalProjects(projectResults.reduce((sum, r) => sum + r.data.count, 0));
+        setTotalProjects(
+          projectResults.reduce((sum, r) => sum + r.data.count, 0),
+        );
         setTotalGroups(groupResults.reduce((sum, r) => sum + r.data.length, 0));
         const allProjects = projectResults.flatMap((r) => r.data.projects);
-        setMatchedCount(allProjects.filter((p) => p.assignedGroup !== null).length);
+        setMatchedCount(
+          allProjects.filter((p) => p.assignedGroup !== null).length,
+        );
       } else {
         setTotalProjects(0);
         setTotalGroups(0);
@@ -305,7 +350,9 @@ const CoordinatorDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Total Groups
                   </p>
-                  <p className="text-3xl font-bold text-foreground">{totalGroups ?? "—"}</p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {totalGroups ?? "—"}
+                  </p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
               </div>
@@ -319,7 +366,9 @@ const CoordinatorDashboard = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Matched
                   </p>
-                  <p className="text-3xl font-bold text-foreground">{matchedCount ?? "—"}</p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {matchedCount ?? "—"}
+                  </p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-primary" />
               </div>
@@ -378,7 +427,9 @@ const CoordinatorDashboard = () => {
           <CardContent>
             <div className="space-y-4">
               {managedCourses.length === 0 && (
-                <p className="text-sm text-muted-foreground">No courses yet. Create one to get started.</p>
+                <p className="text-sm text-muted-foreground">
+                  No courses yet. Create one to get started.
+                </p>
               )}
               {managedCourses.map((course) => (
                 <div

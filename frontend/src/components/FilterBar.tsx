@@ -32,25 +32,23 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Debounced Search state
-  const [localSearch, setLocalSearch] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    // initialize local search from url
-    const initialSearch: Record<string, string> = {};
-    configs.filter(c => c.type === 'search').forEach(c => {
-      initialSearch[c.id] = searchParams.get(c.id) || "";
-    });
-    setLocalSearch((prev) => ({ ...prev, ...initialSearch }));
-    // Do not include localSearch in dependencies to avoid infinite loop when updating URL params.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, configs]);
+  const [localSearch, setLocalSearch] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    configs
+      .filter((c) => c.type === "search")
+      .forEach((c) => {
+        initial[c.id] = searchParams.get(c.id) || "";
+      });
+    return initial;
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
       const newParams = new URLSearchParams(searchParams);
       let changed = false;
       Object.entries(localSearch).forEach(([key, value]) => {
-        if (value !== "") { // if defined and not empty
+        if (value !== "") {
+          // if defined and not empty
           if (newParams.get(key) !== value) {
             newParams.set(key, value);
             changed = true;
@@ -73,15 +71,19 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
     setLocalSearch((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleCheckboxChange = (id: string, value: string, checked: boolean) => {
+  const handleCheckboxChange = (
+    id: string,
+    value: string,
+    checked: boolean,
+  ) => {
     const newParams = new URLSearchParams(searchParams);
     const existing = newParams.getAll(id);
     if (checked && !existing.includes(value)) {
       newParams.append(id, value);
     } else if (!checked && existing.includes(value)) {
       newParams.delete(id);
-      const remaining = existing.filter(v => v !== value);
-      remaining.forEach(v => newParams.append(id, v));
+      const remaining = existing.filter((v) => v !== value);
+      remaining.forEach((v) => newParams.append(id, v));
     }
     setSearchParams(newParams);
   };
@@ -120,7 +122,9 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
                   <Input
                     placeholder={config.placeholder || "Search..."}
                     value={localSearch[config.id] ?? ""}
-                    onChange={(e) => handleSearchChange(config.id, e.target.value)}
+                    onChange={(e) =>
+                      handleSearchChange(config.id, e.target.value)
+                    }
                     className="pl-9"
                   />
                 </div>
@@ -139,11 +143,18 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
                       <Checkbox
                         id={opt.id}
                         checked={selected.includes(opt.value)}
-                        onCheckedChange={(checked) => 
-                          handleCheckboxChange(config.id, opt.value, checked as boolean)
+                        onCheckedChange={(checked) =>
+                          handleCheckboxChange(
+                            config.id,
+                            opt.value,
+                            checked as boolean,
+                          )
                         }
                       />
-                      <Label htmlFor={opt.id} className="text-sm font-normal cursor-pointer">
+                      <Label
+                        htmlFor={opt.id}
+                        className="text-sm font-normal cursor-pointer"
+                      >
                         {opt.label}
                       </Label>
                     </div>
@@ -158,17 +169,26 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
             return (
               <div key={config.id} className="space-y-2">
                 <Label>{config.label}</Label>
-                <RadioGroup value={selected} onValueChange={(val) => handleRadioChange(config.id, val)}>
+                <RadioGroup
+                  value={selected}
+                  onValueChange={(val) => handleRadioChange(config.id, val)}
+                >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="all" id={`${config.id}-all`} />
-                    <Label htmlFor={`${config.id}-all`} className="font-normal cursor-pointer">
+                    <Label
+                      htmlFor={`${config.id}-all`}
+                      className="font-normal cursor-pointer"
+                    >
                       All
                     </Label>
                   </div>
                   {config.options.map((opt) => (
                     <div key={opt.id} className="flex items-center space-x-2">
                       <RadioGroupItem value={opt.value} id={opt.id} />
-                      <Label htmlFor={opt.id} className="font-normal cursor-pointer">
+                      <Label
+                        htmlFor={opt.id}
+                        className="font-normal cursor-pointer"
+                      >
                         {opt.label}
                       </Label>
                     </div>

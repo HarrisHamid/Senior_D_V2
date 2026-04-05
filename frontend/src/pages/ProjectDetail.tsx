@@ -39,8 +39,12 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
 
   const [project, setProject] = useState<ProjectData | null>(null);
-  const [interestedGroups, setInterestedGroups] = useState<any[]>([]);
-  const [allGroups, setAllGroups] = useState<any[]>([]);
+  const [interestedGroups, setInterestedGroups] = useState<
+    { _id: string; groupNumber: number; groupMembers: unknown[] }[]
+  >([]);
+  const [allGroups, setAllGroups] = useState<
+    { _id: string; groupNumber: number; groupMembers: unknown[] }[]
+  >([]);
   const [selectedGroup, setSelectedGroup] = useState("");
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -74,8 +78,10 @@ const ProjectDetail = () => {
     try {
       await groupService.addInterestedProject(user.groupId, id!);
       toast.success("Interest registered successfully!");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error ?? "Failed to register interest.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to register interest.";
+      toast.error(message);
     }
   };
 
@@ -86,8 +92,10 @@ const ProjectDetail = () => {
       const res = await projectService.assignGroup(id!, { groupId });
       setProject(res.data.project);
       toast.success("Group assigned successfully!");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error ?? "Failed to assign group.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to assign group.";
+      toast.error(message);
     } finally {
       setAssigning(false);
     }
@@ -342,8 +350,8 @@ const ProjectDetail = () => {
                         <SelectContent>
                           {allGroups.map((group) => (
                             <SelectItem key={group._id} value={group._id}>
-                              Group {group.groupNumber} ({group.groupMembers?.length ?? 0}{" "}
-                              members)
+                              Group {group.groupNumber} (
+                              {group.groupMembers?.length ?? 0} members)
                             </SelectItem>
                           ))}
                         </SelectContent>
