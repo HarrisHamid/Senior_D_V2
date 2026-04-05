@@ -83,13 +83,6 @@ export default function Login() {
                 >
                   Password
                 </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-[#9B2335] hover:underline
-                    transition-all duration-200 ease-in-out"
-                >
-                  Forgot password?
-                </Link>
               </div>
               <input
                 id="password"

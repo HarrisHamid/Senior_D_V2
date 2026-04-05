@@ -159,10 +159,6 @@ const Home = () => {
           <div className="text-center text-sm text-muted-foreground">
             <p>© 2024 Stevens Institute of Technology. All rights reserved.</p>
             <div className="mt-2 space-x-4">
-              <Link to="/faq" className="hover:text-primary">
-                FAQ
-              </Link>
-              <span>•</span>
               <a
                 href="https://www.stevens.edu"
                 className="hover:text-primary"
