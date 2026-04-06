@@ -43,6 +43,39 @@ const StudentDashboard = () => {
     searchParams.get("courseCode") ?? "",
   );
   const [enrolling, setEnrolling] = useState(false);
+  const [groupCode, setGroupCode] = useState("");
+  const [joiningGroup, setJoiningGroup] = useState(false);
+
+  const handleCreateGroup = async () => {
+    if (!user?.course) return;
+    try {
+      await groupService.createNewGroup(user.course);
+      toast.success("Group created!");
+      await refreshUser();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create group",
+      );
+    }
+  };
+
+  const handleJoinGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (groupCode.trim().length === 0) {
+      toast.error("Please enter a group code");
+      return;
+    }
+    setJoiningGroup(true);
+    try {
+      await groupService.joinGroup(groupCode.trim());
+      toast.success("Joined group!");
+      await refreshUser();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to join group");
+    } finally {
+      setJoiningGroup(false);
+    }
+  };
 
   const handleEnroll = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,9 +231,36 @@ const StudentDashboard = () => {
                   </Button>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Not in a group yet.
-                </p>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Not in a group yet.
+                  </p>
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    onClick={handleCreateGroup}
+                    disabled={!course}
+                  >
+                    Create Group
+                  </Button>
+                  <form onSubmit={handleJoinGroup} className="space-y-2">
+                    <Input
+                      placeholder="Enter group code"
+                      value={groupCode}
+                      onChange={(e) => setGroupCode(e.target.value)}
+                      disabled={joiningGroup || !course}
+                    />
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      disabled={joiningGroup || !course}
+                    >
+                      {joiningGroup ? "Joining…" : "Join Group"}
+                    </Button>
+                  </form>
+                </div>
               )}
             </CardContent>
           </Card>

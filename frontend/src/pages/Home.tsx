@@ -142,7 +142,7 @@ const Home = () => {
                 design projects
               </p>
               <Button size="lg" variant="secondary" asChild>
-                <Link to="/register" className="gap-2">
+                <Link to="/signup" className="gap-2">
                   Create Your Account
                   <ArrowRight className="h-4 w-4" />
                 </Link>
