@@ -12,8 +12,7 @@ const Home = () => {
 
   const handleJoinCourse = () => {
     if (courseCode.length === 7) {
-      toast.success("Course found! Please login to continue.");
-      navigate("/login");
+      navigate(`/signup?courseCode=${courseCode}`);
     } else {
       toast.error("Please enter a valid 7-character course code");
     }

@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   Card,
@@ -35,10 +35,13 @@ const Dashboard = () => {
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { refreshUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const [course, setCourse] = useState<CourseData | null>(null);
   const [group, setGroup] = useState<GroupData | null>(null);
   const [projectCount, setProjectCount] = useState<number | null>(null);
-  const [courseCode, setCourseCode] = useState("");
+  const [courseCode, setCourseCode] = useState(
+    searchParams.get("courseCode") ?? "",
+  );
   const [enrolling, setEnrolling] = useState(false);
 
   const handleEnroll = async (e: React.FormEvent) => {

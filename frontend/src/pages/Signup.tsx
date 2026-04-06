@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Signup() {
@@ -14,6 +14,8 @@ export default function Signup() {
 
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const courseCode = searchParams.get("courseCode");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +42,9 @@ export default function Signup() {
         password,
         role,
       });
-      navigate("/dashboard");
+      navigate(
+        courseCode ? `/dashboard?courseCode=${courseCode}` : "/dashboard",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
