@@ -26,11 +26,7 @@ const Navbar = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <div className="h-10 w-10 rounded bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">
-                S
-              </span>
-            </div>
+            <img src="/logo.jpg" alt="Senior Design Marketplace" className="h-10 w-10 rounded object-cover" />
             <span className="hidden sm:block text-lg font-semibold text-foreground">
               Stevens Senior Design
             </span>

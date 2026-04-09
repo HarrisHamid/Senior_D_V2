@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { GraduationCap, Users, FolderOpen, ArrowRight } from "lucide-react";
+import { GraduationCap, Users, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 
 const Home = () => {
@@ -24,11 +24,7 @@ const Home = () => {
       <header className="border-b bg-card">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="h-10 w-10 rounded bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">
-                S
-              </span>
-            </div>
+            <img src="/logo.jpg" alt="Senior Design Marketplace" className="h-10 w-10 rounded object-cover" />
             <span className="text-lg font-semibold">Stevens Senior Design</span>
           </div>
           <div className="space-x-4">
@@ -131,26 +127,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
-        <Card className="bg-primary text-primary-foreground">
-          <CardContent className="py-12">
-            <div className="text-center space-y-6">
-              <h2 className="text-3xl font-bold">Ready to Get Started?</h2>
-              <p className="text-lg opacity-90 max-w-2xl mx-auto">
-                Join hundreds of Stevens students working on innovative senior
-                design projects
-              </p>
-              <Button size="lg" variant="secondary" asChild>
-                <Link to="/signup" className="gap-2">
-                  Create Your Account
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
 
       {/* Footer */}
       <footer className="border-t bg-card mt-20">

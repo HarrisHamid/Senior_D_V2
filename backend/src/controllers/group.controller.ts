@@ -268,7 +268,7 @@ export const addInterestedProject = async (
     }
 
     // Verify project belongs to the same course as the group
-    if (project.courseId !== group.courseId) {
+    if (project.courseId.toString() !== group.courseId.toString()) {
       res.status(400).json({
         success: false,
         message: "Project and group must belong to the same course",

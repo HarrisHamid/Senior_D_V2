@@ -25,12 +25,10 @@ const statusLabel = (project: ProjectData) => {
   return "Closed";
 };
 
-const statusVariant = (
-  project: ProjectData,
-): "default" | "secondary" | "outline" => {
-  if (project.assignedGroup) return "outline";
-  if (project.isOpen) return "default";
-  return "secondary";
+const statusClass = (project: ProjectData): string => {
+  if (project.assignedGroup) return "bg-gray-100 text-gray-700 border-gray-200";
+  if (project.isOpen) return "bg-green-100 text-green-800 border-green-200";
+  return "bg-red-100 text-red-800 border-red-200";
 };
 
 const ProjectDetail = () => {
@@ -49,6 +47,9 @@ const ProjectDetail = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [assigning, setAssigning] = useState(false);
+  const [alreadyInterested, setAlreadyInterested] = useState(false);
+  const [groupAssigned, setGroupAssigned] = useState(false);
+  const [interestLimitReached, setInterestLimitReached] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -64,11 +65,27 @@ const ProjectDetail = () => {
           ]);
           setInterestedGroups(interestedRes.data ?? []);
           setAllGroups(allGroupsRes.data ?? []);
+        } else if (user?.role === "student" && user.groupId) {
+          try {
+            const groupRes = await groupService.getGroupById(user.groupId);
+            const group = groupRes.data.group;
+            const interested = group.interestedProjects.some(
+              (pid: unknown) =>
+                typeof pid === "string"
+                  ? pid === id
+                  : (pid as { _id: string })?._id === id,
+            );
+            setAlreadyInterested(interested);
+            setGroupAssigned(!!group.assignedProject);
+            setInterestLimitReached(group.interestedProjects.length >= 4);
+          } catch {
+            // non-fatal — button just stays enabled
+          }
         }
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [id, user?.role]);
+  }, [id, user?.role, user?.groupId]);
 
   const handleShowInterest = async () => {
     if (!user?.groupId) {
@@ -77,6 +94,7 @@ const ProjectDetail = () => {
     }
     try {
       await groupService.addInterestedProject(user.groupId, id!);
+      setAlreadyInterested(true);
       toast.success("Interest registered successfully!");
     } catch (err) {
       const message =
@@ -149,7 +167,7 @@ const ProjectDetail = () => {
                     {project.name}
                   </h1>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={statusVariant(project)}>
+                    <Badge className={statusClass(project)}>
                       {statusLabel(project)}
                     </Badge>
                     <Badge variant="outline">
@@ -279,16 +297,29 @@ const ProjectDetail = () => {
                   <CardTitle>Show Interest</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Your group can show interest in up to 4 projects. This will
-                    notify the course coordinator.
-                  </p>
-                  <Button
-                    onClick={handleShowInterest}
-                    className="w-full sm:w-auto"
-                  >
-                    Express Interest
-                  </Button>
+                  {groupAssigned ? (
+                    <p className="text-sm text-muted-foreground">
+                      Your group is already assigned to a project and cannot express interest in others.
+                    </p>
+                  ) : interestLimitReached ? (
+                    <p className="text-sm text-muted-foreground">
+                      Your group has reached the maximum of 4 interested projects.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Your group can show interest in up to 4 projects. This will
+                        notify the course coordinator.
+                      </p>
+                      <Button
+                        onClick={handleShowInterest}
+                        className="w-full sm:w-auto"
+                        disabled={alreadyInterested}
+                      >
+                        {alreadyInterested ? "Interest Registered" : "Express Interest"}
+                      </Button>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             )}

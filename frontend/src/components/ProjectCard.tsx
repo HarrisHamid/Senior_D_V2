@@ -10,10 +10,10 @@ const projectStatus = (p: ProjectData) => {
   return "Closed";
 };
 
-const statusColors = {
-  Open: "default",
-  Closed: "secondary",
-  Assigned: "outline",
+const statusClasses = {
+  Open: "bg-green-100 text-green-800 border-green-200",
+  Closed: "bg-red-100 text-red-800 border-red-200",
+  Assigned: "bg-gray-100 text-gray-700 border-gray-200",
 } as const;
 
 export const ProjectCard = ({ project }: { project: ProjectData }) => {
@@ -24,7 +24,7 @@ export const ProjectCard = ({ project }: { project: ProjectData }) => {
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-lg">{project.name}</CardTitle>
-          <Badge variant={statusColors[status]}>{status}</Badge>
+          <Badge className={statusClasses[status]}>{status}</Badge>
         </div>
         <CardDescription className="line-clamp-2">
           {project.description}

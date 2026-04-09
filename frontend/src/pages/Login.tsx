@@ -32,9 +32,7 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
           {/* Logo */}
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-[#9B2335] rounded-full flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">S</span>
-            </div>
+            <img src="/logo.jpg" alt="Senior Design Marketplace" className="w-16 h-16 rounded object-cover" />
           </div>
 
           {/* Header */}
