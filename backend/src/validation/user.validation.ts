@@ -18,7 +18,8 @@ export const registerSchema = z.object({
       .min(8, "Password must be at least 8 characters")
       .max(128, "Password must be 128 characters or fewer")
       .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
     role: z.enum(["student", "course coordinator"] as const, {
       message: "Role must be student or course coordinator",
     }),

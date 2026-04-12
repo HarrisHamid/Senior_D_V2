@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Eye, EyeOff, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+
+const requirements = [
+  { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
+  { label: "At least one uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
+  { label: "At least one number", test: (p: string) => /[0-9]/.test(p) },
+  { label: "At least one special character (!@#$...)", test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+];
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -11,6 +19,8 @@ export default function Signup() {
   const [role, setRole] = useState<"student" | "course coordinator">("student");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -83,6 +93,10 @@ export default function Signup() {
     }
     if (!/[0-9]/.test(password)) {
       setError("Password must contain at least one number");
+      return;
+    }
+    if (!/[^a-zA-Z0-9]/.test(password)) {
+      setError("Password must contain at least one special character");
       return;
     }
 
@@ -200,6 +214,7 @@ export default function Signup() {
               />
             </div>
 
+            {/* Password */}
             <div>
               <label
                 htmlFor="password"
@@ -207,19 +222,51 @@ export default function Signup() {
               >
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
-                  focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
-                  transition-all duration-200 ease-in-out"
-                required
-                disabled={isSubmitting}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-11 border border-gray-200 rounded-lg bg-gray-50
+                    focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
+                    transition-all duration-200 ease-in-out"
+                  required
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+
+              {/* Password requirements */}
+              {password.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {requirements.map((req) => {
+                    const met = req.test(password);
+                    return (
+                      <li
+                        key={req.label}
+                        className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${
+                          met ? "text-green-600" : "text-gray-400"
+                        }`}
+                      >
+                        <Check className={`w-3.5 h-3.5 shrink-0 ${met ? "opacity-100" : "opacity-30"}`} />
+                        {req.label}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
 
+            {/* Confirm Password */}
             <div>
               <label
                 htmlFor="confirmPassword"
@@ -227,17 +274,28 @@ export default function Signup() {
               >
                 Confirm Password
               </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
-                  focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
-                  transition-all duration-200 ease-in-out"
-                required
-                disabled={isSubmitting}
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirm ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-11 border border-gray-200 rounded-lg bg-gray-50
+                    focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
+                    transition-all duration-200 ease-in-out"
+                  required
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                >
+                  {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             {/* Role Selection */}
