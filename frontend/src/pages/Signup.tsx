@@ -21,15 +21,74 @@ export default function Signup() {
     e.preventDefault();
     setError("");
 
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // First name validation
+    if (!trimmedFirst) {
+      setError("First name is required");
+      return;
+    }
+    if (trimmedFirst.length > 50) {
+      setError("First name must be 50 characters or fewer");
+      return;
+    }
+    if (!/^[a-zA-Z\s'\-]+$/.test(trimmedFirst)) {
+      setError("First name can only contain letters, spaces, hyphens, and apostrophes");
       return;
     }
 
-    // Validate password length
+    // Last name validation
+    if (!trimmedLast) {
+      setError("Last name is required");
+      return;
+    }
+    if (trimmedLast.length > 50) {
+      setError("Last name must be 50 characters or fewer");
+      return;
+    }
+    if (!/^[a-zA-Z\s'\-]+$/.test(trimmedLast)) {
+      setError("Last name can only contain letters, spaces, hyphens, and apostrophes");
+      return;
+    }
+
+    // Email validation
+    if (!trimmedEmail) {
+      setError("Email is required");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (!trimmedEmail.endsWith("@stevens.edu")) {
+      setError("You must use a Stevens email address (@stevens.edu)");
+      return;
+    }
+
+    // Password validation
     if (password.length < 8) {
       setError("Password must be at least 8 characters");
+      return;
+    }
+    if (password.length > 128) {
+      setError("Password must be 128 characters or fewer");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number");
+      return;
+    }
+
+    // Confirm password
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
@@ -37,8 +96,8 @@ export default function Signup() {
 
     try {
       await register({
-        name: `${firstName} ${lastName}`.trim(),
-        email,
+        name: `${trimmedFirst} ${trimmedLast}`,
+        email: trimmedEmail,
         password,
         role,
       });

@@ -1,22 +1,9 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { GraduationCap, Users, FolderOpen } from "lucide-react";
-import { toast } from "sonner";
 
 const Home = () => {
-  const [courseCode, setCourseCode] = useState("");
-  const navigate = useNavigate();
-
-  const handleJoinCourse = () => {
-    if (courseCode.length === 7) {
-      navigate(`/signup?courseCode=${courseCode}`);
-    } else {
-      toast.error("Please enter a valid 7-character course code");
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
@@ -50,30 +37,6 @@ const Home = () => {
             your ideas to life
           </p>
 
-          {/* Course Code Input */}
-          <Card className="max-w-md mx-auto mt-8">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-foreground block mb-2">
-                    Have a course code?
-                  </label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Enter 7-character code"
-                      value={courseCode}
-                      onChange={(e) =>
-                        setCourseCode(e.target.value.toUpperCase())
-                      }
-                      maxLength={7}
-                      className="uppercase"
-                    />
-                    <Button onClick={handleJoinCourse}>Join</Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </section>
 

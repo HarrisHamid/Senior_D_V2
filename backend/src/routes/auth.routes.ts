@@ -9,12 +9,14 @@ import {
 } from "../controllers/auth.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { authLimiter, verificationLimiter } from "../middleware/rateLimiter";
+import { validateRequest } from "../middleware/validation.middleware";
+import { registerSchema, loginSchema } from "../validation/user.validation";
 
 const router = Router();
 
 // Public routes
-router.post("/register", authLimiter, register);
-router.post("/login", authLimiter, login); // requires authentication
+router.post("/register", authLimiter, validateRequest(registerSchema), register);
+router.post("/login", authLimiter, validateRequest(loginSchema), login);
 router.post("/logout", logout);
 
 // Protected routes (require authentication)
