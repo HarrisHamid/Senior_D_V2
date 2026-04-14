@@ -15,7 +15,12 @@ import { registerSchema, loginSchema } from "../validation/user.validation";
 const router = Router();
 
 // Public routes
-router.post("/register", authLimiter, validateRequest(registerSchema), register);
+router.post(
+  "/register",
+  authLimiter,
+  validateRequest(registerSchema),
+  register,
+);
 router.post("/login", authLimiter, validateRequest(loginSchema), login);
 router.post("/logout", logout);
 

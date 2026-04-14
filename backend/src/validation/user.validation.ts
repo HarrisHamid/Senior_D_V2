@@ -6,7 +6,10 @@ export const registerSchema = z.object({
       .string()
       .min(1, "Name is required")
       .max(100, "Name must be 100 characters or fewer")
-      .regex(/^[a-zA-Z\s'\-]+$/, "Name can only contain letters, spaces, hyphens, and apostrophes"),
+      .regex(
+        /^[a-zA-Z\s'\-]+$/,
+        "Name can only contain letters, spaces, hyphens, and apostrophes",
+      ),
     email: z
       .string()
       .email("Please enter a valid email address")
@@ -19,7 +22,10 @@ export const registerSchema = z.object({
       .max(128, "Password must be 128 characters or fewer")
       .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
       .regex(/[0-9]/, "Password must contain at least one number")
-      .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
+      .regex(
+        /[^a-zA-Z0-9]/,
+        "Password must contain at least one special character",
+      ),
     role: z.enum(["student", "course coordinator"] as const, {
       message: "Role must be student or course coordinator",
     }),
