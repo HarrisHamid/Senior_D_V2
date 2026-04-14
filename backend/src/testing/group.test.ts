@@ -96,7 +96,7 @@ describe("Group Routes - /api/groups", () => {
       // setupGroup already created one; verify via a fresh call
       const { token: student2Token } = await registerAndGetToken({
         name: "Student Two",
-        email: "student2@test.com",
+        email: "student2@stevens.edu",
         password: "Password123!",
         role: "student",
       });
@@ -177,7 +177,7 @@ describe("Group Routes - /api/groups", () => {
       const { group } = await setupGroup();
       const { token: student2Token } = await registerAndGetToken({
         name: "Student Two",
-        email: "student2@test.com",
+        email: "student2@stevens.edu",
         password: "Password123!",
         role: "student",
       });
@@ -202,7 +202,7 @@ describe("Group Routes - /api/groups", () => {
 
       const { token: student2Token } = await registerAndGetToken({
         name: "Student Two",
-        email: "student2@test.com",
+        email: "student2@stevens.edu",
         password: "Password123!",
         role: "student",
       });

@@ -10,14 +10,14 @@ export interface TestUser {
 
 export const defaultCoordinator: TestUser = {
   name: "Test Coordinator",
-  email: "coordinator@test.com",
+  email: "coordinator@stevens.edu",
   password: "Password123!",
   role: "course coordinator",
 };
 
 export const defaultStudent: TestUser = {
   name: "Test Student",
-  email: "student@test.com",
+  email: "student@stevens.edu",
   password: "Password123!",
   role: "student",
 };

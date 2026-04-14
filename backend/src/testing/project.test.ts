@@ -128,7 +128,7 @@ describe("Project Routes - /api/projects", () => {
       const { course } = await setupCourse();
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };
@@ -553,7 +553,7 @@ describe("Project Routes - /api/projects", () => {
       const { project } = await setupProject();
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };
@@ -648,7 +648,7 @@ describe("Project Routes - /api/projects", () => {
       const { project } = await setupProject();
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };
@@ -898,7 +898,7 @@ describe("Project Routes - /api/projects", () => {
       const { project, group } = await setupAssignment();
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };

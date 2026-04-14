@@ -329,7 +329,7 @@ describe("Upload Routes - /api/uploads", () => {
       const { project } = await setupProject();
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };

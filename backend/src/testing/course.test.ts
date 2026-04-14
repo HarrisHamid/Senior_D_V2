@@ -199,7 +199,7 @@ describe("Course Routes - /api/courses", () => {
       // Second coordinator
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };
@@ -367,7 +367,7 @@ describe("Course Routes - /api/courses", () => {
 
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2-export@test.com",
+        email: "coord2-export@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };
@@ -491,7 +491,7 @@ describe("Course Routes - /api/courses", () => {
 
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };
@@ -660,7 +660,7 @@ describe("Course Routes - /api/courses", () => {
 
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };
@@ -749,13 +749,13 @@ describe("Course Routes - /api/courses", () => {
 
       const studentA: TestUser = {
         name: "Student A",
-        email: "studA@test.com",
+        email: "studA@stevens.edu",
         password: "Password123!",
         role: "student",
       };
       const studentB: TestUser = {
         name: "Student B",
-        email: "studB@test.com",
+        email: "studB@stevens.edu",
         password: "Password123!",
         role: "student",
       };
@@ -873,7 +873,7 @@ describe("Course Routes - /api/courses", () => {
 
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };
@@ -1009,7 +1009,7 @@ describe("Course Routes - /api/courses", () => {
       // Create a second course and try to join it
       const coord2: TestUser = {
         name: "Coordinator Two",
-        email: "coord2@test.com",
+        email: "coord2@stevens.edu",
         password: "Password123!",
         role: "course coordinator",
       };

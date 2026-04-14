@@ -186,7 +186,7 @@ describe("Auth Routes - /api/auth", () => {
       const { name: _name, ...noName } = defaultStudent;
       const res = await request(app).post("/api/auth/register").send(noName);
 
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
@@ -194,7 +194,7 @@ describe("Auth Routes - /api/auth", () => {
       const { email: _email, ...noEmail } = defaultStudent;
       const res = await request(app).post("/api/auth/register").send(noEmail);
 
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
@@ -204,7 +204,7 @@ describe("Auth Routes - /api/auth", () => {
         .post("/api/auth/register")
         .send(noPassword);
 
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
@@ -212,7 +212,7 @@ describe("Auth Routes - /api/auth", () => {
       const { role: _role, ...noRole } = defaultStudent;
       const res = await request(app).post("/api/auth/register").send(noRole);
 
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
@@ -221,7 +221,7 @@ describe("Auth Routes - /api/auth", () => {
         .post("/api/auth/register")
         .send({ ...defaultStudent, password: "short" });
 
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
@@ -231,7 +231,7 @@ describe("Auth Routes - /api/auth", () => {
           .post("/api/auth/register")
           .send({
             ...defaultStudent,
-            email: `rate-limit-${i}@example.com`,
+            email: `rate-limit-${i}@stevens.edu`,
           });
 
         expect([201, 400, 500]).toContain(response.status);
@@ -241,7 +241,7 @@ describe("Auth Routes - /api/auth", () => {
         .post("/api/auth/register")
         .send({
           ...defaultStudent,
-          email: "rate-limit-blocked@example.com",
+          email: "rate-limit-blocked@stevens.edu",
         });
 
       expect(blocked.status).toBe(429);
