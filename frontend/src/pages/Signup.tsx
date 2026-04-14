@@ -44,7 +44,7 @@ export default function Signup() {
       setError("First name must be 50 characters or fewer");
       return;
     }
-    if (!/^[a-zA-Z\s'\-]+$/.test(trimmedFirst)) {
+    if (!/^[a-zA-Z\s'-]+$/.test(trimmedFirst)) {
       setError("First name can only contain letters, spaces, hyphens, and apostrophes");
       return;
     }
@@ -58,7 +58,7 @@ export default function Signup() {
       setError("Last name must be 50 characters or fewer");
       return;
     }
-    if (!/^[a-zA-Z\s'\-]+$/.test(trimmedLast)) {
+    if (!/^[a-zA-Z\s'-]+$/.test(trimmedLast)) {
       setError("Last name can only contain letters, spaces, hyphens, and apostrophes");
       return;
     }
