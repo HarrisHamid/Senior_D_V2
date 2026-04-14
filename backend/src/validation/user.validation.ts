@@ -7,7 +7,7 @@ export const registerSchema = z.object({
       .min(1, "Name is required")
       .max(100, "Name must be 100 characters or fewer")
       .regex(
-        /^[a-zA-Z\s'\-]+$/,
+        /^[a-zA-Z\s'-]+$/,
         "Name can only contain letters, spaces, hyphens, and apostrophes",
       ),
     email: z
