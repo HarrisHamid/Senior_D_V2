@@ -32,6 +32,11 @@ router.post(
   verificationLimiter,
   resendVerificationCode,
 );
-router.post("/verification/verify", authenticate, verifyEmailCode);
+router.post(
+  "/verification/verify",
+  authenticate,
+  verificationLimiter,
+  verifyEmailCode,
+);
 
 export default router;

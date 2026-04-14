@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 import { AuthRequest } from "../types";
 import { Group } from "../models/Group.model";
 import { Project } from "../models/Project.model";
+import Course from "../models/Course.model";
 import { generateUniqueGroupCode } from "../utils/codeGenerator";
 
 // Create new group
@@ -161,6 +162,7 @@ export const getGroupById = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const user = req.user;
     const { groupId } = req.params;
 
     if (!Types.ObjectId.isValid(groupId)) {
@@ -176,6 +178,21 @@ export const getGroupById = async (
     if (!group) {
       res.status(404).json({ success: false, message: "Group not found" });
       return;
+    }
+
+    const isMember = group.groupMembers.some(
+      (m) =>
+        (m as unknown as { _id: { toString(): string } })._id.toString() ===
+        user?._id,
+    );
+
+    if (!isMember) {
+      const course = await Course.findById(group.courseId);
+      const isCoordinator = course?.userId === user?._id;
+      if (!isCoordinator) {
+        res.status(403).json({ success: false, message: "Forbidden" });
+        return;
+      }
     }
 
     res.status(200).json({ success: true, data: group });

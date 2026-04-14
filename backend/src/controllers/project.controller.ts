@@ -94,7 +94,8 @@ export const getProjectsByCourse = async (
 
     // Text search across name, description, sponsor
     if (query.search && typeof query.search === "string") {
-      const regex = new RegExp(query.search, "i");
+      const escaped = query.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(escaped, "i");
       filter.$or = [
         { name: regex },
         { description: regex },
