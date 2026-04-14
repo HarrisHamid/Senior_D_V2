@@ -6,6 +6,8 @@ import {
   getCurrentUser,
   resendVerificationCode,
   verifyEmailCode,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/auth.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { authLimiter, verificationLimiter } from "../middleware/rateLimiter";
@@ -14,6 +16,8 @@ import {
   registerSchema,
   loginSchema,
   verifyCodeSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from "../validation/user.validation";
 
 const router = Router();
@@ -27,6 +31,18 @@ router.post(
 );
 router.post("/login", authLimiter, validateRequest(loginSchema), login);
 router.post("/logout", logout);
+router.post(
+  "/forgot-password",
+  authLimiter,
+  validateRequest(forgotPasswordSchema),
+  forgotPassword,
+);
+router.post(
+  "/reset-password/:token",
+  authLimiter,
+  validateRequest(resetPasswordSchema),
+  resetPassword,
+);
 
 // Protected routes (require authentication)
 router.get("/me", authenticate, getCurrentUser);

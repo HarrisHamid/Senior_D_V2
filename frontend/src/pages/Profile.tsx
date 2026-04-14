@@ -21,7 +21,24 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
+  Eye,
+  EyeOff,
+  Check,
+  Lock,
 } from "lucide-react";
+
+const passwordRequirements = [
+  { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
+  {
+    label: "At least one uppercase letter",
+    test: (p: string) => /[A-Z]/.test(p),
+  },
+  { label: "At least one number", test: (p: string) => /[0-9]/.test(p) },
+  {
+    label: "At least one special character",
+    test: (p: string) => /[^a-zA-Z0-9]/.test(p),
+  },
+];
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
@@ -38,6 +55,9 @@ const Profile = () => {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   if (!user) return null;
 
@@ -59,10 +79,6 @@ const Profile = () => {
   };
 
   const handleChangePassword = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("New passwords do not match");
-      return;
-    }
     try {
       setIsChangingPassword(true);
       await userService.changePassword({
@@ -209,67 +225,173 @@ const Profile = () => {
           </Card>
 
           {/* Change Password */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-              <CardDescription>
-                Update your password to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="oldPassword">Current Password</Label>
-                <Input
-                  id="oldPassword"
-                  type="password"
-                  value={passwordData.oldPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      oldPassword: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      newPassword: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      confirmPassword: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <Button
-                onClick={handleChangePassword}
-                disabled={isChangingPassword}
-              >
-                {isChangingPassword && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Update Password
-              </Button>
-            </CardContent>
-          </Card>
+          {(() => {
+            const allRequirementsMet = passwordRequirements.every((r) =>
+              r.test(passwordData.newPassword),
+            );
+            const passwordsMatch =
+              passwordData.newPassword === passwordData.confirmPassword &&
+              passwordData.confirmPassword.length > 0;
+            const canSubmit =
+              passwordData.oldPassword.length > 0 &&
+              allRequirementsMet &&
+              passwordsMatch;
+
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lock className="h-5 w-5" />
+                    Change Password
+                  </CardTitle>
+                  <CardDescription>
+                    Update your password to keep your account secure
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Current Password */}
+                  <div className="space-y-2">
+                    <Label htmlFor="oldPassword">Current Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="oldPassword"
+                        type={showOldPassword ? "text" : "password"}
+                        value={passwordData.oldPassword}
+                        onChange={(e) =>
+                          setPasswordData({
+                            ...passwordData,
+                            oldPassword: e.target.value,
+                          })
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowOldPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showOldPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* New Password + Requirements */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="newPassword"
+                          type={showNewPassword ? "text" : "password"}
+                          value={passwordData.newPassword}
+                          onChange={(e) =>
+                            setPasswordData({
+                              ...passwordData,
+                              newPassword: e.target.value,
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword((v) => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          tabIndex={-1}
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="md:pt-7">
+                      <ul className="space-y-1.5">
+                        {passwordRequirements.map((req) => {
+                          const met = req.test(passwordData.newPassword);
+                          return (
+                            <li
+                              key={req.label}
+                              className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${
+                                met ? "text-green-600" : "text-muted-foreground"
+                              }`}
+                            >
+                              <Check
+                                className={`h-3.5 w-3.5 shrink-0 ${met ? "opacity-100" : "opacity-30"}`}
+                              />
+                              {req.label}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Confirm New Password */}
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">
+                      Confirm New Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={passwordData.confirmPassword}
+                        onChange={(e) =>
+                          setPasswordData({
+                            ...passwordData,
+                            confirmPassword: e.target.value,
+                          })
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    {passwordData.confirmPassword.length > 0 && (
+                      <p
+                        className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${
+                          passwordsMatch ? "text-green-600" : "text-destructive"
+                        }`}
+                      >
+                        <Check
+                          className={`h-3.5 w-3.5 shrink-0 ${passwordsMatch ? "opacity-100" : "opacity-30"}`}
+                        />
+                        {passwordsMatch
+                          ? "Passwords match"
+                          : "Passwords do not match"}
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    onClick={handleChangePassword}
+                    disabled={!canSubmit || isChangingPassword}
+                    className="w-full"
+                  >
+                    {isChangingPassword && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Change Password
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })()}
         </div>
       </div>
     </div>

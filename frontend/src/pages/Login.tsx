@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -32,7 +34,11 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
           {/* Logo */}
           <div className="flex justify-center">
-            <img src="/logo.jpg" alt="Senior Design Marketplace" className="w-16 h-16 rounded object-cover" />
+            <img
+              src="/logo.jpg"
+              alt="Senior Design Marketplace"
+              className="w-16 h-16 rounded object-cover"
+            />
           </div>
 
           {/* Header */}
@@ -81,18 +87,38 @@ export default function Login() {
                 >
                   Password
                 </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-[#9B2335] hover:underline transition-all duration-200 ease-in-out"
+                >
+                  Forgot password?
+                </Link>
               </div>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
-                  focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
-                  transition-all duration-200 ease-in-out"
-                required
-                disabled={isSubmitting}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
+                    focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
+                    transition-all duration-200 ease-in-out"
+                  required
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button

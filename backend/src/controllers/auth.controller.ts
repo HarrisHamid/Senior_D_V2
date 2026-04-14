@@ -1,11 +1,14 @@
+import crypto from "crypto";
 import { Request, Response } from "express";
 import User from "../models/User.model"; // User model, how does it work here
+import PasswordResetToken from "../models/PasswordResetToken.model";
 import { generateToken, sendTokenCookie } from "../utils/jwt.utils";
 import { AuthRequest } from "../types";
 import {
   issueVerificationCode,
   validateVerificationCode,
 } from "../services/verification.service";
+import { sendPasswordResetEmail } from "../services/email.service";
 import { env } from "../config/env";
 
 // Register a new user
@@ -235,6 +238,106 @@ export const resendVerificationCode = async (
       success: false,
       error: message,
     });
+  }
+};
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { email } = req.body as { email: string };
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    console.log(
+      "[forgotPassword] email lookup:",
+      email.toLowerCase().trim(),
+      "found:",
+      !!user,
+    );
+
+    // Always respond 200 to avoid leaking whether an email exists
+    if (!user) {
+      res.status(200).json({
+        success: true,
+        message:
+          "If an account with that email exists, a reset link has been sent.",
+      });
+      return;
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    const ttlMinutes = parseInt(env.PASSWORD_RESET_TOKEN_EXPIRES_MINUTES, 10);
+    const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+
+    await PasswordResetToken.findOneAndUpdate(
+      { userId: user._id },
+      { userId: user._id, tokenHash, expiresAt },
+      { upsert: true, setDefaultsOnInsert: true, new: true },
+    );
+
+    const resetLink = `${env.FRONTEND_URL}/reset-password/${rawToken}`;
+    await sendPasswordResetEmail(user.email, resetLink, ttlMinutes);
+
+    res.status(200).json({
+      success: true,
+      message:
+        "If an account with that email exists, a reset link has been sent.",
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Error processing request";
+    res.status(500).json({ success: false, error: message });
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { token } = req.params as { token: string };
+    const { password } = req.body as { password: string };
+
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    // tokenHash is select:false but can still be used as a filter
+    const record = await PasswordResetToken.findOne({ tokenHash });
+
+    if (!record || record.expiresAt.getTime() < Date.now()) {
+      if (record) await PasswordResetToken.deleteOne({ _id: record._id });
+      res.status(400).json({
+        success: false,
+        error: "Reset link is invalid or has expired.",
+      });
+      return;
+    }
+
+    const user = await User.findById(record.userId).select("+password");
+    if (!user) {
+      res.status(400).json({ success: false, error: "User not found." });
+      return;
+    }
+
+    user.password = password;
+    await user.save();
+
+    await PasswordResetToken.deleteOne({ _id: record._id });
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully. You can now log in.",
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Error resetting password";
+    res.status(500).json({ success: false, error: message });
   }
 };
 
