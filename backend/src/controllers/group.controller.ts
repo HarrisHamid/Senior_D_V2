@@ -220,11 +220,20 @@ export const toggleStatus = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const user = req.user;
     const { groupId } = req.params;
 
     const group = await Group.findById(groupId);
     if (!group) {
       res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    const isMember = group.groupMembers.some(
+      (id) => id.toString() === user?._id,
+    );
+    if (!isMember) {
+      res.status(403).json({ success: false, message: "Forbidden" });
       return;
     }
 
@@ -251,12 +260,21 @@ export const addInterestedProject = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const user = req.user;
     const { groupId } = req.params;
     const { projectId } = req.body;
 
     const group = await Group.findById(groupId);
     if (!group) {
       res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    const isMember = group.groupMembers.some(
+      (id) => id.toString() === user?._id,
+    );
+    if (!isMember) {
+      res.status(403).json({ success: false, message: "Forbidden" });
       return;
     }
 
@@ -338,12 +356,21 @@ export const removeInterestedProject = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const user = req.user;
     const { groupId } = req.params;
     const { projectId } = req.body;
 
     const group = await Group.findById(groupId);
     if (!group) {
       res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    const isMember = group.groupMembers.some(
+      (id) => id.toString() === user?._id,
+    );
+    if (!isMember) {
+      res.status(403).json({ success: false, message: "Forbidden" });
       return;
     }
 
