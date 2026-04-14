@@ -64,7 +64,7 @@ function HeroSection() {
       <GridPattern
         width={40}
         height={40}
-        className="fill-gray-100/60 stroke-gray-200/60 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,white_40%,transparent_100%)]"
+        className="fill-gray-100/60 stroke-gray-200/60"
       />
       {/* Navbar */}
       <TimelineContent
@@ -233,7 +233,7 @@ function HeroSection() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t bg-white mt-16">
+      <footer className="relative z-10 border-t bg-white mt-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-sm text-muted-foreground">
             <p>© 2024 Stevens Institute of Technology. All rights reserved.</p>
