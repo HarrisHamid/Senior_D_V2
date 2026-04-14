@@ -49,7 +49,22 @@ export const updateProfileSchema = z.object({
 export const changePasswordSchema = z.object({
   body: z.object({
     currentPassword: z.string().min(1),
-    newPassword: z.string().min(8).max(128),
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password must be 128 characters or fewer")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(
+        /[^a-zA-Z0-9]/,
+        "Password must contain at least one special character",
+      ),
+  }),
+});
+
+export const verifyCodeSchema = z.object({
+  body: z.object({
+    code: z.string().regex(/^\d{6}$/, "Code must be a 6-digit number"),
   }),
 });
 

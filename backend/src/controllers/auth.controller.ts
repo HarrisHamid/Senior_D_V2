@@ -6,6 +6,7 @@ import {
   issueVerificationCode,
   validateVerificationCode,
 } from "../services/verification.service";
+import { env } from "../config/env";
 
 // Register a new user
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -138,6 +139,8 @@ export const logout = (_req: Request, res: Response): void => {
   res.cookie("token", "", {
     httpOnly: true,
     expires: new Date(0),
+    secure: env.NODE_ENV === "production",
+    sameSite: "strict" as const,
   });
 
   res.status(200).json({

@@ -10,7 +10,11 @@ import {
 import { authenticate } from "../middleware/auth.middleware";
 import { authLimiter, verificationLimiter } from "../middleware/rateLimiter";
 import { validateRequest } from "../middleware/validation.middleware";
-import { registerSchema, loginSchema } from "../validation/user.validation";
+import {
+  registerSchema,
+  loginSchema,
+  verifyCodeSchema,
+} from "../validation/user.validation";
 
 const router = Router();
 
@@ -36,6 +40,7 @@ router.post(
   "/verification/verify",
   authenticate,
   verificationLimiter,
+  validateRequest(verifyCodeSchema),
   verifyEmailCode,
 );
 
