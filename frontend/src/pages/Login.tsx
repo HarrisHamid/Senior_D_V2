@@ -17,10 +17,27 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail) {
+      setError("Email is required");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (!trimmedPassword) {
+      setError("Password is required");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await login({ email, password });
+      await login({ email: trimmedEmail, password: trimmedPassword });
       navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");

@@ -36,20 +36,41 @@ npm run lint   # ESLint
 
 **Request lifecycle:** Route → `validate(schema)` middleware (Zod) → `authenticate` middleware (JWT from cookie or `Authorization: Bearer`) → `requireRole(...roles)` → Controller
 
-- **Routes** (`src/routes/index.ts`): `/api/auth`, `/api/courses`, `/api/users`, `/api/projects`, `/api/groups`, `/api/uploads`
+**Routes** (`src/routes/index.ts`):
+
+| Prefix | File | Key endpoints |
+|---|---|---|
+| `/api/auth` | `auth.routes.ts` | `POST /register`, `POST /login`, `POST /logout`, `GET /me`, `POST /forgot-password`, `POST /reset-password/:token`, `POST /verification/resend`, `POST /verification/verify` |
+| `/api/courses` | `course.routes.ts` | `POST /` (coordinator), `GET /my-courses` (coordinator), `POST /join` (student), `GET /:id`, `PATCH /:id/close`, `PATCH /:id/open`, `GET /:id/stats`, `GET /:id/export` (XLSX) |
+| `/api/projects` | `project.routes.ts` | `POST /`, `GET /course/:courseId`, `GET /:id`, `PATCH /:id`, `DELETE /:id`, `POST /:id/assign-group`, `PATCH /:id/unassign-group` |
+| `/api/groups` | `group.routes.ts` | `POST /` (create), `PATCH /join`, `GET /course/:courseId`, `GET /interested/:projectId`, `GET /:groupId`, `DELETE /:groupId/leave`, `PATCH /:groupId/toggle-status`, `POST /:groupId/interested-projects`, `DELETE /:groupId/interested-projects` |
+| `/api/users` | `user.routes.ts` | `GET /`, `PATCH /`, `PATCH /password` |
+| `/api/uploads` | `upload.routes.ts` | File upload via multer |
+
+**Important route ordering:** Static paths (e.g. `/course/:courseId`) must be registered before dynamic paths (e.g. `/:id`) to avoid route collision. This pattern is consistent across all route files.
+
 - **Auth** (`src/middleware/auth.middleware.ts`): Extracts JWT from `req.cookies.token` or `Authorization: Bearer`. Fetches full user from DB, attaches as `req.user` (typed as `AuthRequest`). Never attach the password—`User.model.ts` has `select: false` on the password field.
 - **Validation** (`src/middleware/validation.middleware.ts`): Wraps Zod schemas; all schemas live in `src/validation/` and validate `body`, `params`, and/or `query` together.
 - **Rate limiting** (`src/middleware/rateLimiter.ts`): In-memory, no Redis. `authLimiter` (10 req / 15 min), `verificationLimiter` (5 req / 15 min), `generalLimiter` (100 req / 15 min). `resetRateLimiters()` is called in `clearTestDB()` so tests start clean.
-- **Email** (`src/services/email.service.ts`): Controlled by `EMAIL_PROVIDER` env var. `"console"` (default dev) logs to stderr and appends to `/tmp/dev-emails.log`. `"disabled"` is a no-op (used in tests).
+- **Email** (`src/services/email.service.ts`): Controlled by `EMAIL_PROVIDER` env var. `"console"` (default dev) logs to stderr and appends to `/tmp/dev-emails.log`. `"disabled"` is a no-op (used in tests). Sends verification codes and password reset links.
 - **File uploads** (`src/middleware/upload.middleware.ts`, `src/routes/upload.routes.ts`): Uses multer. Uploaded file metadata is stored in the `UploadedFile` model.
+- **XLSX export** (`src/utils/xlsxBuilder.ts`): Zero-dependency XLSX builder (hand-rolled XML). Used by `GET /api/courses/:id/export` to export course assignment data.
 
-**Data model relationships:**
+### Backend — Data Models
+
+**Relationships:**
 - `User` → belongs to one `Course` (via `user.course`), one `Group` (via `user.groupId`)
-- `Course` → has a unique `courseCode` (7-char, auto-generated), `lastGroupNumber` counter, `closed` flag
-- `Group` → belongs to a `Course`, has up to 4 `interestedProjects`, one `assignedProject`
-- `Project` → belongs to a `Course`, tracks `assignedGroup`, `isOpen`
+- `Course` → has a unique `courseCode` (7-char, auto-generated), `lastGroupNumber` counter, `closed` flag, `minGroupSize`/`maxGroupSize`
+- `Group` → belongs to a `Course`, `groupMembers[]` (ObjectId refs), up to 4 `interestedProjects`, one `assignedProject`, optional `groupCode` (sparse unique, for future invite links), `isOpen` status
+- `Project` → belongs to a `Course`, created by a `User` (`userId`), fields: `name`, `description`, `sponsor` (string), `advisors[]` `{name, email}`, `contacts[]` `{name, email}`, `majors[]` `{major}`, `year`, `internal` (boolean), `assignedGroup`, `isOpen`
+- `VerificationCode` → linked to `User`, stores hashed code with TTL for email verification
+- `PasswordResetToken` → linked to `User`, stores hashed token with TTL for password reset
 
 **Roles:** `"student"` | `"course coordinator"`. Students join courses via `courseCode` and can have a group. Course coordinators create courses and projects. `verificationNeeded` on `User` tracks whether email verification is pending.
+
+**Auth flows:**
+- *Email verification*: After register, `verificationNeeded=true`. `POST /verification/resend` sends a new code; `POST /verification/verify` checks it and sets `verificationNeeded=false`.
+- *Password reset*: `POST /forgot-password` emails a reset link; `POST /reset-password/:token` validates the token and updates the password.
 
 ### Backend — Testing
 
@@ -69,7 +90,7 @@ afterAll(() => disconnectTestDB());
 afterEach(() => clearTestDB()); // also resets rate limiters
 ```
 
-Helper fixtures live in `src/testing/helpers/` (`fixtures.ts`, `auth.ts`).
+Helper fixtures live in `src/testing/helpers/` (`fixtures.ts` — shared test data, `auth.ts` — auth helpers).
 
 ### Frontend — React + Vite
 
@@ -79,10 +100,28 @@ Helper fixtures live in `src/testing/helpers/` (`fixtures.ts`, `auth.ts`).
 - `PublicOnlyRoute` — redirects authenticated users away from `/login`, `/signup`
 - `ProtectedRoute` — redirects unauthenticated users to `/login`, preserving `location.state.from`
 - `RoleRoute` — restricts by role; `/group` is student-only; `/course/create` and `/project/add` are coordinator-only
+- `/forgot-password` and `/reset-password/:token` are accessible regardless of auth state
 
-**API layer** (`src/services/api.ts`): Single Axios instance with `withCredentials: true` and a response interceptor that normalizes errors to `new Error(message)`. Base URL is `VITE_API_URL` or `http://localhost:5000/api`. Each domain has its own service file (`auth.service.ts`, `course.service.ts`, etc.).
+**Page inventory:**
 
-**UI:** Tailwind CSS v4 (via `@tailwindcss/vite`), Radix UI primitives, `lucide-react` icons, `sonner` toasts, `motion` for animations. Shadcn-style component wrappers live in `src/components/ui/`.
+| Route | Page | Who |
+|---|---|---|
+| `/` | `Home` | Public — landing page |
+| `/login`, `/signup` | `Login`, `Signup` | Public only |
+| `/forgot-password`, `/reset-password/:token` | `ForgotPassword`, `ResetPassword` | Any |
+| `/dashboard` | `Dashboard` | Authenticated |
+| `/course` | `Course` | Authenticated — course detail for current user's course |
+| `/marketplace` | `Marketplace` | Authenticated — browse/filter projects |
+| `/project/:id` | `ProjectDetail` | Authenticated |
+| `/profile` | `Profile` | Authenticated |
+| `/group` | `Group` | Student only |
+| `/course/create` | `CreateCourse` | Coordinator only |
+| `/project/add` | `CreateProject` | Coordinator only |
+| `/logout` | `LogoutScreen` | Authenticated |
+
+**API layer** (`src/services/api.ts`): Single Axios instance with `withCredentials: true` and a response interceptor that normalizes errors to `new Error(message)`. Base URL is `VITE_API_URL` or `http://localhost:5000/api`. Each domain has its own service file (`auth.service.ts`, `course.service.ts`, `group.service.ts`, `project.service.ts`, `upload.service.ts`, `user.service.ts`).
+
+**UI:** Tailwind CSS v4 (via `@tailwindcss/vite`), Radix UI primitives, `lucide-react` icons, `sonner` toasts, `motion` for animations. Shadcn-style component wrappers live in `src/components/ui/`. Static seed/mock data lives in `src/data/mockData.ts`.
 
 ## Environment Variables
 

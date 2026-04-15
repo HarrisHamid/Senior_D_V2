@@ -62,10 +62,39 @@ const Profile = () => {
   if (!user) return null;
 
   const handleSaveProfile = async () => {
+    const trimmedFirst = formData.firstName.trim();
+    const trimmedLast = formData.lastName.trim();
+    const nameRegex = /^[a-zA-Z\s'-]+$/;
+
+    if (!trimmedFirst) {
+      toast.error("First name is required");
+      return;
+    }
+    if (trimmedFirst.length > 50) {
+      toast.error("First name must be 50 characters or fewer");
+      return;
+    }
+    if (!nameRegex.test(trimmedFirst)) {
+      toast.error("First name can only contain letters, spaces, hyphens, and apostrophes");
+      return;
+    }
+    if (!trimmedLast) {
+      toast.error("Last name is required");
+      return;
+    }
+    if (trimmedLast.length > 50) {
+      toast.error("Last name must be 50 characters or fewer");
+      return;
+    }
+    if (!nameRegex.test(trimmedLast)) {
+      toast.error("Last name can only contain letters, spaces, hyphens, and apostrophes");
+      return;
+    }
+
     try {
       setIsSaving(true);
       await updateUser({
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        name: `${trimmedFirst} ${trimmedLast}`,
       });
       setIsEditing(false);
       toast.success("Profile updated successfully");
