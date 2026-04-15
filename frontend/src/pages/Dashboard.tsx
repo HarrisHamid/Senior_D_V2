@@ -61,13 +61,18 @@ const StudentDashboard = () => {
 
   const handleJoinGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (groupCode.trim().length === 0) {
+    const trimmedCode = groupCode.trim();
+    if (trimmedCode.length === 0) {
       toast.error("Please enter a group code");
+      return;
+    }
+    if (trimmedCode.length !== 10) {
+      toast.error("Group codes are exactly 10 characters");
       return;
     }
     setJoiningGroup(true);
     try {
-      await groupService.joinGroup(groupCode.trim());
+      await groupService.joinGroup(trimmedCode);
       toast.success("Joined group!");
       await refreshUser();
     } catch (err) {
