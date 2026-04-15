@@ -4,18 +4,13 @@ import { ProgressiveBlur } from "@/components/ui/progressive-blur";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { GridPattern } from "@/components/ui/grid-pattern";
 import { useRef } from "react";
-import {
-  FolderOpen,
-  Users,
-  GraduationCap,
-  LogIn,
-} from "lucide-react";
+import { FolderOpen, Users, GraduationCap, LogIn } from "lucide-react";
 
 const showcaseCards = [
   {
     id: "browse-projects",
     name: "Browse Projects",
-    description: "Explore senior design projects across all disciplines.",
+    description: "Explore senior design projects across all schools.",
     imgSrc:
       "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=870&auto=format&fit=crop",
     icon: FolderOpen,
@@ -23,7 +18,7 @@ const showcaseCards = [
   {
     id: "form-teams",
     name: "Form Teams",
-    description: "Connect with fellow students and build your dream team.",
+    description: "Connect with fellow students and build your team.",
     imgSrc:
       "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=869&auto=format&fit=crop",
     icon: Users,
@@ -60,7 +55,10 @@ function HeroSection() {
   };
 
   return (
-    <main ref={timelineRef} className="relative bg-white min-h-screen overflow-hidden">
+    <main
+      ref={timelineRef}
+      className="relative bg-white min-h-screen overflow-hidden"
+    >
       <GridPattern
         width={40}
         height={40}
@@ -85,61 +83,66 @@ function HeroSection() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            {/* Sign In — glass button */}
+            {/* Sign In — neutral glass button */}
             <Link
               to="/login"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-[10px] text-sm font-medium text-foreground transition-all duration-200"
+              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-[10px] text-sm font-medium text-foreground overflow-hidden transition-all duration-200"
               style={{
-                background: "rgba(255,255,255,0.55)",
+                background: "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(242,242,242,0.72) 100%)",
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
-                border: "1px solid rgba(0,0,0,0.10)",
-                boxShadow:
-                  "0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)",
+                boxShadow: "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background =
-                  "rgba(255,255,255,0.75)";
                 (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 2px 8px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.9)";
+                  "0 0 0 1px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.11)";
+                (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background =
-                  "rgba(255,255,255,0.55)";
                 (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 1px 3px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)";
+                  "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)";
+                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
               }}
             >
-              <LogIn className="h-4 w-4" />
-              Sign In
+              {/* Inner glass highlight overlay */}
+              <div
+                className="pointer-events-none absolute inset-0 rounded-[10px]"
+                style={{
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.60) 0%, rgba(255,255,255,0.05) 55%, rgba(0,0,0,0.03) 100%)",
+                }}
+              />
+              <span className="relative z-10 flex items-center gap-2">
+                <LogIn className="h-4 w-4" />
+                Sign In
+              </span>
             </Link>
-            {/* Get Started — glass button with primary tint */}
+            {/* Register — red glass button */}
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-[10px] text-sm font-semibold text-white transition-all duration-200"
+              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-[10px] text-sm font-semibold text-white overflow-hidden transition-all duration-200"
               style={{
-                background:
-                  "linear-gradient(135deg, hsl(351,63%,37%) 0%, hsl(351,63%,50%) 100%)",
-                backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)",
-                border: "1px solid hsl(351,63%,55%)",
-                boxShadow:
-                  "0 1px 3px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)",
+                background: "linear-gradient(180deg, hsl(351,63%,58%) 0%, hsl(351,63%,42%) 100%)",
+                boxShadow: "0 0 0 1px hsl(351,50%,52%), 0 1px 3px rgba(0,0,0,0.20)",
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.25)";
-                (e.currentTarget as HTMLElement).style.transform =
-                  "translateY(-1px)";
+                  "0 0 0 1px hsl(351,50%,56%), 0 4px 12px rgba(155,35,53,0.30)";
+                (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 1px 3px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)";
-                (e.currentTarget as HTMLElement).style.transform =
-                  "translateY(0)";
+                  "0 0 0 1px hsl(351,50%,52%), 0 1px 3px rgba(0,0,0,0.20)";
+                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
               }}
             >
-              Register
+              {/* Inner glass highlight overlay */}
+              <div
+                className="pointer-events-none absolute inset-0 rounded-[10px]"
+                style={{
+                  background: "linear-gradient(180deg, rgba(255,200,200,0.32) 0%, rgba(255,255,255,0.02) 55%, rgba(0,0,0,0.12) 100%)",
+                }}
+              />
+              <span className="relative z-10">Register</span>
             </Link>
           </div>
         </div>
@@ -154,7 +157,7 @@ function HeroSection() {
             animationNum={2}
             timelineRef={timelineRef}
             customVariants={revealVariants}
-            className="text-sm text-muted-foreground tracking-wide"
+            className="text-lg text-muted-foreground tracking-wide"
           >
             Welcome to the
           </TimelineContent>
@@ -171,7 +174,7 @@ function HeroSection() {
             <span
               style={{
                 background:
-                  "linear-gradient(135deg, hsl(351, 63%, 32%), hsl(11, 80%, 52%))",
+                  "linear-gradient(135deg, hsl(351, 63%, 32%), hsl(0, 80%, 52%))",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -187,7 +190,7 @@ function HeroSection() {
             animationNum={4}
             timelineRef={timelineRef}
             customVariants={revealVariants}
-            className="text-sm text-muted-foreground tracking-wide"
+            className="text-lg text-muted-foreground tracking-wide"
           >
             Find a Team, Select a Project, Continue to Innovate
           </TimelineContent>
@@ -236,7 +239,7 @@ function HeroSection() {
       <footer className="relative z-10 border-t bg-white mt-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-sm text-muted-foreground">
-            <p>© 2024 Stevens Institute of Technology. All rights reserved.</p>
+            <p>© 2026 Stevens Institute of Technology. All rights reserved.</p>
             <div className="mt-2">
               <a
                 href="https://www.stevens.edu"
