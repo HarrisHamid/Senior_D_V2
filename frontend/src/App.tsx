@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import LogoutScreen from "./pages/LogoutScreen";
 import Home from "./pages/Home";
 import Course from "./pages/Course";
@@ -25,6 +27,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
         </Route>
+
+        {/* Accessible regardless of auth state */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/logout" element={<LogoutScreen />} />

@@ -68,6 +68,27 @@ export const verifyCodeSchema = z.object({
   }),
 });
 
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().email("Please enter a valid email address"),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password must be 128 characters or fewer")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(
+        /[^a-zA-Z0-9]/,
+        "Password must contain at least one special character",
+      ),
+  }),
+});
+
 export const userSchemas = {
   updateProfile: updateProfileSchema,
   changePassword: changePasswordSchema,

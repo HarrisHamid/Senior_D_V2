@@ -51,6 +51,11 @@ export const env = {
     "VERIFICATION_CODE_TTL_MINUTES",
     "10",
   ),
+  FRONTEND_URL: getEnvVarWithDefault("FRONTEND_URL", "http://localhost:5173"),
+  PASSWORD_RESET_TOKEN_EXPIRES_MINUTES: getEnvVarWithDefault(
+    "PASSWORD_RESET_TOKEN_EXPIRES_MINUTES",
+    "60",
+  ),
 } as const;
 
 // Validate all required env vars on app startup

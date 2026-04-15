@@ -2,6 +2,7 @@
 process.env.JWT_SECRET = "test-jwt-secret-key-for-testing";
 process.env.MONGO_URI = "mongodb://localhost:27017/test-placeholder";
 process.env.NODE_ENV = "test";
+process.env.EMAIL_PROVIDER = "disabled";
 
 import request from "supertest";
 import mongoose from "mongoose";
