@@ -160,9 +160,7 @@ describe("Upload Routes - /api/uploads", () => {
     it("should return 401 when unauthenticated", async () => {
       const { project } = await setupProject();
 
-      const res = await request(app)
-        .post(`/api/uploads/${project._id}`)
-        .send();
+      const res = await request(app).post(`/api/uploads/${project._id}`).send();
 
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);

@@ -143,8 +143,11 @@ describe("Auth Routes - /api/auth", () => {
     });
 
     it("should require school and major when registering a Student", async () => {
-      const { school: _school, major: _major, ...studentWithoutMajor } =
-        defaultStudent;
+      const {
+        school: _school,
+        major: _major,
+        ...studentWithoutMajor
+      } = defaultStudent;
 
       const res = await request(app)
         .post("/api/auth/register")
