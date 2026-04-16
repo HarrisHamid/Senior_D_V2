@@ -59,6 +59,8 @@ export const authenticate = async (
       name: user.name,
       email: user.email,
       role: user.role,
+      school: user.school,
+      major: user.major,
       verificationNeeded: user.verificationNeeded,
       course: user.course,
       groupId: user.groupId,

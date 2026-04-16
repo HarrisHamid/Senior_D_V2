@@ -6,6 +6,8 @@ export interface TestUser {
   email: string;
   password: string;
   role: "student" | "course coordinator";
+  school?: string;
+  major?: string;
 }
 
 export const defaultCoordinator: TestUser = {
@@ -20,12 +22,23 @@ export const defaultStudent: TestUser = {
   email: "student@stevens.edu",
   password: "Password123!",
   role: "student",
+  school: "School of Computing",
+  major: "Computer Science",
 };
 
 export const registerAndGetToken = async (
   user: TestUser = defaultCoordinator,
 ): Promise<{ token: string; userId: string }> => {
-  const res = await request(app).post("/api/auth/register").send(user);
+  const registerUser =
+    user.role === "student"
+      ? {
+          school: "School of Computing",
+          major: "Computer Science",
+          ...user,
+        }
+      : user;
+
+  const res = await request(app).post("/api/auth/register").send(registerUser);
 
   return {
     token: res.body.data.token,

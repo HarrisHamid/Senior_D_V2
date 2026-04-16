@@ -5,6 +5,8 @@ export interface IUser {
   name: string;
   email: string;
   role: "student" | "course coordinator";
+  school?: string;
+  major?: string;
   verificationNeeded: boolean;
   course?: string;
   groupId?: string;

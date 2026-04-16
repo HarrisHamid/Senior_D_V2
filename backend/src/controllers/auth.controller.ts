@@ -14,7 +14,7 @@ import { env } from "../config/env";
 // Register a new user
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, school, major } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -32,6 +32,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       email,
       password,
       role,
+      school: school || null,
+      major: major || null,
       verificationNeeded: true,
     });
 
@@ -57,6 +59,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           name: user.name,
           email: user.email,
           role: user.role,
+          school: user.school,
+          major: user.major,
           verificationNeeded: user.verificationNeeded,
           course: user.course,
           groupId: user.groupId,
@@ -121,6 +125,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           name: user.name,
           email: user.email,
           role: user.role,
+          school: user.school,
+          major: user.major,
           verificationNeeded: user.verificationNeeded,
           course: user.course,
           groupId: user.groupId,
@@ -185,6 +191,8 @@ export const getCurrentUser = async (
           name: user.name,
           email: user.email,
           role: user.role,
+          school: user.school,
+          major: user.major,
           verificationNeeded: user.verificationNeeded,
           course: user.course,
           groupId: user.groupId,
