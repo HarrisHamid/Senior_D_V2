@@ -1,4 +1,13 @@
 import { z } from "zod";
+import { ALL_MAJORS, MAJORS_BY_SCHOOL, SCHOOL_NAMES } from "../constants/schools";
+
+const schoolSchema = z.enum(SCHOOL_NAMES as [string, ...string[]], {
+  message: "Please select a valid school",
+});
+
+const majorSchema = z.enum(ALL_MAJORS as [string, ...string[]], {
+  message: "Please select a valid major",
+});
 
 export const registerSchema = z.object({
   body: z.object({
@@ -29,6 +38,44 @@ export const registerSchema = z.object({
     role: z.enum(["student", "course coordinator"] as const, {
       message: "Role must be student or course coordinator",
     }),
+    school: schoolSchema.optional(),
+    major: majorSchema.optional(),
+  }).superRefine((body, ctx) => {
+    const hasSchool = typeof body.school === "string" && body.school.length > 0;
+    const hasMajor = typeof body.major === "string" && body.major.length > 0;
+
+    if (body.role === "student") {
+      if (!hasSchool) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["school"],
+          message: "School is required for students",
+        });
+      }
+      if (!hasMajor) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["major"],
+          message: "Major is required for students",
+        });
+      }
+    }
+
+    if (hasMajor && !hasSchool) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["school"],
+        message: "School is required when selecting a major",
+      });
+    }
+
+    if (hasSchool && hasMajor && !MAJORS_BY_SCHOOL[body.school!]?.includes(body.major!)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["major"],
+        message: "Major must belong to the selected school",
+      });
+    }
   }),
 });
 

@@ -136,8 +136,46 @@ describe("Auth Routes - /api/auth", () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.user.email).toBe(defaultStudent.email);
       expect(res.body.data.user.role).toBe("student");
+      expect(res.body.data.user.school).toBe(defaultStudent.school);
+      expect(res.body.data.user.major).toBe(defaultStudent.major);
       expect(res.body.data.user.verificationNeeded).toBe(true);
       expect(res.body.data.token).toBeDefined();
+    });
+
+    it("should require school and major when registering a Student", async () => {
+      const { school: _school, major: _major, ...studentWithoutMajor } =
+        defaultStudent;
+
+      const res = await request(app)
+        .post("/api/auth/register")
+        .send(studentWithoutMajor);
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.details).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ field: "body.school" }),
+          expect.objectContaining({ field: "body.major" }),
+        ]),
+      );
+    });
+
+    it("should reject a major outside the selected school", async () => {
+      const res = await request(app)
+        .post("/api/auth/register")
+        .send({
+          ...defaultStudent,
+          school: "School of Computing",
+          major: "Finance",
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.details).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ field: "body.major" }),
+        ]),
+      );
     });
 
     it("should register a new Course Coordinator and return 201", async () => {

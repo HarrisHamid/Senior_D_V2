@@ -91,6 +91,8 @@ describe("Upload Routes - /api/uploads", () => {
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.file.mimetype).toBe("text/plain");
+      expect(res.body.data.file.path).toBeUndefined();
+      expect(res.body.data.file.__v).toBeUndefined();
     });
 
     it("should allow a Student to upload and return 201", async () => {
@@ -160,7 +162,7 @@ describe("Upload Routes - /api/uploads", () => {
 
       const res = await request(app)
         .post(`/api/uploads/${project._id}`)
-        .attach("file", TXT_PATH, { contentType: "text/plain" });
+        .send();
 
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
@@ -200,6 +202,8 @@ describe("Upload Routes - /api/uploads", () => {
       expect(res.body.data.files).toHaveLength(1);
       expect(res.body.data.count).toBe(1);
       expect(res.body.data.files[0].originalName).toBe("test.txt");
+      expect(res.body.data.files[0].path).toBeUndefined();
+      expect(res.body.data.files[0].__v).toBeUndefined();
     });
 
     it("should return 404 when project does not exist", async () => {
