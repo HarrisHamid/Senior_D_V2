@@ -9,17 +9,59 @@ import type { ProjectData } from "@/services/project.service";
 import { FilterBar, type FilterConfig } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
 
-const MAJORS = [
-  "Computer Science",
-  "Computer Engineering",
-  "Software Engineering",
-  "Electrical Engineering",
-  "Mechanical Engineering",
-  "Biomedical Engineering",
-  "Cybersecurity",
-  "Data Science",
-  "Psychology",
+const SCHOOLS: { label: string; majors: string[] }[] = [
+  {
+    label: "School of Engineering and Science",
+    majors: [
+      "Biology",
+      "Biomedical Engineering",
+      "Chemical Biology",
+      "Chemical Engineering",
+      "Chemistry",
+      "Civil Engineering",
+      "Computer Engineering",
+      "Electrical Engineering",
+      "Engineering Management",
+      "Environmental Engineering",
+      "Mathematics",
+      "Mechanical Engineering",
+      "Naval Engineering",
+      "Physics",
+      "Software Engineering",
+    ],
+  },
+  {
+    label: "School of Business",
+    majors: [
+      "Accounting & Analytics",
+      "Business & Technology",
+      "Economics",
+      "Finance",
+      "Information Systems",
+      "Management",
+      "Marketing Innovation & Analytics",
+      "Quantitative Finance",
+    ],
+  },
+  {
+    label: "School of Humanities, Arts and Social Sciences",
+    majors: [
+      "History",
+      "Literature",
+      "Music & Technology",
+      "Philosophy",
+      "Science Communication",
+      "Social Sciences",
+      "Visual Arts & Technology",
+    ],
+  },
+  {
+    label: "School of Computing",
+    majors: ["Artificial Intelligence", "Computer Science", "Cybersecurity"],
+  },
 ];
+
+const ALL_MAJORS = SCHOOLS.flatMap((s) => s.majors);
 
 const projectStatus = (p: ProjectData) => {
   if (p.assignedGroup) return "Assigned";
@@ -74,6 +116,10 @@ const Marketplace = () => {
     (a, b) => b - a,
   );
 
+  const schoolFilter = searchParams.get("school") || "all";
+  const selectedSchool = SCHOOLS.find((s) => s.label === schoolFilter);
+  const visibleMajors = selectedSchool ? selectedSchool.majors : ALL_MAJORS;
+
   const filterConfigs: FilterConfig[] = [
     {
       id: "search",
@@ -82,10 +128,17 @@ const Marketplace = () => {
       placeholder: "Search projects...",
     },
     {
+      id: "school",
+      label: "School",
+      type: "select",
+      placeholder: "All Schools",
+      options: SCHOOLS.map((s) => ({ id: `school-${s.label}`, label: s.label, value: s.label })),
+    },
+    {
       id: "majors",
       label: "Required Majors",
       type: "checkbox",
-      options: MAJORS.map((m) => ({ id: `major-${m}`, label: m, value: m })),
+      options: visibleMajors.map((m) => ({ id: `major-${m}`, label: m, value: m })),
     },
     {
       id: "status",
@@ -130,6 +183,10 @@ const Marketplace = () => {
       project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.sponsor.toLowerCase().includes(searchQuery.toLowerCase());
 
+    const matchesSchool =
+      schoolFilter === "all" ||
+      project.majors.some((rm) => selectedSchool?.majors.includes(rm.major));
+
     const matchesMajors =
       selectedMajors.length === 0 ||
       project.majors.some((rm) => selectedMajors.includes(rm.major));
@@ -145,7 +202,7 @@ const Marketplace = () => {
     const matchesYear =
       yearFilter === "all" || project.year.toString() === yearFilter;
 
-    return matchesSearch && matchesMajors && matchesStatus && matchesType && matchesYear;
+    return matchesSearch && matchesSchool && matchesMajors && matchesStatus && matchesType && matchesYear;
   });
 
   return (
@@ -178,7 +235,7 @@ const Marketplace = () => {
           </Card>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
-            <aside className="lg:w-64 space-y-6">
+            <aside className="lg:w-80 space-y-6">
               <FilterBar configs={filterConfigs} />
             </aside>
 

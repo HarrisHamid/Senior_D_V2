@@ -6,9 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 
-export type FilterType = "search" | "radio" | "checkbox";
+export type FilterType = "search" | "radio" | "checkbox" | "select";
 
 export interface FilterOption {
   id: string;
@@ -98,6 +105,16 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
     setSearchParams(newParams);
   };
 
+  const handleSelectChange = (id: string, value: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value === "all") {
+      newParams.delete(id);
+    } else {
+      newParams.set(id, value);
+    }
+    setSearchParams(newParams);
+  };
+
   const clearAll = () => {
     setSearchParams(new URLSearchParams());
     setLocalSearch({});
@@ -160,6 +177,31 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
                     </div>
                   ))}
                 </div>
+              </div>
+            );
+          }
+
+          if (config.type === "select" && config.options) {
+            const selected = searchParams.get(config.id) || "all";
+            return (
+              <div key={config.id} className="space-y-2">
+                <Label>{config.label}</Label>
+                <Select
+                  value={selected}
+                  onValueChange={(val) => handleSelectChange(config.id, val)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={config.placeholder || `All ${config.label}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {config.options.map((opt) => (
+                      <SelectItem key={opt.id} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             );
           }
