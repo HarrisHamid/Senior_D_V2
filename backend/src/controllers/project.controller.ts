@@ -4,6 +4,11 @@ import { AuthRequest } from "../types";
 import { Project } from "../models/Project.model";
 import { Group } from "../models/Group.model";
 import Course from "../models/Course.model";
+import User from "../models/User.model";
+import {
+  sendGroupAssignedEmail,
+  sendGroupUnassignedEmail,
+} from "../services/email.service";
 
 /**
  * Create a new project (Course Coordinator only)
@@ -383,6 +388,18 @@ export const assignGroupToProject = async (
       { $pull: { interestedProjects: id } },
     );
 
+    // Fire-and-forget: notify group members they've been assigned
+    User.find({ _id: { $in: group.groupMembers } })
+      .select("email")
+      .then((members) =>
+        sendGroupAssignedEmail(
+          members.map((m) => m.email),
+          project.name,
+          user.name,
+        ),
+      )
+      .catch(console.error);
+
     res.status(200).json({
       success: true,
       data: { project, group },
@@ -443,6 +460,18 @@ export const unassignGroupFromProject = async (
     group.assignedProject = null;
     group.isOpen = true;
     await group.save();
+
+    // Fire-and-forget: notify group members they've been unassigned
+    User.find({ _id: { $in: group.groupMembers } })
+      .select("email")
+      .then((members) =>
+        sendGroupUnassignedEmail(
+          members.map((m) => m.email),
+          project.name,
+          user.name,
+        ),
+      )
+      .catch(console.error);
 
     res.status(200).json({
       success: true,

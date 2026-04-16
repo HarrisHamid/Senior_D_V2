@@ -56,6 +56,7 @@ export const env = {
     "PASSWORD_RESET_TOKEN_EXPIRES_MINUTES",
     "60",
   ),
+  RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
 } as const;
 
 // Validate all required env vars on app startup

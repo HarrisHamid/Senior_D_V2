@@ -2,6 +2,7 @@ import { Response } from "express";
 import { AuthRequest } from "../types";
 import * as courseService from "../services/course.service";
 import { CourseServiceError } from "../services/course.service";
+import { sendStudentJoinedCourseEmail } from "../services/email.service";
 
 const handleServiceError = (
   error: unknown,
@@ -119,6 +120,14 @@ export const joinCourse = async (
       !!user.course,
       req.body.courseCode,
     );
+
+    // Fire-and-forget: notify coordinator a student has joined
+    sendStudentJoinedCourseEmail(
+      course.email,
+      course.name,
+      user.name,
+      `${course.program} ${course.courseNumber}-${course.courseSection}`,
+    ).catch(console.error);
 
     res.status(200).json({
       success: true,

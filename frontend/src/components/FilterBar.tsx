@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -104,28 +102,37 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Filter className="h-5 w-5" />
+    <div
+      className="bg-white rounded-xl overflow-hidden"
+      style={{
+        boxShadow: "0 0 0 1px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05)",
+      }}
+    >
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-gray-100">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-[#0d0d0d]">
+          <Filter className="h-4 w-4 text-muted-foreground" />
           Filters
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </h2>
+      </div>
+
+      <div className="px-5 py-4 space-y-6">
         {configs.map((config) => {
           if (config.type === "search") {
             return (
               <div key={config.id} className="space-y-2">
-                <Label>{config.label}</Label>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  {config.label}
+                </p>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
                     placeholder={config.placeholder || "Search..."}
                     value={localSearch[config.id] ?? ""}
                     onChange={(e) =>
                       handleSearchChange(config.id, e.target.value)
                     }
-                    className="pl-9"
+                    className="pl-9 h-9 text-sm bg-gray-50 border-gray-200 focus:border-primary/50 focus:ring-primary/20"
                   />
                 </div>
               </div>
@@ -135,11 +142,13 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
           if (config.type === "checkbox" && config.options) {
             const selected = searchParams.getAll(config.id);
             return (
-              <div key={config.id} className="space-y-2">
-                <Label>{config.label}</Label>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
+              <div key={config.id} className="space-y-2.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  {config.label}
+                </p>
+                <div className="space-y-1.5 max-h-64 overflow-y-auto">
                   {config.options.map((opt) => (
-                    <div key={opt.id} className="flex items-center space-x-2">
+                    <div key={opt.id} className="flex items-center space-x-2.5">
                       <Checkbox
                         id={opt.id}
                         checked={selected.includes(opt.value)}
@@ -150,10 +159,11 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
                             checked as boolean,
                           )
                         }
+                        className="rounded-[4px]"
                       />
                       <Label
                         htmlFor={opt.id}
-                        className="text-sm font-normal cursor-pointer"
+                        className="text-sm font-normal cursor-pointer text-foreground"
                       >
                         {opt.label}
                       </Label>
@@ -167,27 +177,30 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
           if (config.type === "radio" && config.options) {
             const selected = searchParams.get(config.id) || "all";
             return (
-              <div key={config.id} className="space-y-2">
-                <Label>{config.label}</Label>
+              <div key={config.id} className="space-y-2.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  {config.label}
+                </p>
                 <RadioGroup
                   value={selected}
                   onValueChange={(val) => handleRadioChange(config.id, val)}
+                  className="space-y-1.5"
                 >
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2.5">
                     <RadioGroupItem value="all" id={`${config.id}-all`} />
                     <Label
                       htmlFor={`${config.id}-all`}
-                      className="font-normal cursor-pointer"
+                      className="text-sm font-normal cursor-pointer text-foreground"
                     >
                       All
                     </Label>
                   </div>
                   {config.options.map((opt) => (
-                    <div key={opt.id} className="flex items-center space-x-2">
+                    <div key={opt.id} className="flex items-center space-x-2.5">
                       <RadioGroupItem value={opt.value} id={opt.id} />
                       <Label
                         htmlFor={opt.id}
-                        className="font-normal cursor-pointer"
+                        className="text-sm font-normal cursor-pointer text-foreground"
                       >
                         {opt.label}
                       </Label>
@@ -200,10 +213,29 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
 
           return null;
         })}
-        <Button variant="outline" className="w-full" onClick={clearAll}>
+
+        {/* Clear button — styled like the landing page ghost button */}
+        <button
+          onClick={clearAll}
+          className="w-full relative inline-flex items-center justify-center px-4 py-2 rounded-[10px] text-sm font-medium text-foreground overflow-hidden transition-all duration-200"
+          style={{
+            background: "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(242,242,242,0.72) 100%)",
+            boxShadow: "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.boxShadow =
+              "0 0 0 1px rgba(0,0,0,0.13), 0 2px 6px rgba(0,0,0,0.10)";
+            (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.boxShadow =
+              "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)";
+            (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+          }}
+        >
           Clear Filters
-        </Button>
-      </CardContent>
-    </Card>
+        </button>
+      </div>
+    </div>
   );
 };

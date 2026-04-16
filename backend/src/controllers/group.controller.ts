@@ -4,7 +4,9 @@ import { AuthRequest } from "../types";
 import { Group } from "../models/Group.model";
 import { Project } from "../models/Project.model";
 import Course from "../models/Course.model";
+import User from "../models/User.model";
 import { generateUniqueGroupCode } from "../utils/codeGenerator";
+import { sendGroupInterestEmail } from "../services/email.service";
 
 // Create new group
 export const createNewGroup = async (
@@ -352,6 +354,23 @@ export const addInterestedProject = async (
 
     group.interestedProjects.push(new Types.ObjectId(projectId));
     await group.save();
+
+    // Fire-and-forget: notify coordinator that this group is interested
+    Course.findById(group.courseId)
+      .then(async (course) => {
+        if (!course) return;
+        const members = await User.find({
+          _id: { $in: group.groupMembers },
+        }).select("name");
+        return sendGroupInterestEmail(
+          course.email,
+          course.name,
+          project.name,
+          group.groupNumber,
+          members.map((m) => m.name),
+        );
+      })
+      .catch(console.error);
 
     res.status(200).json({
       success: true,

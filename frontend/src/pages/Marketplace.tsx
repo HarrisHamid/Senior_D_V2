@@ -8,6 +8,7 @@ import { courseService } from "@/services/course.service";
 import type { ProjectData } from "@/services/project.service";
 import { FilterBar, type FilterConfig } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
+import { GridPattern } from "@/components/ui/grid-pattern";
 
 const MAJORS = [
   "Computer Science",
@@ -149,20 +150,39 @@ const Marketplace = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-white overflow-hidden">
+      <GridPattern
+        width={40}
+        height={40}
+        className="fill-gray-100/60 stroke-gray-200/60"
+      />
       <Navbar />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
-            Project Marketplace
-          </h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <div className="mb-10">
+          <p className="text-sm text-muted-foreground tracking-wide mb-1">
             Explore available senior design projects
           </p>
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[#0d0d0d]">
+            Project{" "}
+            <span
+              style={{
+                background:
+                  "linear-gradient(135deg, hsl(351, 63%, 32%), hsl(0, 80%, 52%))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Marketplace
+            </span>
+          </h1>
         </div>
 
         {noCourse ? (
-          <Card>
+          <Card
+            className="border border-border/60"
+            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+          >
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
                 {user?.role === "student"
@@ -189,16 +209,19 @@ const Marketplace = () => {
                 </p>
               ) : (
                 <>
-                  <div className="mb-4 text-sm text-muted-foreground">
+                  <div className="mb-5 text-sm text-muted-foreground">
                     Showing {filteredProjects.length} of {projects.length} projects
                   </div>
-                  <div className="grid gap-6 md:grid-cols-2">
+                  <div className="grid gap-5 md:grid-cols-2">
                     {filteredProjects.map((project) => (
                       <ProjectCard key={project._id} project={project} />
                     ))}
                   </div>
                   {filteredProjects.length === 0 && (
-                    <Card>
+                    <Card
+                      className="border border-border/60"
+                      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+                    >
                       <CardContent className="py-12 text-center">
                         <p className="text-muted-foreground">
                           No projects match your filters
