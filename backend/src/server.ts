@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
+import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db";
@@ -8,7 +9,10 @@ import { generalLimiter } from "./middleware/rateLimiter";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 // Middleware
+app.use(helmet());
 app.use(
   cors({
     origin: env.CORS_ORIGIN,

@@ -51,6 +51,7 @@ const ProjectDetail = () => {
   const [groupAssigned, setGroupAssigned] = useState(false);
   const [interestLimitReached, setInterestLimitReached] = useState(false);
 
+
   useEffect(() => {
     if (!id) return;
     projectService
@@ -214,13 +215,20 @@ const ProjectDetail = () => {
                         <p className="font-medium text-foreground">
                           {advisor.name}
                         </p>
-                        <a
-                          href={`mailto:${advisor.email}`}
-                          className="text-sm text-primary hover:underline flex items-center gap-1"
-                        >
-                          <Mail className="h-3 w-3" />
-                          {advisor.email}
-                        </a>
+                        {advisor.email.includes("@") && !advisor.email.toLowerCase().startsWith("javascript") ? (
+                          <a
+                            href={`mailto:${advisor.email}`}
+                            className="text-sm text-primary hover:underline flex items-center gap-1"
+                          >
+                            <Mail className="h-3 w-3" />
+                            {advisor.email}
+                          </a>
+                        ) : (
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {advisor.email}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -255,13 +263,20 @@ const ProjectDetail = () => {
                         <p className="font-medium text-foreground">
                           {contact.name}
                         </p>
-                        <a
-                          href={`mailto:${contact.email}`}
-                          className="text-sm text-primary hover:underline flex items-center gap-1"
-                        >
-                          <Mail className="h-3 w-3" />
-                          {contact.email}
-                        </a>
+                        {contact.email.includes("@") && !contact.email.toLowerCase().startsWith("javascript") ? (
+                          <a
+                            href={`mailto:${contact.email}`}
+                            className="text-sm text-primary hover:underline flex items-center gap-1"
+                          >
+                            <Mail className="h-3 w-3" />
+                            {contact.email}
+                          </a>
+                        ) : (
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {contact.email}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -324,7 +339,7 @@ const ProjectDetail = () => {
               </Card>
             )}
 
-          {/* For Coordinators */}
+          {/* For Coordinators — Group Assignment */}
           {user?.role === "course coordinator" && (
             <Card>
               <CardHeader>

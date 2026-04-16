@@ -4,6 +4,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import LogoutScreen from "./pages/LogoutScreen";
+import VerifyEmail from "./pages/VerifyEmail";
 import Home from "./pages/Home";
 import Course from "./pages/Course";
 import ProjectDetail from "./pages/ProjectDetail";
@@ -31,9 +32,10 @@ function App() {
         {/* Accessible regardless of auth state */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/logout" element={<LogoutScreen />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/logout" element={<LogoutScreen />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/course" element={<Course />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/marketplace" element={<Marketplace />} />

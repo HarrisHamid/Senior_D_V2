@@ -47,9 +47,13 @@ export const uploadFile = async (
       size: req.file.size,
     });
 
+    const { _id, originalName, filename, mimetype, size, createdAt } =
+      uploadedFile.toObject();
     res.status(201).json({
       success: true,
-      data: { file: uploadedFile },
+      data: {
+        file: { _id, originalName, filename, mimetype, size, createdAt },
+      },
       message: "File uploaded successfully",
     });
   } catch (error) {
@@ -81,9 +85,9 @@ export const listFiles = async (
       return;
     }
 
-    const files = await UploadedFile.find({ projectId }).sort({
-      createdAt: -1,
-    });
+    const files = await UploadedFile.find({ projectId })
+      .select("-path -__v")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,

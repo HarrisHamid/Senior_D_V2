@@ -8,6 +8,8 @@ export interface IUploadedFile extends Document {
   path: string;
   mimetype: string;
   size: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const UploadedFileSchema = new Schema<IUploadedFile>(
