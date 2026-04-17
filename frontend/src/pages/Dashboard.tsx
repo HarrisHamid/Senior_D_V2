@@ -11,9 +11,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { BookOpen, Users, FolderOpen, Plus, BarChart3 } from "lucide-react";
+import {
+  BookOpen,
+  Users,
+  FolderOpen,
+  Plus,
+  BarChart3,
+  Globe,
+  Lock,
+} from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { courseService } from "@/services/course.service";
 import { projectService } from "@/services/project.service";
 import { groupService } from "@/services/group.service";
@@ -45,17 +60,23 @@ const StudentDashboard = () => {
   const [enrolling, setEnrolling] = useState(false);
   const [groupCode, setGroupCode] = useState("");
   const [joiningGroup, setJoiningGroup] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [creatingGroup, setCreatingGroup] = useState(false);
 
-  const handleCreateGroup = async () => {
+  const handleCreateGroup = async (isPublic: boolean) => {
     if (!user?.course) return;
+    setCreatingGroup(true);
     try {
-      await groupService.createNewGroup(user.course);
+      await groupService.createNewGroup(user.course, isPublic);
       toast.success("Group created!");
+      setCreateDialogOpen(false);
       await refreshUser();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to create group",
       );
+    } finally {
+      setCreatingGroup(false);
     }
   };
 
@@ -72,9 +93,13 @@ const StudentDashboard = () => {
     }
     setJoiningGroup(true);
     try {
-      await groupService.joinGroup(trimmedCode);
-      toast.success("Joined group!");
-      await refreshUser();
+      const res = await groupService.joinGroup(trimmedCode);
+      if (res.requestPending) {
+        toast.success("Join request sent! The group leader will review it.");
+      } else {
+        toast.success("Joined group!");
+        await refreshUser();
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to join group");
     } finally {
@@ -123,7 +148,7 @@ const StudentDashboard = () => {
       groupService
         .getGroupById(user.groupId)
         .then((res) => {
-          setGroup(res.data.group);
+          setGroup(res.data as unknown as GroupData);
         })
         .catch(() => {});
     }
@@ -243,11 +268,52 @@ const StudentDashboard = () => {
                   <Button
                     size="sm"
                     className="w-full"
-                    onClick={handleCreateGroup}
+                    onClick={() => setCreateDialogOpen(true)}
                     disabled={!course}
                   >
                     Create Group
                   </Button>
+                  <Dialog
+                    open={createDialogOpen}
+                    onOpenChange={setCreateDialogOpen}
+                  >
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create a Group</DialogTitle>
+                        <DialogDescription>
+                          Choose how other students can join your group.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid grid-cols-2 gap-3 mt-2">
+                        <button
+                          onClick={() => handleCreateGroup(true)}
+                          disabled={creatingGroup}
+                          className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-transparent hover:border-primary hover:bg-primary/5 transition-colors text-left disabled:opacity-50"
+                        >
+                          <Globe className="h-6 w-6 text-primary" />
+                          <div>
+                            <p className="font-semibold text-sm">Public</p>
+                            <p className="text-xs text-muted-foreground">
+                              Anyone with the code joins instantly
+                            </p>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => handleCreateGroup(false)}
+                          disabled={creatingGroup}
+                          className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-transparent hover:border-primary hover:bg-primary/5 transition-colors text-left disabled:opacity-50"
+                        >
+                          <Lock className="h-6 w-6 text-primary" />
+                          <div>
+                            <p className="font-semibold text-sm">Private</p>
+                            <p className="text-xs text-muted-foreground">
+                              You approve each join request
+                            </p>
+                          </div>
+                        </button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   <form onSubmit={handleJoinGroup} className="space-y-2">
                     <Input
                       placeholder="Enter group code"

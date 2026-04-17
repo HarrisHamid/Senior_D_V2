@@ -51,7 +51,6 @@ const ProjectDetail = () => {
   const [groupAssigned, setGroupAssigned] = useState(false);
   const [interestLimitReached, setInterestLimitReached] = useState(false);
 
-
   useEffect(() => {
     if (!id) return;
     projectService
@@ -69,12 +68,11 @@ const ProjectDetail = () => {
         } else if (user?.role === "student" && user.groupId) {
           try {
             const groupRes = await groupService.getGroupById(user.groupId);
-            const group = groupRes.data.group;
-            const interested = group.interestedProjects.some(
-              (pid: unknown) =>
-                typeof pid === "string"
-                  ? pid === id
-                  : (pid as { _id: string })?._id === id,
+            const group = groupRes.data;
+            const interested = group.interestedProjects.some((pid: unknown) =>
+              typeof pid === "string"
+                ? pid === id
+                : (pid as { _id: string })?._id === id,
             );
             setAlreadyInterested(interested);
             setGroupAssigned(!!group.assignedProject);
@@ -215,7 +213,10 @@ const ProjectDetail = () => {
                         <p className="font-medium text-foreground">
                           {advisor.name}
                         </p>
-                        {advisor.email.includes("@") && !advisor.email.toLowerCase().startsWith("javascript") ? (
+                        {advisor.email.includes("@") &&
+                        !advisor.email
+                          .toLowerCase()
+                          .startsWith("javascript") ? (
                           <a
                             href={`mailto:${advisor.email}`}
                             className="text-sm text-primary hover:underline flex items-center gap-1"
@@ -263,7 +264,10 @@ const ProjectDetail = () => {
                         <p className="font-medium text-foreground">
                           {contact.name}
                         </p>
-                        {contact.email.includes("@") && !contact.email.toLowerCase().startsWith("javascript") ? (
+                        {contact.email.includes("@") &&
+                        !contact.email
+                          .toLowerCase()
+                          .startsWith("javascript") ? (
                           <a
                             href={`mailto:${contact.email}`}
                             className="text-sm text-primary hover:underline flex items-center gap-1"
@@ -314,24 +318,28 @@ const ProjectDetail = () => {
                 <CardContent className="space-y-4">
                   {groupAssigned ? (
                     <p className="text-sm text-muted-foreground">
-                      Your group is already assigned to a project and cannot express interest in others.
+                      Your group is already assigned to a project and cannot
+                      express interest in others.
                     </p>
                   ) : interestLimitReached ? (
                     <p className="text-sm text-muted-foreground">
-                      Your group has reached the maximum of 4 interested projects.
+                      Your group has reached the maximum of 4 interested
+                      projects.
                     </p>
                   ) : (
                     <>
                       <p className="text-sm text-muted-foreground">
-                        Your group can show interest in up to 4 projects. This will
-                        notify the course coordinator.
+                        Your group can show interest in up to 4 projects. This
+                        will notify the course coordinator.
                       </p>
                       <Button
                         onClick={handleShowInterest}
                         className="w-full sm:w-auto"
                         disabled={alreadyInterested}
                       >
-                        {alreadyInterested ? "Interest Registered" : "Express Interest"}
+                        {alreadyInterested
+                          ? "Interest Registered"
+                          : "Express Interest"}
                       </Button>
                     </>
                   )}

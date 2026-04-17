@@ -38,9 +38,7 @@ class ResendEmailProvider implements EmailProvider {
 
   constructor() {
     if (!env.RESEND_API_KEY) {
-      throw new Error(
-        "RESEND_API_KEY is required when EMAIL_PROVIDER=resend",
-      );
+      throw new Error("RESEND_API_KEY is required when EMAIL_PROVIDER=resend");
     }
     this.client = new Resend(env.RESEND_API_KEY);
   }
@@ -50,7 +48,8 @@ class ResendEmailProvider implements EmailProvider {
       from: env.EMAIL_FROM,
       to: input.to,
       subject: input.subject,
-      html: input.html ?? `<pre style="font-family:sans-serif">${input.text}</pre>`,
+      html:
+        input.html ?? `<pre style="font-family:sans-serif">${input.text}</pre>`,
     });
   }
 }
@@ -181,6 +180,51 @@ export const sendGroupUnassignedEmail = async (
       }),
     ),
   );
+};
+
+/**
+ * Notify the group leader (first member) when a student requests to join their private group.
+ */
+export const sendJoinRequestEmail = async (
+  leaderEmail: string,
+  leaderName: string,
+  requesterName: string,
+  groupNumber: number,
+): Promise<void> => {
+  await provider.send({
+    to: leaderEmail,
+    subject: `${requesterName} wants to join Group ${groupNumber}`,
+    text: `Hi ${leaderName},\n\n${requesterName} has requested to join your group (Group ${groupNumber}).\n\nLog in to the Senior Design Marketplace to approve or reject the request.`,
+    html: `
+      <p>Hi ${leaderName},</p>
+      <p><strong>${requesterName}</strong> has requested to join your group (<strong>Group ${groupNumber}</strong>).</p>
+      <p>Log in to the Senior Design Marketplace to approve or reject the request.</p>
+    `,
+  });
+};
+
+/**
+ * Notify a student that their request to join a group was approved or rejected.
+ */
+export const sendJoinRequestResponseEmail = async (
+  requesterEmail: string,
+  requesterName: string,
+  groupNumber: number,
+  approved: boolean,
+): Promise<void> => {
+  const subject = approved
+    ? `Your request to join Group ${groupNumber} was approved`
+    : `Your request to join Group ${groupNumber} was declined`;
+  const body = approved
+    ? `Congratulations! Your request to join Group ${groupNumber} has been approved. Log in to the Senior Design Marketplace to view your group.`
+    : `Your request to join Group ${groupNumber} has been declined. You can request to join another group using their group code.`;
+
+  await provider.send({
+    to: requesterEmail,
+    subject,
+    text: `Hi ${requesterName},\n\n${body}`,
+    html: `<p>Hi ${requesterName},</p><p>${body}</p>`,
+  });
 };
 
 /**

@@ -1,5 +1,12 @@
 import { Schema, Document, model, Types } from "mongoose";
 
+export interface IJoinRequest {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  status: "pending" | "approved" | "rejected";
+  requestedAt: Date;
+}
+
 // Typescript Interface
 export interface IGroup extends Document {
   groupNumber: number;
@@ -7,6 +14,8 @@ export interface IGroup extends Document {
   groupMembers: Types.ObjectId[];
   groupCode?: string; // Optional - reach goal: auto-generate for invite links
   isOpen: boolean;
+  isPublic: boolean;
+  joinRequests: Types.DocumentArray<IJoinRequest>;
   interestedProjects: Types.ObjectId[];
   assignedProject: Types.ObjectId | null;
 }
@@ -36,6 +45,31 @@ const GroupSchema = new Schema<IGroup>(
     isOpen: {
       type: Boolean,
       default: true,
+    },
+    isPublic: {
+      type: Boolean,
+      default: true,
+    },
+    joinRequests: {
+      type: [
+        {
+          userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+          },
+          status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
+          },
+          requestedAt: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+      default: [],
     },
     interestedProjects: {
       type: [{ type: Schema.Types.ObjectId, ref: "Project" }],
