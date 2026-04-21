@@ -13,6 +13,7 @@ npm test             # Run all tests (Jest, in-memory MongoDB)
 npm run test:watch   # Watch mode
 npm run lint         # ESLint
 npm run format       # Prettier (write)
+npm run format:check # Prettier (check only — what CI runs)
 npm run seed         # Seed database via ts-node src/seed.ts
 ```
 
@@ -32,7 +33,7 @@ npm run lint   # ESLint
 
 ### Backend — Express + MongoDB
 
-`server.ts` bootstraps Express with CORS (credentials allowed), cookie-parser, and mounts all routes under `/api` behind a global rate limiter. The server skips DB connection and env validation when `NODE_ENV=test`.
+`server.ts` bootstraps Express with CORS (credentials allowed), cookie-parser, Helmet (security headers), and mounts all routes under `/api` behind a global rate limiter. The server skips DB connection and env validation when `NODE_ENV=test`.
 
 **Request lifecycle:** Route → `validate(schema)` middleware (Zod) → `authenticate` middleware (JWT from cookie or `Authorization: Bearer`) → `requireRole(...roles)` → Controller
 
@@ -69,6 +70,8 @@ npm run lint   # ESLint
 - `PasswordResetToken` → linked to `User`, stores hashed token with TTL for password reset
 
 **Roles:** `"student"` | `"course coordinator"`. Students join courses via `courseCode` and can have a group. Course coordinators create courses and projects. `verificationNeeded` on `User` tracks whether email verification is pending.
+
+**Important:** Course coordinators cannot self-register via `POST /api/auth/register` (student-only flow). Coordinator accounts must be created directly in the database (e.g., via seed script or `User.create(...)` in tests).
 
 **Auth flows:**
 - *Email verification*: After register, `verificationNeeded=true`. `POST /verification/resend` sends a new code; `POST /verification/verify` checks it and sets `verificationNeeded=false`.
