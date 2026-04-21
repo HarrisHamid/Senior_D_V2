@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import request from "supertest";
 import app from "../server";
 import { connectTestDB, disconnectTestDB, clearTestDB } from "./helpers/db";
-import { defaultCoordinator, defaultStudent } from "./helpers/auth";
+import { defaultStudent } from "./helpers/auth";
 import { generateToken, verifyToken, JwtPayload } from "../utils/jwt.utils";
 import { env } from "../config/env";
 import VerificationCode from "../models/VerificationCode.model";
@@ -136,60 +136,18 @@ describe("Auth Routes - /api/auth", () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.user.email).toBe(defaultStudent.email);
       expect(res.body.data.user.role).toBe("student");
-      expect(res.body.data.user.school).toBe(defaultStudent.school);
-      expect(res.body.data.user.major).toBe(defaultStudent.major);
       expect(res.body.data.user.verificationNeeded).toBe(true);
       expect(res.body.data.token).toBeDefined();
     });
 
-    it("should require school and major when registering a Student", async () => {
-      const {
-        school: _school,
-        major: _major,
-        ...studentWithoutMajor
-      } = defaultStudent;
-
+    it("should always register users as students regardless of role field in body", async () => {
       const res = await request(app)
         .post("/api/auth/register")
-        .send(studentWithoutMajor);
-
-      expect(res.status).toBe(400);
-      expect(res.body.success).toBe(false);
-      expect(res.body.details).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ field: "body.school" }),
-          expect.objectContaining({ field: "body.major" }),
-        ]),
-      );
-    });
-
-    it("should reject a major outside the selected school", async () => {
-      const res = await request(app)
-        .post("/api/auth/register")
-        .send({
-          ...defaultStudent,
-          school: "School of Computing",
-          major: "Finance",
-        });
-
-      expect(res.status).toBe(400);
-      expect(res.body.success).toBe(false);
-      expect(res.body.details).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ field: "body.major" }),
-        ]),
-      );
-    });
-
-    it("should register a new Course Coordinator and return 201", async () => {
-      const res = await request(app)
-        .post("/api/auth/register")
-        .send(defaultCoordinator);
+        .send({ ...defaultStudent, role: "course coordinator" });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.user.role).toBe("course coordinator");
-      expect(res.body.data.token).toBeDefined();
+      expect(res.body.data.user.role).toBe("student");
     });
 
     it("should not return password in the response", async () => {
@@ -244,14 +202,6 @@ describe("Auth Routes - /api/auth", () => {
       const res = await request(app)
         .post("/api/auth/register")
         .send(noPassword);
-
-      expect(res.status).toBe(400);
-      expect(res.body.success).toBe(false);
-    });
-
-    it("should return 500 when role is missing", async () => {
-      const { role: _role, ...noRole } = defaultStudent;
-      const res = await request(app).post("/api/auth/register").send(noRole);
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);

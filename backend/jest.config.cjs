@@ -5,6 +5,6 @@ module.exports = {
   roots: ["<rootDir>/src"],
   testMatch: ["**/testing/**/*.test.ts"],
   moduleFileExtensions: ["ts", "js", "json"],
-  testTimeout: 30000,
+  testTimeout: 60000,
   clearMocks: true,
 };

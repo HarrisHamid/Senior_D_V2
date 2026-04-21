@@ -1,13 +1,13 @@
 import request from "supertest";
 import app from "../../server";
+import User from "../../models/User.model";
+import { generateToken } from "../../utils/jwt.utils";
 
 export interface TestUser {
   name: string;
   email: string;
   password: string;
   role: "student" | "course coordinator";
-  school?: string;
-  major?: string;
 }
 
 export const defaultCoordinator: TestUser = {
@@ -22,23 +22,33 @@ export const defaultStudent: TestUser = {
   email: "student@stevens.edu",
   password: "Password123!",
   role: "student",
-  school: "School of Computing",
-  major: "Computer Science",
 };
 
 export const registerAndGetToken = async (
   user: TestUser = defaultCoordinator,
 ): Promise<{ token: string; userId: string }> => {
-  const registerUser =
-    user.role === "student"
-      ? {
-          school: "School of Computing",
-          major: "Computer Science",
-          ...user,
-        }
-      : user;
+  if (user.role === "course coordinator") {
+    // Coordinators cannot self-register via the API — create directly in DB
+    const created = await User.create({
+      name: user.name,
+      email: user.email,
+      password: user.password,
+      role: "course coordinator",
+      verificationNeeded: false,
+    });
+    const token = generateToken({
+      userId: created._id.toString(),
+      email: created.email,
+      role: "course coordinator",
+    });
+    return { token, userId: created._id.toString() };
+  }
 
-  const res = await request(app).post("/api/auth/register").send(registerUser);
+  const res = await request(app).post("/api/auth/register").send({
+    name: user.name,
+    email: user.email,
+    password: user.password,
+  });
 
   return {
     token: res.body.data.token,
