@@ -6,7 +6,6 @@ import ResetPassword from "./pages/ResetPassword";
 import LogoutScreen from "./pages/LogoutScreen";
 import VerifyEmail from "./pages/VerifyEmail";
 import Home from "./pages/Home";
-import Course from "./pages/Course";
 import ProjectDetail from "./pages/ProjectDetail";
 import Marketplace from "./pages/Marketplace";
 import Dashboard from "./pages/Dashboard";
@@ -36,7 +35,6 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/course" element={<Course />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/dashboard" element={<Dashboard />} />

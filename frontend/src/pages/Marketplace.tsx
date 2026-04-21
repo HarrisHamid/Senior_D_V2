@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { projectService } from "@/services/project.service";
-import { courseService } from "@/services/course.service";
 import type { ProjectData } from "@/services/project.service";
 import { FilterBar, type FilterConfig } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
@@ -75,42 +74,14 @@ const Marketplace = () => {
   const [searchParams] = useSearchParams();
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [noCourse, setNoCourse] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-
-    const fetchProjects = async () => {
-      try {
-        if (user.role === "student") {
-          if (!user.course) {
-            setNoCourse(true);
-            setLoading(false);
-            return;
-          }
-          const res = await projectService.getProjectsByCourse(user.course);
-          setProjects(res.data.projects);
-        } else {
-          const coursesRes = await courseService.getMyCourses();
-          const courses = coursesRes.data.courses;
-          if (courses.length === 0) {
-            setNoCourse(true);
-            setLoading(false);
-            return;
-          }
-          const results = await Promise.all(
-            courses.map((c) => projectService.getProjectsByCourse(c._id)),
-          );
-          setProjects(results.flatMap((r) => r.data.projects));
-        }
-      } catch {
-        // leave projects empty — shown via empty state
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProjects();
+    projectService
+      .getAllProjects()
+      .then((res) => setProjects(res.data.projects))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [user]);
 
   const availableYears = [...new Set(projects.map((p) => p.year))].sort(
@@ -235,62 +206,42 @@ const Marketplace = () => {
           </h1>
         </div>
 
-        {noCourse ? (
-          <Card
-            className="border border-border/60"
-            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
-          >
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                {user?.role === "student"
-                  ? "You are not enrolled in a course yet."
-                  : "You have no courses yet. "}
-                {user?.role === "course coordinator" && (
-                  <Link to="/course/create" className="text-primary underline">
-                    Create a course
-                  </Link>
-                )}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="flex flex-col lg:flex-row gap-6">
-            <aside className="lg:w-80 space-y-6">
-              <FilterBar configs={filterConfigs} />
-            </aside>
+        <div className="flex flex-col lg:flex-row gap-6">
+          <aside className="lg:w-80 space-y-6">
+            <FilterBar configs={filterConfigs} />
+          </aside>
 
-            <div className="flex-1">
-              {loading ? (
-                <p className="text-sm text-muted-foreground py-8 text-center">
-                  Loading projects…
-                </p>
-              ) : (
-                <>
-                  <div className="mb-5 text-sm text-muted-foreground">
-                    Showing {filteredProjects.length} of {projects.length} projects
-                  </div>
-                  <div className="grid gap-5 md:grid-cols-2">
-                    {filteredProjects.map((project) => (
-                      <ProjectCard key={project._id} project={project} />
-                    ))}
-                  </div>
-                  {filteredProjects.length === 0 && (
-                    <Card
-                      className="border border-border/60"
-                      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
-                    >
-                      <CardContent className="py-12 text-center">
-                        <p className="text-muted-foreground">
-                          No projects match your filters
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
-              )}
-            </div>
+          <div className="flex-1">
+            {loading ? (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                Loading projects…
+              </p>
+            ) : (
+              <>
+                <div className="mb-5 text-sm text-muted-foreground">
+                  Showing {filteredProjects.length} of {projects.length} projects
+                </div>
+                <div className="grid gap-5 md:grid-cols-2">
+                  {filteredProjects.map((project) => (
+                    <ProjectCard key={project._id} project={project} />
+                  ))}
+                </div>
+                {filteredProjects.length === 0 && (
+                  <Card
+                    className="border border-border/60"
+                    style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+                  >
+                    <CardContent className="py-12 text-center">
+                      <p className="text-muted-foreground">
+                        No projects match your filters
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

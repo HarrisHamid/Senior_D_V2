@@ -9,7 +9,6 @@ export interface User {
   school?: string;
   major?: string;
   verificationNeeded?: boolean;
-  course?: string;
   groupId?: string;
 }
 
@@ -59,7 +58,7 @@ export interface Project {
   id: string;
   name: string;
   description: string;
-  courseId: string;
+  courseId?: string;
   advisors: Advisor[];
   sponsors: Sponsor[];
   requiredMajors: MajorRequirement[];
@@ -89,7 +88,7 @@ export interface Group {
   id: string;
   groupNumber: string;
   code: string;
-  courseId: string;
+  courseId?: string;
   members: GroupMember[];
   interestedProjects: string[];
   status: "Open" | "Closed";

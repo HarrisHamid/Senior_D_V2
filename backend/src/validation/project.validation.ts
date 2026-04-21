@@ -13,7 +13,6 @@ const majorSchema = z.object({
 
 export const createProjectSchema = z.object({
   body: z.object({
-    courseId: z.string().regex(objectIdRegex, "Invalid course ID format"),
     name: z.string().min(1, "Project name is required").max(200),
     description: z.string().min(1, "Description is required").max(5000),
     advisors: z.array(contactSchema).optional().default([]),
@@ -90,6 +89,30 @@ export const getProjectsQuerySchema = z.object({
     .optional(),
 });
 
+export const getAllProjectsQuerySchema = z.object({
+  query: z
+    .object({
+      search: z.string().optional(),
+      major: z.union([z.string(), z.array(z.string())]).optional(),
+      status: z.enum(["open", "closed"]).optional(),
+      project_type: z.enum(["internal", "external"]).optional(),
+      year: z
+        .string()
+        .regex(/^\d{4}$/, "Year must be a 4-digit number")
+        .optional(),
+      group: z.string().optional(),
+      page: z
+        .string()
+        .regex(/^\d+$/, "Page must be a positive number")
+        .optional(),
+      limit: z
+        .string()
+        .regex(/^\d+$/, "Limit must be a positive number")
+        .optional(),
+    })
+    .optional(),
+});
+
 export const projectSchemas = {
   create: createProjectSchema,
   update: updateProjectSchema,
@@ -97,4 +120,5 @@ export const projectSchemas = {
   courseId: courseIdParamSchema,
   assignGroup: assignGroupSchema,
   getProjectsQuery: getProjectsQuerySchema,
+  getAllProjectsQuery: getAllProjectsQuerySchema,
 };

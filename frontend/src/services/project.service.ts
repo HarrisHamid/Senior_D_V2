@@ -1,7 +1,6 @@
 import api from "./api";
 
 export interface CreateProjectRequest {
-  courseId: string;
   name: string;
   description: string;
   advisors?: { name: string; email: string }[];
@@ -41,7 +40,7 @@ export interface AssignGroupRequest {
 
 export interface ProjectData {
   _id: string;
-  courseId: string;
+  courseId?: string;
   userId: string;
   name: string;
   description: string;
@@ -91,6 +90,13 @@ export interface DeleteProjectResponse {
 export const projectService = {
   async createProject(data: CreateProjectRequest): Promise<ProjectResponse> {
     const response = await api.post<ProjectResponse>("/projects", data);
+    return response.data;
+  },
+
+  async getAllProjects(query?: GetProjectsQuery): Promise<ProjectsResponse> {
+    const response = await api.get<ProjectsResponse>("/projects", {
+      params: query,
+    });
     return response.data;
   },
 

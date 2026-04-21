@@ -4,7 +4,6 @@ const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 export const createGroupSchema = z.object({
   body: z.object({
-    courseId: z.string().regex(objectIdRegex, "Invalid course ID format"),
     isPublic: z.boolean().optional().default(true),
   }),
 });

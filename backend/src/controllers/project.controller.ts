@@ -3,7 +3,6 @@ import { Types } from "mongoose";
 import { AuthRequest } from "../types";
 import { Project } from "../models/Project.model";
 import { Group } from "../models/Group.model";
-import Course from "../models/Course.model";
 import User from "../models/User.model";
 import {
   sendGroupAssignedEmail,
@@ -26,7 +25,6 @@ export const createProject = async (
     }
 
     const {
-      courseId,
       name,
       description,
       advisors,
@@ -37,24 +35,7 @@ export const createProject = async (
       internal,
     } = req.body;
 
-    // Verify course exists
-    const course = await Course.findById(courseId);
-    if (!course) {
-      res.status(404).json({ success: false, error: "Course not found" });
-      return;
-    }
-
-    // Verify the coordinator owns this course
-    if (course.userId !== user._id) {
-      res.status(403).json({
-        success: false,
-        error: "You can only create projects for your own courses",
-      });
-      return;
-    }
-
     const project = await Project.create({
-      courseId,
       userId: user._id,
       name,
       description,
@@ -165,6 +146,86 @@ export const getProjectsByCourse = async (
     });
   } catch (error) {
     console.error("Get projects error:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to retrieve projects" });
+  }
+};
+
+/**
+ * Get all projects (global marketplace view)
+ * GET /api/projects
+ */
+export const getAllProjects = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const filter: Record<string, unknown> = {};
+    const query = req.query;
+
+    if (query.search && typeof query.search === "string") {
+      const escaped = query.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(escaped, "i");
+      filter.$or = [
+        { name: regex },
+        { description: regex },
+        { sponsor: regex },
+      ];
+    }
+
+    if (query.major) {
+      if (typeof query.major === "string") {
+        filter["majors.major"] = query.major;
+      } else if (Array.isArray(query.major)) {
+        filter["majors.major"] = { $in: query.major };
+      }
+    }
+
+    if (query.status === "open") {
+      filter.isOpen = true;
+    } else if (query.status === "closed") {
+      filter.isOpen = false;
+    }
+
+    if (query.project_type === "internal") {
+      filter.internal = true;
+    } else if (query.project_type === "external") {
+      filter.internal = false;
+    }
+
+    if (query.year && typeof query.year === "string") {
+      filter.year = parseInt(query.year);
+    }
+
+    if (query.group) {
+      filter.assignedGroup = { $ne: null };
+    }
+
+    const page = parseInt(query.page as string) || 1;
+    const limit = Math.min(parseInt(query.limit as string) || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const [projects, total] = await Promise.all([
+      Project.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Project.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        projects,
+        count: projects.length,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get all projects error:", error);
     res
       .status(500)
       .json({ success: false, error: "Failed to retrieve projects" });
@@ -351,15 +412,6 @@ export const assignGroupToProject = async (
     const group = await Group.findById(groupId);
     if (!group) {
       res.status(404).json({ success: false, error: "Group not found" });
-      return;
-    }
-
-    // Verify same course
-    if (group.courseId !== project.courseId) {
-      res.status(400).json({
-        success: false,
-        error: "Group and project must belong to the same course",
-      });
       return;
     }
 

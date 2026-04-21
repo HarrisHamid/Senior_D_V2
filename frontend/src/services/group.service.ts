@@ -13,7 +13,7 @@ export interface JoinRequest {
 
 export interface GroupData {
   _id: string;
-  courseId: string;
+  courseId?: string;
   groupNumber: number;
   groupCode?: string;
   isOpen: boolean;
@@ -39,14 +39,13 @@ export interface GroupResponse {
 }
 
 export const groupService = {
-  async createNewGroup(
-    courseId: string,
-    isPublic = true,
-  ): Promise<GroupResponse> {
-    const response = await api.post<GroupResponse>("/groups", {
-      courseId,
-      isPublic,
-    });
+  async createNewGroup(isPublic = true): Promise<GroupResponse> {
+    const response = await api.post<GroupResponse>("/groups", { isPublic });
+    return response.data;
+  },
+
+  async getAllGroups(): Promise<GroupsResponse> {
+    const response = await api.get<GroupsResponse>("/groups");
     return response.data;
   },
 

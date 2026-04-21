@@ -49,7 +49,7 @@ describe("Project Routes - /api/projects", () => {
     const projectRes = await request(app)
       .post("/api/projects/")
       .set(authHeader(coordToken))
-      .send({ ...validProjectData, courseId: course._id });
+      .send(validProjectData);
     return {
       coordToken,
       userId,
@@ -58,14 +58,10 @@ describe("Project Routes - /api/projects", () => {
     };
   };
 
-  // Helper: create a group directly in DB (group routes not wired yet)
-  const createGroupInDB = async (
-    courseId: string,
-    extraFields: Record<string, unknown> = {},
-  ) => {
+  // Helper: create a group directly in DB
+  const createGroupInDB = async (extraFields: Record<string, unknown> = {}) => {
     return Group.create({
       groupNumber: 1,
-      courseId,
       groupMembers: [],
       groupCode: Math.random().toString(36).substring(2, 12),
       isOpen: true,
@@ -80,18 +76,17 @@ describe("Project Routes - /api/projects", () => {
   // =====================================================================
   describe("POST /api/projects/ - Create Project", () => {
     it("should create a project as Coordinator and return 201", async () => {
-      const { coordToken, course } = await setupCourse();
+      const { coordToken } = await setupCourse();
 
       const res = await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: course._id });
+        .send(validProjectData);
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.project.name).toBe(validProjectData.name);
       expect(res.body.data.project.sponsor).toBe(validProjectData.sponsor);
-      expect(res.body.data.project.courseId).toBe(course._id);
     });
 
     it("should set isOpen=true and assignedGroup=null by default", async () => {
@@ -102,119 +97,72 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 401 when no token is provided", async () => {
-      const { course } = await setupCourse();
-
       const res = await request(app)
         .post("/api/projects/")
-        .send({ ...validProjectData, courseId: course._id });
+        .send(validProjectData);
 
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
     });
 
     it("should return 403 when called by a Student", async () => {
-      const { course } = await setupCourse();
       const { token: studentToken } = await registerAndGetToken(defaultStudent);
 
       const res = await request(app)
         .post("/api/projects/")
         .set(authHeader(studentToken))
-        .send({ ...validProjectData, courseId: course._id });
+        .send(validProjectData);
 
       expect(res.status).toBe(403);
-      expect(res.body.success).toBe(false);
-    });
-
-    it("should return 403 when coordinator creates project for another coordinators course", async () => {
-      const { course } = await setupCourse();
-      const coord2: TestUser = {
-        name: "Coordinator Two",
-        email: "coord2@stevens.edu",
-        password: "Password123!",
-        role: "course coordinator",
-      };
-      const { token: token2 } = await registerAndGetToken(coord2);
-
-      const res = await request(app)
-        .post("/api/projects/")
-        .set(authHeader(token2))
-        .send({ ...validProjectData, courseId: course._id });
-
-      expect(res.status).toBe(403);
-      expect(res.body.success).toBe(false);
-    });
-
-    it("should return 404 when courseId does not match any course", async () => {
-      const { coordToken } = await setupCourse();
-      const fakeId = new mongoose.Types.ObjectId().toString();
-
-      const res = await request(app)
-        .post("/api/projects/")
-        .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: fakeId });
-
-      expect(res.status).toBe(404);
-      expect(res.body.success).toBe(false);
-    });
-
-    it("should return 400 when courseId format is invalid", async () => {
-      const { coordToken } = await setupCourse();
-
-      const res = await request(app)
-        .post("/api/projects/")
-        .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: "not-an-objectid" });
-
-      expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
     it("should return 400 when name is missing", async () => {
-      const { coordToken, course } = await setupCourse();
+      const { coordToken } = await setupCourse();
       const { name: _name, ...noName } = validProjectData;
 
       const res = await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...noName, courseId: course._id });
+        .send(noName);
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
     it("should return 400 when description is missing", async () => {
-      const { coordToken, course } = await setupCourse();
+      const { coordToken } = await setupCourse();
       const { description: _desc, ...noDesc } = validProjectData;
 
       const res = await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...noDesc, courseId: course._id });
+        .send(noDesc);
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
     it("should return 400 when sponsor is missing", async () => {
-      const { coordToken, course } = await setupCourse();
+      const { coordToken } = await setupCourse();
       const { sponsor: _sponsor, ...noSponsor } = validProjectData;
 
       const res = await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...noSponsor, courseId: course._id });
+        .send(noSponsor);
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
     it("should return 400 when year is below 2020", async () => {
-      const { coordToken, course } = await setupCourse();
+      const { coordToken } = await setupCourse();
 
       const res = await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: course._id, year: 2019 });
+        .send({ ...validProjectData, year: 2019 });
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
@@ -222,14 +170,14 @@ describe("Project Routes - /api/projects", () => {
   });
 
   // =====================================================================
-  // GET /api/projects/course/:courseId - Get Projects by Course
+  // GET /api/projects/ - Get All Projects
   // =====================================================================
-  describe("GET /api/projects/course/:courseId - Get Projects by Course", () => {
+  describe("GET /api/projects/ - Get All Projects", () => {
     it("should return all projects with pagination metadata", async () => {
-      const { coordToken, course } = await setupProject();
+      const { coordToken } = await setupProject();
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}`)
+        .get("/api/projects/")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -241,11 +189,11 @@ describe("Project Routes - /api/projects", () => {
       expect(res.body.data.pagination.page).toBe(1);
     });
 
-    it("should return empty array when course has no projects", async () => {
-      const { coordToken, course } = await setupCourse();
+    it("should return empty array when no projects exist", async () => {
+      const { coordToken } = await setupCourse();
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}`)
+        .get("/api/projects/")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -254,18 +202,17 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should filter by search term matching project name", async () => {
-      const { coordToken, course } = await setupProject();
+      const { coordToken } = await setupProject();
       await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
         .send({
           ...validProjectData,
-          courseId: course._id,
           name: "Completely Different Project",
         });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?search=Smart+Campus`)
+        .get("/api/projects/?search=Smart+Campus")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -274,18 +221,17 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should filter by search term matching sponsor", async () => {
-      const { coordToken, course } = await setupProject();
+      const { coordToken } = await setupProject();
       await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
         .send({
           ...validProjectData,
-          courseId: course._id,
           sponsor: "Other Corp",
         });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?search=Stevens`)
+        .get("/api/projects/?search=Stevens")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -294,18 +240,17 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should filter by major", async () => {
-      const { coordToken, course } = await setupProject();
+      const { coordToken } = await setupProject();
       await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
         .send({
           ...validProjectData,
-          courseId: course._id,
           majors: [{ major: "Mechanical Engineering" }],
         });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?major=Computer+Science`)
+        .get("/api/projects/?major=Computer+Science")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -316,7 +261,7 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should filter by status=open", async () => {
-      const { coordToken, course, project } = await setupProject();
+      const { coordToken, project } = await setupProject();
       await request(app)
         .patch(`/api/projects/${project._id}`)
         .set(authHeader(coordToken))
@@ -324,10 +269,10 @@ describe("Project Routes - /api/projects", () => {
       await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: course._id });
+        .send({ ...validProjectData });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?status=open`)
+        .get("/api/projects/?status=open")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -336,14 +281,14 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should filter by status=closed", async () => {
-      const { coordToken, course, project } = await setupProject();
+      const { coordToken, project } = await setupProject();
       await request(app)
         .patch(`/api/projects/${project._id}`)
         .set(authHeader(coordToken))
         .send({ isOpen: false });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?status=closed`)
+        .get("/api/projects/?status=closed")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -352,14 +297,14 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should filter by project_type=internal", async () => {
-      const { coordToken, course } = await setupProject();
+      const { coordToken } = await setupProject();
       await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: course._id, internal: true });
+        .send({ ...validProjectData, internal: true });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?project_type=internal`)
+        .get("/api/projects/?project_type=internal")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -368,14 +313,14 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should filter by project_type=external", async () => {
-      const { coordToken, course } = await setupProject();
+      const { coordToken } = await setupProject();
       await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: course._id, internal: true });
+        .send({ ...validProjectData, internal: true });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?project_type=external`)
+        .get("/api/projects/?project_type=external")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -384,14 +329,14 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should filter by year", async () => {
-      const { coordToken, course } = await setupProject();
+      const { coordToken } = await setupProject();
       await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: course._id, year: 2026 });
+        .send({ ...validProjectData, year: 2026 });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?year=2026`)
+        .get("/api/projects/?year=2026")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -400,14 +345,14 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should respect pagination: page=1&limit=1 returns 1 of 2 results", async () => {
-      const { coordToken, course } = await setupProject();
+      const { coordToken } = await setupProject();
       await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: course._id });
+        .send({ ...validProjectData });
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}?page=1&limit=1`)
+        .get("/api/projects/?page=1&limit=1")
         .set(authHeader(coordToken));
 
       expect(res.status).toBe(200);
@@ -419,31 +364,18 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should be accessible by a Student", async () => {
-      const { course } = await setupProject();
+      await setupProject();
       const { token: studentToken } = await registerAndGetToken(defaultStudent);
 
       const res = await request(app)
-        .get(`/api/projects/course/${course._id}`)
+        .get("/api/projects/")
         .set(authHeader(studentToken));
 
       expect(res.status).toBe(200);
     });
 
-    it("should return 400 when courseId format is invalid", async () => {
-      const { coordToken } = await setupProject();
-
-      const res = await request(app)
-        .get("/api/projects/course/invalid-id")
-        .set(authHeader(coordToken));
-
-      expect(res.status).toBe(400);
-      expect(res.body.success).toBe(false);
-    });
-
     it("should return 401 when no token is provided", async () => {
-      const { course } = await setupProject();
-
-      const res = await request(app).get(`/api/projects/course/${course._id}`);
+      const res = await request(app).get("/api/projects/");
 
       expect(res.status).toBe(401);
     });
@@ -613,8 +545,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should remove project from groups interestedProjects on delete", async () => {
-      const { coordToken, course, project } = await setupProject();
-      const group = await createGroupInDB(course._id, {
+      const { coordToken, project } = await setupProject();
+      const group = await createGroupInDB({
         interestedProjects: [new mongoose.Types.ObjectId(project._id)],
       });
 
@@ -679,8 +611,8 @@ describe("Project Routes - /api/projects", () => {
   // =====================================================================
   describe("POST /api/projects/:id/assign-group - Assign Group", () => {
     it("should assign a group to a project and return 200", async () => {
-      const { coordToken, course, project } = await setupProject();
-      const group = await createGroupInDB(course._id);
+      const { coordToken, project } = await setupProject();
+      const group = await createGroupInDB();
 
       const res = await request(app)
         .post(`/api/projects/${project._id}/assign-group`)
@@ -694,8 +626,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should close both project and group on assignment", async () => {
-      const { coordToken, course, project } = await setupProject();
-      const group = await createGroupInDB(course._id);
+      const { coordToken, project } = await setupProject();
+      const group = await createGroupInDB();
 
       const res = await request(app)
         .post(`/api/projects/${project._id}/assign-group`)
@@ -707,8 +639,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should clear the groups interestedProjects on assignment", async () => {
-      const { coordToken, course, project } = await setupProject();
-      const group = await createGroupInDB(course._id, {
+      const { coordToken, project } = await setupProject();
+      const group = await createGroupInDB({
         interestedProjects: [new mongoose.Types.ObjectId(project._id)],
       });
 
@@ -722,9 +654,9 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 400 when project is already assigned to a group", async () => {
-      const { coordToken, course, project } = await setupProject();
-      const group1 = await createGroupInDB(course._id);
-      const group2 = await createGroupInDB(course._id, { groupNumber: 2 });
+      const { coordToken, project } = await setupProject();
+      const group1 = await createGroupInDB();
+      const group2 = await createGroupInDB({ groupNumber: 2 });
 
       await request(app)
         .post(`/api/projects/${project._id}/assign-group`)
@@ -741,8 +673,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 400 when group is already assigned to a project", async () => {
-      const { coordToken, course, project } = await setupProject();
-      const group = await createGroupInDB(course._id);
+      const { coordToken, project } = await setupProject();
+      const group = await createGroupInDB();
 
       await request(app)
         .post(`/api/projects/${project._id}/assign-group`)
@@ -752,7 +684,7 @@ describe("Project Routes - /api/projects", () => {
       const project2Res = await request(app)
         .post("/api/projects/")
         .set(authHeader(coordToken))
-        .send({ ...validProjectData, courseId: course._id });
+        .send({ ...validProjectData });
       const project2 = project2Res.body.data.project;
 
       const res = await request(app)
@@ -764,27 +696,9 @@ describe("Project Routes - /api/projects", () => {
       expect(res.body.error).toContain("already assigned");
     });
 
-    it("should return 400 when group and project are from different courses", async () => {
-      const { coordToken, project } = await setupProject();
-      const course2Res = await request(app)
-        .post("/api/courses/")
-        .set(authHeader(coordToken))
-        .send({ ...validCourseData, courseSection: "002" });
-      const course2 = course2Res.body.data.course;
-      const groupInCourse2 = await createGroupInDB(course2._id);
-
-      const res = await request(app)
-        .post(`/api/projects/${project._id}/assign-group`)
-        .set(authHeader(coordToken))
-        .send({ groupId: groupInCourse2._id.toString() });
-
-      expect(res.status).toBe(400);
-      expect(res.body.error).toContain("same course");
-    });
-
     it("should return 401 when no token is provided", async () => {
-      const { course, project } = await setupProject();
-      const group = await createGroupInDB(course._id);
+      const { project } = await setupProject();
+      const group = await createGroupInDB();
 
       const res = await request(app)
         .post(`/api/projects/${project._id}/assign-group`)
@@ -794,9 +708,9 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 403 when called by a Student", async () => {
-      const { course, project } = await setupProject();
+      const { project } = await setupProject();
       const { token: studentToken } = await registerAndGetToken(defaultStudent);
-      const group = await createGroupInDB(course._id);
+      const group = await createGroupInDB();
 
       const res = await request(app)
         .post(`/api/projects/${project._id}/assign-group`)
@@ -807,8 +721,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 404 when project ID does not exist", async () => {
-      const { coordToken, course } = await setupProject();
-      const group = await createGroupInDB(course._id);
+      const { coordToken } = await setupProject();
+      const group = await createGroupInDB();
       const fakeId = new mongoose.Types.ObjectId().toString();
 
       const res = await request(app)
@@ -838,13 +752,13 @@ describe("Project Routes - /api/projects", () => {
   describe("PATCH /api/projects/:id/unassign-group - Unassign Group", () => {
     // Helper: create project, create group, assign them
     const setupAssignment = async () => {
-      const { coordToken, course, project } = await setupProject();
-      const group = await createGroupInDB(course._id);
+      const { coordToken, project } = await setupProject();
+      const group = await createGroupInDB();
       await request(app)
         .post(`/api/projects/${project._id}/assign-group`)
         .set(authHeader(coordToken))
         .send({ groupId: group._id.toString() });
-      return { coordToken, course, project, group };
+      return { coordToken, project, group };
     };
 
     it("should unassign group from project and return 200", async () => {

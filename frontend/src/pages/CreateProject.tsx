@@ -2,10 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { courseService } from "@/services/course.service";
 import { projectService } from "@/services/project.service";
 import { UploadService } from "@/services/upload.service";
-import type { CourseData } from "@/services/course.service";
 import Navbar from "@/components/Navbar";
 import {
   Card,
@@ -78,17 +76,6 @@ export default function CreateProject() {
     }
   }, [user, navigate]);
 
-  const [courses, setCourses] = useState<CourseData[]>([]);
-  const [coursesLoading, setCoursesLoading] = useState(true);
-
-  useEffect(() => {
-    courseService.getMyCourses().then((res) => {
-      setCourses(res.data.courses);
-      setCoursesLoading(false);
-    }).catch(() => setCoursesLoading(false));
-  }, []);
-
-  const [courseId, setCourseId] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [year, setYear] = useState("");
@@ -155,7 +142,6 @@ export default function CreateProject() {
     e.preventDefault();
     setError("");
 
-    if (!courseId) { setError("Please select a course"); return; }
     if (!name.trim()) { setError("Project name is required"); return; }
     if (!description.trim()) { setError("Description is required"); return; }
     const yearNum = parseInt(year, 10);
@@ -190,7 +176,6 @@ export default function CreateProject() {
     setIsSubmitting(true);
     try {
       const res = await projectService.createProject({
-        courseId,
         name: name.trim(),
         description: description.trim(),
         year: yearNum,
@@ -253,15 +238,6 @@ export default function CreateProject() {
             </div>
           </CardHeader>
           <CardContent>
-            {!coursesLoading && courses.length === 0 && (
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm mb-4">
-                You need to create a course before adding a project.{" "}
-                <Link to="/course/create" className="underline font-medium">
-                  Create a course
-                </Link>
-              </div>
-            )}
-
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                 {error}
@@ -269,23 +245,6 @@ export default function CreateProject() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Course */}
-              <div>
-                <Label htmlFor="courseId">Course</Label>
-                <Select value={courseId} onValueChange={setCourseId} disabled={isSubmitting || coursesLoading}>
-                  <SelectTrigger id="courseId" className="mt-1">
-                    <SelectValue placeholder={coursesLoading ? "Loading courses…" : "Select a course"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses.map((c) => (
-                      <SelectItem key={c._id} value={c._id}>
-                        {c.program} {c.courseNumber}-{c.courseSection} · {c.season} {c.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               {/* Project name */}
               <div>
                 <Label htmlFor="name">Project Name</Label>
@@ -577,7 +536,7 @@ export default function CreateProject() {
 
               <Button
                 type="submit"
-                disabled={isSubmitting || courses.length === 0}
+                disabled={isSubmitting}
                 className="w-full bg-[#9B2335] hover:bg-[#7a1c2a] text-white"
               >
                 {isSubmitting

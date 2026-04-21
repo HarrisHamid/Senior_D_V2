@@ -67,7 +67,7 @@ const ProjectDetail = () => {
         if (user?.role === "course coordinator") {
           const [interestedRes, allGroupsRes] = await Promise.all([
             groupService.getAllInterestedGroups(id),
-            groupService.getAllGroupsByCourse(p.courseId),
+            groupService.getAllGroups(),
           ]);
           setInterestedGroups(interestedRes.data ?? []);
           setAllGroups(allGroupsRes.data ?? []);

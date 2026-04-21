@@ -2,7 +2,7 @@ import { Document, Schema, model, Types } from "mongoose";
 
 // Typescript Interface
 export interface IProject extends Document {
-  courseId: string;
+  courseId?: string;
   userId: Types.ObjectId;
   name: string;
   description: string;
@@ -21,7 +21,7 @@ const ProjectSchema = new Schema<IProject>(
   {
     courseId: {
       type: String,
-      required: [true, "Course ID is required"],
+      required: false,
       index: true,
     },
     userId: {

@@ -5,30 +5,30 @@ import { TimelineContent } from "@/components/ui/timeline-animation";
 import { GridPattern } from "@/components/ui/grid-pattern";
 import { useRef } from "react";
 import { FolderOpen, Users, GraduationCap, LogIn } from "lucide-react";
+import browseProjects from "@/assets/browse_projects.jpg";
+import formTeams from "@/assets/form_teams.jpg";
+import realExperience from "@/assets/real_experience.jpg";
 
 const showcaseCards = [
   {
     id: "browse-projects",
     name: "Browse Projects",
     description: "Explore senior design projects across all schools.",
-    imgSrc:
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=870&auto=format&fit=crop",
+    imgSrc: browseProjects,
     icon: FolderOpen,
   },
   {
     id: "form-teams",
     name: "Form Teams",
     description: "Connect with fellow students and build your team.",
-    imgSrc:
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=869&auto=format&fit=crop",
+    imgSrc: formTeams,
     icon: Users,
   },
   {
     id: "real-experience",
     name: "Real Experience",
     description: "Work with industry sponsors and faculty advisors.",
-    imgSrc:
-      "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=870&auto=format&fit=crop",
+    imgSrc: realExperience,
     icon: GraduationCap,
   },
 ];
