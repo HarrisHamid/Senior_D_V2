@@ -116,33 +116,12 @@ function HeroSection() {
                 Sign In
               </span>
             </Link>
-            {/* Register — red glass button */}
+            {/* Register */}
             <Link
               to="/signup"
-              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-[10px] text-sm font-semibold text-white overflow-hidden transition-all duration-200"
-              style={{
-                background: "linear-gradient(180deg, hsl(351,63%,58%) 0%, hsl(351,63%,42%) 100%)",
-                boxShadow: "0 0 0 1px hsl(351,50%,52%), 0 1px 3px rgba(0,0,0,0.20)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 0 0 1px hsl(351,50%,56%), 0 4px 12px rgba(155,35,53,0.30)";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 0 0 1px hsl(351,50%,52%), 0 1px 3px rgba(0,0,0,0.20)";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-              }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#c23b52] hover:bg-[#ad3248] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(194,59,82,0.45)] active:translate-y-0 active:shadow-none active:bg-[#9B2335] transition-all duration-200"
             >
-              {/* Inner glass highlight overlay */}
-              <div
-                className="pointer-events-none absolute inset-0 rounded-[10px]"
-                style={{
-                  background: "linear-gradient(180deg, rgba(255,200,200,0.32) 0%, rgba(255,255,255,0.02) 55%, rgba(0,0,0,0.12) 100%)",
-                }}
-              />
-              <span className="relative z-10">Register</span>
+              Register
             </Link>
           </div>
         </div>

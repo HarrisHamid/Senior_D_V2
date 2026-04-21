@@ -12,10 +12,10 @@ export const registerSchema = z.object({
       ),
     email: z
       .string()
-      .email("Please enter a valid email address")
-      .refine((val) => val.toLowerCase().endsWith("@stevens.edu"), {
-        message: "You must use a Stevens email address (@stevens.edu)",
-      }),
+      .email("Please enter a valid email address"),
+      // .refine((val) => val.toLowerCase().endsWith("@stevens.edu"), {
+      //   message: "You must use a Stevens email address (@stevens.edu)",
+      // })
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
