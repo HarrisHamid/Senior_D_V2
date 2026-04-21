@@ -3,6 +3,7 @@ import {
   createNewGroup,
   joinGroup,
   leaveGroup,
+  removeMember,
   getGroupById,
   getAllGroupsByCourse,
   toggleStatus,
@@ -93,6 +94,13 @@ router.delete(
   requireRole("student"),
   validateRequest(groupSchemas.interestedProject),
   removeInterestedProject,
+);
+
+router.delete(
+  "/:groupId/members/:memberId",
+  requireRole("student"),
+  validateRequest(groupSchemas.removeMember),
+  removeMember,
 );
 
 export default router;

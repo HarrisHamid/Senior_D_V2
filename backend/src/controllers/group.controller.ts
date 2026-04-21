@@ -316,6 +316,80 @@ export const leaveGroup = async (
   }
 };
 
+// Remove a member from the group (leader only)
+export const removeMember = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user;
+    const { groupId, memberId } = req.params;
+
+    if (!user) {
+      res.status(401).json({ success: false, message: "Not authenticated" });
+      return;
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    // Only the group leader (first member) can remove others
+    if (group.groupMembers[0]?.toString() !== user._id) {
+      res.status(403).json({
+        success: false,
+        message: "Only the group leader can remove members",
+      });
+      return;
+    }
+
+    // Leader cannot remove themselves via this endpoint
+    if (memberId === user._id) {
+      res.status(400).json({
+        success: false,
+        message: "Use leave group to remove yourself",
+      });
+      return;
+    }
+
+    const memberExists = group.groupMembers.some(
+      (id) => id.toString() === memberId,
+    );
+    if (!memberExists) {
+      res
+        .status(404)
+        .json({ success: false, message: "Member not found in group" });
+      return;
+    }
+
+    group.groupMembers = group.groupMembers.filter(
+      (id) => id.toString() !== memberId,
+    );
+    await group.save();
+
+    await User.findByIdAndUpdate(memberId, { groupId: null });
+
+    const updatedGroup = await Group.findById(groupId).populate(
+      "groupMembers",
+      "name email",
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Member removed from group",
+      data: updatedGroup,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to remove member",
+      error: (error as Error).message,
+    });
+  }
+};
+
 // Get group by id
 export const getGroupById = async (
   req: AuthRequest,

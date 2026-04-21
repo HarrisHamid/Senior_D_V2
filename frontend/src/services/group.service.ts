@@ -131,6 +131,18 @@ export const groupService = {
     return response.data;
   },
 
+  async removeMember(
+    groupId: string,
+    memberId: string,
+  ): Promise<{ success: boolean; data: GroupData; message: string }> {
+    const response = await api.delete<{
+      success: boolean;
+      data: GroupData;
+      message: string;
+    }>(`/groups/${groupId}/members/${memberId}`);
+    return response.data;
+  },
+
   async removeInterestedProject(
     groupId: string,
     projectId: string,

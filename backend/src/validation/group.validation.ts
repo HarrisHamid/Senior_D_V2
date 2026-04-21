@@ -54,6 +54,13 @@ export const respondJoinRequestSchema = z.object({
   }),
 });
 
+export const removeMemberSchema = z.object({
+  params: z.object({
+    groupId: z.string().regex(objectIdRegex, "Invalid group ID format"),
+    memberId: z.string().regex(objectIdRegex, "Invalid member ID format"),
+  }),
+});
+
 export const groupSchemas = {
   create: createGroupSchema,
   join: joinGroupSchema,
@@ -62,4 +69,5 @@ export const groupSchemas = {
   projectId: projectIdParamSchema,
   interestedProject: interestedProjectSchema,
   respondJoinRequest: respondJoinRequestSchema,
+  removeMember: removeMemberSchema,
 };
