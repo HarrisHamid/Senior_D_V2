@@ -68,7 +68,13 @@ const ProposalSchema = new Schema<IProposal>(
     status: {
       type: String,
       required: true,
-      enum: ["Pending Review", "Under Review", "Approved", "Rejected", "Matched"],
+      enum: [
+        "Pending Review",
+        "Under Review",
+        "Approved",
+        "Rejected",
+        "Matched",
+      ],
       default: "Pending Review",
       index: true,
     },

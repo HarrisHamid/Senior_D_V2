@@ -17,9 +17,22 @@ const baseProposalBody = {
 export const createStudentProposalSchema = z.object({
   body: z.object({
     ...baseProposalBody,
-    problemStatement: z.string().trim().min(1, "Problem statement is required").max(4000),
-    desiredSkills: z.string().trim().min(1, "Desired skills are required").max(4000),
-    preferredFacultyAdvisor: z.string().trim().max(160).optional().or(z.literal("")),
+    problemStatement: z
+      .string()
+      .trim()
+      .min(1, "Problem statement is required")
+      .max(4000),
+    desiredSkills: z
+      .string()
+      .trim()
+      .min(1, "Desired skills are required")
+      .max(4000),
+    preferredFacultyAdvisor: z
+      .string()
+      .trim()
+      .max(160)
+      .optional()
+      .or(z.literal("")),
   }),
 });
 
@@ -27,13 +40,22 @@ export const createFacultyProposalSchema = z.object({
   body: z.object({
     ...baseProposalBody,
     industryPartner: z.string().trim().max(200).optional().or(z.literal("")),
-    requiredSkills: z.string().trim().min(1, "Required skills are required").max(4000),
+    requiredSkills: z
+      .string()
+      .trim()
+      .min(1, "Required skills are required")
+      .max(4000),
     expectedDeliverables: z
       .string()
       .trim()
       .min(1, "Expected deliverables are required")
       .max(4000),
-    availableResources: z.string().trim().max(4000).optional().or(z.literal("")),
+    availableResources: z
+      .string()
+      .trim()
+      .max(4000)
+      .optional()
+      .or(z.literal("")),
   }),
 });
 
@@ -42,7 +64,13 @@ export const listProposalsSchema = z.object({
     .object({
       role: z.enum(["student", "faculty"]).optional(),
       status: z
-        .enum(["Pending Review", "Under Review", "Approved", "Rejected", "Matched"])
+        .enum([
+          "Pending Review",
+          "Under Review",
+          "Approved",
+          "Rejected",
+          "Matched",
+        ])
         .optional(),
       department: z.string().optional(),
       startDate: z.string().optional(),
@@ -63,7 +91,13 @@ export const proposalIdParamSchema = z.object({
 export const updateProposalSchema = proposalIdParamSchema.extend({
   body: z.object({
     status: z
-      .enum(["Pending Review", "Under Review", "Approved", "Rejected", "Matched"])
+      .enum([
+        "Pending Review",
+        "Under Review",
+        "Approved",
+        "Rejected",
+        "Matched",
+      ])
       .optional(),
     internalNotes: z.string().max(5000).optional(),
   }),

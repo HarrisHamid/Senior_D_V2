@@ -39,7 +39,8 @@ const validFacultyProposal = {
   description: longDescription,
   industryPartner: "Facilities Team",
   requiredSkills: "Backend development, data analysis, human-centered design.",
-  expectedDeliverables: "Prototype dashboard, evaluation report, deployment guide.",
+  expectedDeliverables:
+    "Prototype dashboard, evaluation report, deployment guide.",
   availableResources: "Access to anonymized ticket exports.",
 };
 
@@ -160,11 +161,16 @@ describe("Proposal Routes - /api/proposals", () => {
       const res = await request(app)
         .patch(`/api/proposals/${proposal._id}`)
         .set(authHeader(token))
-        .send({ status: "Under Review", internalNotes: "Needs advisor follow-up." });
+        .send({
+          status: "Under Review",
+          internalNotes: "Needs advisor follow-up.",
+        });
 
       expect(res.status).toBe(200);
       expect(res.body.data.proposal.status).toBe("Under Review");
-      expect(res.body.data.proposal.internalNotes).toBe("Needs advisor follow-up.");
+      expect(res.body.data.proposal.internalNotes).toBe(
+        "Needs advisor follow-up.",
+      );
     });
 
     it("matches student and faculty proposals", async () => {
@@ -213,7 +219,9 @@ describe("Proposal Routes - /api/proposals", () => {
 
       expect(res.status).toBe(201);
       expect(res.body.data.project.name).toBe(validFacultyProposal.title);
-      expect(res.body.data.project.sourceProposal).toBe(proposal._id.toString());
+      expect(res.body.data.project.sourceProposal).toBe(
+        proposal._id.toString(),
+      );
 
       const updatedProposal = await Proposal.findById(proposal._id);
       expect(updatedProposal?.createdProject?.toString()).toBe(

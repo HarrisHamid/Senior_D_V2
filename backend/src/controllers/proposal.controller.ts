@@ -53,7 +53,9 @@ const createProposal = async (
     });
   } catch (error) {
     console.error("Create proposal error:", error);
-    res.status(500).json({ success: false, error: "Failed to submit proposal" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to submit proposal" });
   }
 };
 
@@ -128,12 +130,19 @@ export const listProposals = async (
       data: {
         proposals,
         count: proposals.length,
-        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       },
     });
   } catch (error) {
     console.error("List proposals error:", error);
-    res.status(500).json({ success: false, error: "Failed to retrieve proposals" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to retrieve proposals" });
   }
 };
 
@@ -154,7 +163,9 @@ export const getProposalById = async (
     res.status(200).json({ success: true, data: { proposal } });
   } catch (error) {
     console.error("Get proposal error:", error);
-    res.status(500).json({ success: false, error: "Failed to retrieve proposal" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to retrieve proposal" });
   }
 };
 
@@ -180,7 +191,9 @@ export const updateProposal = async (
     });
   } catch (error) {
     console.error("Update proposal error:", error);
-    res.status(500).json({ success: false, error: "Failed to update proposal" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to update proposal" });
   }
 };
 
@@ -197,7 +210,9 @@ export const matchProposal = async (
       return;
     }
     if (proposal._id.toString() === matched._id.toString()) {
-      res.status(400).json({ success: false, error: "Cannot match a proposal to itself" });
+      res
+        .status(400)
+        .json({ success: false, error: "Cannot match a proposal to itself" });
       return;
     }
 
@@ -215,7 +230,9 @@ export const matchProposal = async (
     });
   } catch (error) {
     console.error("Match proposal error:", error);
-    res.status(500).json({ success: false, error: "Failed to match proposals" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to match proposals" });
   }
 };
 
@@ -294,7 +311,10 @@ export const convertProposalToProject = async (
     });
 
     proposal.createdProject = new Types.ObjectId(String(project._id));
-    if (proposal.status === "Pending Review" || proposal.status === "Under Review") {
+    if (
+      proposal.status === "Pending Review" ||
+      proposal.status === "Under Review"
+    ) {
       proposal.status = "Approved";
     }
     await proposal.save();
@@ -306,7 +326,9 @@ export const convertProposalToProject = async (
     });
   } catch (error) {
     console.error("Convert proposal error:", error);
-    res.status(500).json({ success: false, error: "Failed to convert proposal" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to convert proposal" });
   }
 };
 
@@ -349,10 +371,15 @@ export const exportProposalsCsv = async (
     );
 
     res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", 'attachment; filename="proposals.csv"');
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="proposals.csv"',
+    );
     res.status(200).send([headers.map(csvValue).join(","), ...rows].join("\n"));
   } catch (error) {
     console.error("Export proposals error:", error);
-    res.status(500).json({ success: false, error: "Failed to export proposals" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to export proposals" });
   }
 };
