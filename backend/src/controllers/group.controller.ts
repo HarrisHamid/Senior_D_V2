@@ -420,7 +420,7 @@ export const toggleStatus = async (
 
     res.status(200).json({
       success: true,
-      data: group,
+      data: group.isOpen,
       message: "Group status updated",
     });
   } catch (error) {
