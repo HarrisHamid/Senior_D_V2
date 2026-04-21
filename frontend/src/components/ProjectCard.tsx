@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import type { ProjectData } from "@/services/project.service";
 
 const projectStatus = (p: ProjectData) => {

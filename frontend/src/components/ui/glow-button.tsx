@@ -1,16 +1,19 @@
-import React, { forwardRef, useState } from 'react';
-import { cn } from '@/lib/utils';
+import React, { forwardRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface ComponentProps {
   label?: string;
   onClick?(): void;
   className?: string;
-  type?: 'button' | 'submit' | 'reset';
+  type?: "button" | "submit" | "reset";
   disabled?: boolean;
 }
 
 export const GlowButton = forwardRef<HTMLButtonElement, ComponentProps>(
-  ({ label = "Generate", onClick, className, type = "button", disabled }, ref) => {
+  (
+    { label = "Generate", onClick, className, type = "button", disabled },
+    ref,
+  ) => {
     const [isClicked, setIsClicked] = useState(false);
 
     const handleClick = () => {
@@ -29,12 +32,10 @@ export const GlowButton = forwardRef<HTMLButtonElement, ComponentProps>(
         onClick={handleClick}
         data-state={isClicked ? "clicked" : undefined}
       >
-        <span className="flex items-center justify-center">
-          {label}
-        </span>
+        <span className="flex items-center justify-center">{label}</span>
       </button>
     );
-  }
+  },
 );
 
 GlowButton.displayName = "GlowButton";

@@ -10,12 +10,10 @@ export const registerSchema = z.object({
         /^[a-zA-Z\s'-]+$/,
         "Name can only contain letters, spaces, hyphens, and apostrophes",
       ),
-    email: z
-      .string()
-      .email("Please enter a valid email address"),
-      // .refine((val) => val.toLowerCase().endsWith("@stevens.edu"), {
-      //   message: "You must use a Stevens email address (@stevens.edu)",
-      // })
+    email: z.string().email("Please enter a valid email address"),
+    // .refine((val) => val.toLowerCase().endsWith("@stevens.edu"), {
+    //   message: "You must use a Stevens email address (@stevens.edu)",
+    // })
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
