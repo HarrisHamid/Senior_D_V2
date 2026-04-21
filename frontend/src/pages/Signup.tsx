@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { GridPattern } from "@/components/ui/grid-pattern";
+import { MAJORS_BY_SCHOOL, SCHOOL_NAMES, type SchoolName } from "@/data/schools";
 
 const requirements = [
   { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
@@ -15,6 +16,8 @@ export default function Signup() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [school, setSchool] = useState<SchoolName | "">("");
+  const [major, setMajor] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<"student" | "course coordinator">("student");
@@ -79,6 +82,26 @@ export default function Signup() {
     //   return;
     // }
 
+    if (role === "student") {
+      if (!school) {
+        setError("School is required for students");
+        return;
+      }
+      if (!major) {
+        setError("Major is required for students");
+        return;
+      }
+    }
+
+    if (
+      school &&
+      major &&
+      !(MAJORS_BY_SCHOOL[school] as readonly string[]).includes(major)
+    ) {
+      setError("Major must belong to the selected school");
+      return;
+    }
+
     // Password validation
     if (password.length < 8) {
       setError("Password must be at least 8 characters");
@@ -115,6 +138,8 @@ export default function Signup() {
         email: trimmedEmail,
         password,
         role,
+        school: school || undefined,
+        major: major || undefined,
       });
       navigate(
         courseCode ? `/dashboard?courseCode=${courseCode}` : "/dashboard",
@@ -133,7 +158,7 @@ export default function Signup() {
         height={40}
         className="fill-gray-100/60 stroke-gray-200/60"
       />
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 w-full max-w-lg">
         <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
           {/* Logo */}
           <div className="flex justify-center">
@@ -218,6 +243,66 @@ export default function Signup() {
                 required
                 disabled={isSubmitting}
               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="school"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  School{role === "student" ? "" : " (optional)"}
+                </label>
+                <select
+                  id="school"
+                  value={school}
+                  onChange={(e) => {
+                    setSchool(e.target.value as SchoolName | "");
+                    setMajor("");
+                  }}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
+                    focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
+                    transition-all duration-200 ease-in-out"
+                  required={role === "student"}
+                  disabled={isSubmitting}
+                >
+                  <option value="">Select school</option>
+                  {SCHOOL_NAMES.map((schoolName) => (
+                    <option key={schoolName} value={schoolName}>
+                      {schoolName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="major"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Major{role === "student" ? "" : " (optional)"}
+                </label>
+                <select
+                  id="major"
+                  value={major}
+                  onChange={(e) => setMajor(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
+                    focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
+                    transition-all duration-200 ease-in-out"
+                  required={role === "student"}
+                  disabled={isSubmitting || !school}
+                >
+                  <option value="">
+                    {school ? "Select major" : "Select school first"}
+                  </option>
+                  {school &&
+                    MAJORS_BY_SCHOOL[school].map((majorName) => (
+                      <option key={majorName} value={majorName}>
+                        {majorName}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
 
             {/* Password */}

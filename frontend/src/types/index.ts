@@ -6,6 +6,8 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  school?: string;
+  major?: string;
   verificationNeeded?: boolean;
   course?: string;
   groupId?: string;
@@ -21,6 +23,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   role: UserRole;
+  school?: string;
+  major?: string;
 }
 
 export interface AuthResponse {

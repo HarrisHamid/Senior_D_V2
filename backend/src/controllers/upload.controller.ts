@@ -5,6 +5,22 @@ import { Project } from "../models/Project.model";
 import { UploadedFile } from "../models/UploadedFile.model";
 import { Types } from "mongoose";
 
+const serializeUploadedFile = (file: {
+  _id: unknown;
+  originalName: string;
+  filename: string;
+  mimetype: string;
+  size: number;
+  createdAt?: Date;
+}) => ({
+  _id: file._id,
+  originalName: file.originalName,
+  filename: file.filename,
+  mimetype: file.mimetype,
+  size: file.size,
+  createdAt: file.createdAt,
+});
+
 /**
  * Upload a file to a project
  * POST /api/uploads/:projectId
@@ -51,9 +67,7 @@ export const uploadFile = async (
       uploadedFile.toObject();
     res.status(201).json({
       success: true,
-      data: {
-        file: { _id, originalName, filename, mimetype, size, createdAt },
-      },
+      data: { file: serializeUploadedFile(uploadedFile) },
       message: "File uploaded successfully",
     });
   } catch (error) {
@@ -91,7 +105,10 @@ export const listFiles = async (
 
     res.status(200).json({
       success: true,
-      data: { files, count: files.length },
+      data: {
+        files: files.map(serializeUploadedFile),
+        count: files.length,
+      },
     });
   } catch (error) {
     console.error("List files error:", error);

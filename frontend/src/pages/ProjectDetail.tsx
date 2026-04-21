@@ -31,6 +31,12 @@ const statusClass = (project: ProjectData): string => {
   return "bg-red-100 text-red-800 border-red-200";
 };
 
+const getMailtoHref = (email: string) => {
+  const trimmedEmail = email.trim();
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+  return isValidEmail ? `mailto:${encodeURIComponent(trimmedEmail)}` : null;
+};
+
 const ProjectDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -204,35 +210,36 @@ const ProjectDetail = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {project.advisors.map((advisor, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-foreground">
-                          {advisor.name}
-                        </p>
-                        {advisor.email.includes("@") &&
-                        !advisor.email
-                          .toLowerCase()
-                          .startsWith("javascript") ? (
-                          <a
-                            href={`mailto:${advisor.email}`}
-                            className="text-sm text-primary hover:underline flex items-center gap-1"
-                          >
-                            <Mail className="h-3 w-3" />
-                            {advisor.email}
-                          </a>
-                        ) : (
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {advisor.email}
-                          </span>
-                        )}
+                  {project.advisors.map((advisor, idx) => {
+                    const mailtoHref = getMailtoHref(advisor.email);
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {advisor.name}
+                          </p>
+                          {mailtoHref ? (
+                            <a
+                              href={mailtoHref}
+                              className="text-sm text-primary hover:underline flex items-center gap-1"
+                            >
+                              <Mail className="h-3 w-3" />
+                              {advisor.email}
+                            </a>
+                          ) : (
+                            <span className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {advisor.email}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -255,35 +262,36 @@ const ProjectDetail = () => {
                   <p className="text-sm font-medium text-muted-foreground">
                     Contacts
                   </p>
-                  {project.contacts.map((contact, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-foreground">
-                          {contact.name}
-                        </p>
-                        {contact.email.includes("@") &&
-                        !contact.email
-                          .toLowerCase()
-                          .startsWith("javascript") ? (
-                          <a
-                            href={`mailto:${contact.email}`}
-                            className="text-sm text-primary hover:underline flex items-center gap-1"
-                          >
-                            <Mail className="h-3 w-3" />
-                            {contact.email}
-                          </a>
-                        ) : (
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {contact.email}
-                          </span>
-                        )}
+                  {project.contacts.map((contact, idx) => {
+                    const mailtoHref = getMailtoHref(contact.email);
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {contact.name}
+                          </p>
+                          {mailtoHref ? (
+                            <a
+                              href={mailtoHref}
+                              className="text-sm text-primary hover:underline flex items-center gap-1"
+                            >
+                              <Mail className="h-3 w-3" />
+                              {contact.email}
+                            </a>
+                          ) : (
+                            <span className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {contact.email}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

@@ -8,6 +8,8 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: "student" | "course coordinator";
+  school?: string;
+  major?: string;
   verificationNeeded: boolean;
   course?: string;
   groupId?: string;
@@ -48,6 +50,16 @@ const UserSchema = new Schema<IUser>(
         values: ["student", "course coordinator"],
         message: "Role must be either student or course coordinator",
       },
+    },
+    school: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    major: {
+      type: String,
+      trim: true,
+      default: null,
     },
     verificationNeeded: {
       type: Boolean,
