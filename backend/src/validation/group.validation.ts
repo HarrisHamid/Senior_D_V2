@@ -5,6 +5,7 @@ const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 export const createGroupSchema = z.object({
   body: z.object({
     courseId: z.string().regex(objectIdRegex, "Invalid course ID format"),
+    isPublic: z.boolean().optional().default(true),
   }),
 });
 
@@ -43,6 +44,16 @@ export const interestedProjectSchema = z.object({
   }),
 });
 
+export const respondJoinRequestSchema = z.object({
+  params: z.object({
+    groupId: z.string().regex(objectIdRegex, "Invalid group ID format"),
+    requestId: z.string().regex(objectIdRegex, "Invalid request ID format"),
+  }),
+  body: z.object({
+    status: z.enum(["approved", "rejected"]),
+  }),
+});
+
 export const groupSchemas = {
   create: createGroupSchema,
   join: joinGroupSchema,
@@ -50,4 +61,5 @@ export const groupSchemas = {
   courseId: courseIdParamSchema,
   projectId: projectIdParamSchema,
   interestedProject: interestedProjectSchema,
+  respondJoinRequest: respondJoinRequestSchema,
 };

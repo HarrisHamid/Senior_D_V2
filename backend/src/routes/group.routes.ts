@@ -6,6 +6,8 @@ import {
   getGroupById,
   getAllGroupsByCourse,
   toggleStatus,
+  toggleVisibility,
+  respondToJoinRequest,
   addInterestedProject,
   removeInterestedProject,
   getAllInterestedGroups,
@@ -63,6 +65,20 @@ router.patch(
   requireRole("student"),
   validateRequest(groupSchemas.groupId),
   toggleStatus,
+);
+
+router.patch(
+  "/:groupId/toggle-visibility",
+  requireRole("student"),
+  validateRequest(groupSchemas.groupId),
+  toggleVisibility,
+);
+
+router.patch(
+  "/:groupId/join-requests/:requestId",
+  requireRole("student"),
+  validateRequest(groupSchemas.respondJoinRequest),
+  respondToJoinRequest,
 );
 
 router.post(

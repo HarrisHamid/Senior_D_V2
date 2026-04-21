@@ -4,7 +4,13 @@ import { AuthRequest } from "../types";
 import { Group } from "../models/Group.model";
 import { Project } from "../models/Project.model";
 import Course from "../models/Course.model";
+import User from "../models/User.model";
 import { generateUniqueGroupCode } from "../utils/codeGenerator";
+import {
+  sendGroupInterestEmail,
+  sendJoinRequestEmail,
+  sendJoinRequestResponseEmail,
+} from "../services/email.service";
 
 // Create new group
 export const createNewGroup = async (
@@ -18,7 +24,7 @@ export const createNewGroup = async (
       return;
     }
 
-    const { courseId } = req.body;
+    const { courseId, isPublic = true } = req.body;
     if (!courseId) {
       res
         .status(400)
@@ -38,8 +44,15 @@ export const createNewGroup = async (
       groupMembers: [new Types.ObjectId(user._id)],
       groupCode,
       isOpen: true,
+      isPublic,
+      joinRequests: [],
       interestedProjects: [],
       assignedProject: null,
+    });
+
+    // Sync user's groupId
+    await User.findByIdAndUpdate(user._id, {
+      groupId: newGroup._id.toString(),
     });
 
     res.status(201).json({
@@ -56,7 +69,7 @@ export const createNewGroup = async (
   }
 };
 
-// Join group (by code)
+// Join group (by code) — direct join for public, join request for private
 export const joinGroup = async (
   req: AuthRequest,
   res: Response,
@@ -90,18 +103,162 @@ export const joinGroup = async (
       return;
     }
 
-    group.groupMembers.push(new Types.ObjectId(user._id));
+    // Public group — direct join
+    const isPublic = group.isPublic !== false;
+    if (isPublic) {
+      group.groupMembers.push(new Types.ObjectId(user._id));
+      await group.save();
+
+      await User.findByIdAndUpdate(user._id, {
+        groupId: group._id.toString(),
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Joined group successfully",
+        data: group,
+      });
+      return;
+    }
+
+    // Private group — create a join request
+    const alreadyRequested = group.joinRequests.some(
+      (r) => r.userId.toString() === user._id && r.status === "pending",
+    );
+    if (alreadyRequested) {
+      res.status(400).json({
+        success: false,
+        message: "You already have a pending request for this group",
+      });
+      return;
+    }
+
+    group.joinRequests.push({
+      userId: new Types.ObjectId(user._id),
+      status: "pending",
+      requestedAt: new Date(),
+    } as never);
     await group.save();
 
-    res.status(200).json({
+    // Fire-and-forget: notify group leader
+    const leaderId = group.groupMembers[0];
+    if (leaderId) {
+      User.findById(leaderId)
+        .select("name email")
+        .then((leader) => {
+          if (!leader) return;
+          return sendJoinRequestEmail(
+            leader.email,
+            leader.name,
+            user.name,
+            group.groupNumber,
+          );
+        })
+        .catch(console.error);
+    }
+
+    res.status(202).json({
       success: true,
-      message: "Joined group successfully",
-      data: group,
+      message: "Join request sent. The group leader will review your request.",
+      requestPending: true,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Failed to join group",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Respond to a join request (approve or reject) — group leader only
+export const respondToJoinRequest = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user;
+    const { groupId, requestId } = req.params;
+    const { status } = req.body as { status: "approved" | "rejected" };
+
+    if (!user) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    // Only the group leader (first member / creator) can respond
+    const leaderId = group.groupMembers[0];
+    if (!leaderId || leaderId.toString() !== user._id) {
+      res.status(403).json({
+        success: false,
+        message: "Only the group leader can approve or reject requests",
+      });
+      return;
+    }
+
+    const joinRequest = group.joinRequests.id(requestId);
+    if (!joinRequest || joinRequest.status !== "pending") {
+      res
+        .status(404)
+        .json({ success: false, message: "Pending request not found" });
+      return;
+    }
+
+    const requestUserId = joinRequest.userId;
+
+    if (status === "approved") {
+      // Check group is still open
+      if (!group.isOpen) {
+        res
+          .status(400)
+          .json({ success: false, message: "Group is no longer open" });
+        return;
+      }
+
+      group.groupMembers.push(new Types.ObjectId(requestUserId));
+
+      // Sync user's groupId
+      await User.findByIdAndUpdate(requestUserId, {
+        groupId: groupId,
+      });
+    }
+
+    // Remove the request regardless of outcome
+    group.joinRequests.pull(requestId);
+    await group.save();
+
+    // Fire-and-forget: notify the requester of the outcome
+    User.findById(requestUserId)
+      .select("name email")
+      .then((requester) => {
+        if (!requester) return;
+        return sendJoinRequestResponseEmail(
+          requester.email,
+          requester.name,
+          group.groupNumber,
+          status === "approved",
+        );
+      })
+      .catch(console.error);
+
+    res.status(200).json({
+      success: true,
+      message:
+        status === "approved"
+          ? "Request approved. Student added to group."
+          : "Request rejected.",
+      data: group,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to respond to join request",
       error: (error as Error).message,
     });
   }
@@ -130,6 +287,9 @@ export const leaveGroup = async (
     group.groupMembers = group.groupMembers.filter(
       (id) => id.toString() !== user._id,
     );
+
+    // Clear user's groupId
+    await User.findByIdAndUpdate(user._id, { groupId: null });
 
     if (group.groupMembers.length === 0) {
       await Group.findByIdAndDelete(groupId);
@@ -173,7 +333,8 @@ export const getGroupById = async (
     const group = await Group.findById(groupId)
       .populate("groupMembers", "name email")
       .populate("interestedProjects")
-      .populate("assignedProject");
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
 
     if (!group) {
       res.status(404).json({ success: false, message: "Group not found" });
@@ -231,7 +392,7 @@ export const getAllGroupsByCourse = async (
   }
 };
 
-// Toggle group status
+// Toggle group open/closed status
 export const toggleStatus = async (
   req: AuthRequest,
   res: Response,
@@ -266,6 +427,48 @@ export const toggleStatus = async (
     res.status(500).json({
       success: false,
       message: "Failed to toggle status",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Toggle group public/private visibility
+export const toggleVisibility = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user;
+    const { groupId } = req.params;
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    // Only the group leader can change visibility
+    const leaderId = group.groupMembers[0];
+    if (!leaderId || leaderId.toString() !== user?._id) {
+      res.status(403).json({
+        success: false,
+        message: "Only the group leader can change group visibility",
+      });
+      return;
+    }
+
+    group.isPublic = !group.isPublic;
+    await group.save();
+
+    res.status(200).json({
+      success: true,
+      data: group,
+      message: `Group is now ${group.isPublic ? "public" : "private"}`,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to toggle visibility",
       error: (error as Error).message,
     });
   }
@@ -352,6 +555,23 @@ export const addInterestedProject = async (
 
     group.interestedProjects.push(new Types.ObjectId(projectId));
     await group.save();
+
+    // Fire-and-forget: notify coordinator that this group is interested
+    Course.findById(group.courseId)
+      .then(async (course) => {
+        if (!course) return;
+        const members = await User.find({
+          _id: { $in: group.groupMembers },
+        }).select("name");
+        return sendGroupInterestEmail(
+          course.email,
+          course.name,
+          project.name,
+          group.groupNumber,
+          members.map((m) => m.name),
+        );
+      })
+      .catch(console.error);
 
     res.status(200).json({
       success: true,

@@ -12,9 +12,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Copy, Users, X, Lock, Unlock } from "lucide-react";
+import {
+  Copy,
+  Users,
+  X,
+  Lock,
+  Unlock,
+  Globe,
+  Check,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { groupService } from "@/services/group.service";
+import type { JoinRequest } from "@/services/group.service";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface PopulatedMember {
@@ -37,9 +47,11 @@ interface PopulatedGroup {
   groupNumber: number;
   groupCode?: string;
   isOpen: boolean;
+  isPublic: boolean;
   groupMembers: PopulatedMember[];
   interestedProjects: PopulatedProject[];
   assignedProject: string | null;
+  joinRequests: JoinRequest[];
 }
 
 const Group = () => {
@@ -53,7 +65,7 @@ const Group = () => {
     if (!user?.groupId) return;
     groupService
       .getGroupById(user.groupId)
-      .then((res) => setMyGroup(res.data.group as unknown as PopulatedGroup))
+      .then((res) => setMyGroup(res.data as unknown as PopulatedGroup))
       .catch(() => toast.error("Failed to load group."))
       .finally(() => setLoading(false));
   }, [user?.groupId]);
@@ -68,11 +80,24 @@ const Group = () => {
     if (!myGroup) return;
     try {
       const res = await groupService.toggleStatus(myGroup._id);
-      setMyGroup(res.data.group as unknown as PopulatedGroup);
-      const newStatus = res.data.group.isOpen ? "Open" : "Closed";
+      setMyGroup(res.data as unknown as PopulatedGroup);
+      const newStatus = (res.data as unknown as PopulatedGroup).isOpen
+        ? "Open"
+        : "Closed";
       toast.success(`Group status changed to ${newStatus}`);
     } catch {
       toast.error("Failed to update group status.");
+    }
+  };
+
+  const handleToggleVisibility = async () => {
+    if (!myGroup) return;
+    try {
+      const res = await groupService.toggleVisibility(myGroup._id);
+      setMyGroup(res.data as unknown as PopulatedGroup);
+      toast.success(res.message);
+    } catch {
+      toast.error("Failed to update group visibility.");
     }
   };
 
@@ -96,10 +121,30 @@ const Group = () => {
         myGroup._id,
         projectId,
       );
-      setMyGroup(res.data.group as unknown as PopulatedGroup);
+      setMyGroup(res.data as unknown as PopulatedGroup);
       toast.success("Interest removed from project");
     } catch {
       toast.error("Failed to remove interest.");
+    }
+  };
+
+  const handleRespondToRequest = async (
+    requestId: string,
+    status: "approved" | "rejected",
+  ) => {
+    if (!myGroup) return;
+    try {
+      const res = await groupService.respondToJoinRequest(
+        myGroup._id,
+        requestId,
+        status,
+      );
+      setMyGroup(res.data as unknown as PopulatedGroup);
+      toast.success(res.message);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to respond to request.";
+      toast.error(message);
     }
   };
 
@@ -133,6 +178,12 @@ const Group = () => {
 
   const interestedProjects = myGroup.interestedProjects ?? [];
   const members = myGroup.groupMembers ?? [];
+  const pendingRequests = (myGroup.joinRequests ?? []).filter(
+    (r) => r.status === "pending",
+  );
+
+  // Group leader is the first member (creator)
+  const isLeader = members.length > 0 && members[0]._id === user?.id;
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,9 +205,25 @@ const Group = () => {
                   <Users className="h-5 w-5" />
                   Group {myGroup.groupNumber}
                 </CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap justify-end">
                   <Badge variant={myGroup.isOpen ? "default" : "secondary"}>
                     {myGroup.isOpen ? "Open" : "Closed"}
+                  </Badge>
+                  <Badge
+                    variant={
+                      myGroup.isPublic !== false ? "outline" : "secondary"
+                    }
+                    className="flex items-center gap-1"
+                  >
+                    {myGroup.isPublic !== false ? (
+                      <>
+                        <Globe className="h-3 w-3" /> Public
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-3 w-3" /> Private
+                      </>
+                    )}
                   </Badge>
                   <Button
                     variant="outline"
@@ -176,6 +243,26 @@ const Group = () => {
                       </>
                     )}
                   </Button>
+                  {isLeader && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleToggleVisibility}
+                      className="gap-2"
+                    >
+                      {myGroup.isPublic !== false ? (
+                        <>
+                          <Lock className="h-4 w-4" />
+                          Make Private
+                        </>
+                      ) : (
+                        <>
+                          <Globe className="h-4 w-4" />
+                          Make Public
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -200,10 +287,75 @@ const Group = () => {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                Share this code with other students to invite them to your group
+                {myGroup.isPublic !== false
+                  ? "Share this code with other students to invite them to your group"
+                  : "Share this code — students will need to request to join and you'll approve them"}
               </p>
             </CardContent>
           </Card>
+
+          {/* Join Requests — only visible to group leader on private groups */}
+          {isLeader && myGroup.isPublic === false && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5" />
+                  Join Requests
+                  {pendingRequests.length > 0 && (
+                    <Badge className="ml-1">{pendingRequests.length}</Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {pendingRequests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">
+                    No pending join requests
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingRequests.map((req) => (
+                      <div
+                        key={req._id}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {req.userId.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {req.userId.email}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="gap-1"
+                            onClick={() =>
+                              handleRespondToRequest(req._id, "approved")
+                            }
+                          >
+                            <Check className="h-4 w-4" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-destructive hover:text-destructive"
+                            onClick={() =>
+                              handleRespondToRequest(req._id, "rejected")
+                            }
+                          >
+                            <X className="h-4 w-4" />
+                            Decline
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Members */}
           <Card>
@@ -212,14 +364,19 @@ const Group = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {members.map((member: PopulatedMember) => (
+                {members.map((member: PopulatedMember, idx: number) => (
                   <div
                     key={member._id}
                     className="flex items-center justify-between p-3 border rounded-lg"
                   >
                     <div>
-                      <p className="font-medium text-foreground">
+                      <p className="font-medium text-foreground flex items-center gap-2">
                         {member.name}
+                        {idx === 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            Leader
+                          </Badge>
+                        )}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {member.email}

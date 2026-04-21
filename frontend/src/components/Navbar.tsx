@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { NavLink } from "@/components/NavLinks";
-import { Menu, X, LogOut, User as UserIcon, HelpCircle } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,8 @@ import {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
@@ -55,13 +56,15 @@ const Navbar = () => {
             >
               My Course
             </NavLink>
-            <NavLink
-              to="/group"
-              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-              activeClassName="text-primary"
-            >
-              My Group
-            </NavLink>
+            {user.role === "student" && (
+              <NavLink
+                to="/group"
+                className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                activeClassName="text-primary"
+              >
+                My Group
+              </NavLink>
+            )}
 
             {/* User Dropdown */}
             <DropdownMenu>
@@ -78,15 +81,9 @@ const Navbar = () => {
                     Profile
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/faq" className="cursor-pointer">
-                    <HelpCircle className="mr-2 h-4 w-4" />
-                    FAQ
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={logout}
+                  onClick={() => navigate("/logout")}
                   className="cursor-pointer text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -137,14 +134,16 @@ const Navbar = () => {
             >
               My Course
             </NavLink>
-            <NavLink
-              to="/group"
-              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
-              activeClassName="bg-muted text-primary"
-              onClick={toggleMenu}
-            >
-              My Group
-            </NavLink>
+            {user.role === "student" && (
+              <NavLink
+                to="/group"
+                className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+                activeClassName="bg-muted text-primary"
+                onClick={toggleMenu}
+              >
+                My Group
+              </NavLink>
+            )}
             <Link
               to="/profile"
               className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
@@ -152,17 +151,10 @@ const Navbar = () => {
             >
               Profile
             </Link>
-            <Link
-              to="/faq"
-              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
-              onClick={toggleMenu}
-            >
-              FAQ
-            </Link>
             <button
               onClick={() => {
-                logout();
                 toggleMenu();
+                navigate("/logout");
               }}
               className="block w-full text-left px-3 py-2 text-base font-medium text-destructive hover:bg-muted rounded-md"
             >

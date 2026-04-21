@@ -1,6 +1,15 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LogoutScreen() {
+  const { logout } = useAuth();
+
+  useEffect(() => {
+    logout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">

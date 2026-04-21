@@ -97,9 +97,9 @@ export const listFiles = async (
       return;
     }
 
-    const files = await UploadedFile.find({ projectId }).sort({
-      createdAt: -1,
-    });
+    const files = await UploadedFile.find({ projectId })
+      .select("-path -__v")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,

@@ -77,10 +77,10 @@ export default function Signup() {
       setError("Please enter a valid email address");
       return;
     }
-    if (!trimmedEmail.endsWith("@stevens.edu")) {
-      setError("You must use a Stevens email address (@stevens.edu)");
-      return;
-    }
+    // if (!trimmedEmail.endsWith("@stevens.edu")) {
+    //   setError("You must use a Stevens email address (@stevens.edu)");
+    //   return;
+    // }
 
     if (role === "student") {
       if (!school) {
@@ -433,29 +433,9 @@ export default function Signup() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="relative w-full py-3 px-4 rounded-[10px] text-sm font-semibold text-white overflow-hidden transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: "linear-gradient(180deg, hsl(351,63%,58%) 0%, hsl(351,63%,42%) 100%)",
-                boxShadow: "0 0 0 1px hsl(351,50%,52%), 0 1px 3px rgba(0,0,0,0.20)",
-              }}
-              onMouseEnter={(e) => {
-                if (!isSubmitting) {
-                  (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0 1px hsl(351,50%,56%), 0 4px 12px rgba(155,35,53,0.30)";
-                  (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0 1px hsl(351,50%,52%), 0 1px 3px rgba(0,0,0,0.20)";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-              }}
+              className="w-full py-3 px-4 rounded-lg text-sm font-semibold text-white bg-[#c23b52] hover:bg-[#ad3248] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(194,59,82,0.45)] active:translate-y-0 active:shadow-none active:bg-[#9B2335] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div
-                className="pointer-events-none absolute inset-0 rounded-[10px]"
-                style={{
-                  background: "linear-gradient(180deg, rgba(255,200,200,0.32) 0%, rgba(255,255,255,0.02) 55%, rgba(0,0,0,0.12) 100%)",
-                }}
-              />
-              <span className="relative z-10">{isSubmitting ? "Creating Account..." : "Create Account"}</span>
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 

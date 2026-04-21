@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { courseService } from "@/services/course.service";
 import { projectService } from "@/services/project.service";
+import { UploadService } from "@/services/upload.service";
 import type { CourseData } from "@/services/course.service";
 import Navbar from "@/components/Navbar";
 import {
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Paperclip, X } from "lucide-react";
 
 const AVAILABLE_MAJORS = [
   "Artificial Intelligence",
@@ -95,6 +97,8 @@ export default function CreateProject() {
   const [contacts, setContacts] = useState<ContactEntry[]>([]);
   const [advisors, setAdvisors] = useState<ContactEntry[]>([]);
   const [majors, setMajors] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -121,6 +125,29 @@ export default function CreateProject() {
 
   const availableForIndex = (i: number) =>
     AVAILABLE_MAJORS.filter((m) => !selectedMajors.has(m) || m === majors[i]);
+
+  // --- File staging helpers ---
+
+  const ACCEPTED = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.zip";
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files ?? []);
+    if (selected.length === 0) return;
+    setPendingFiles((prev) => {
+      const existingNames = new Set(prev.map((f) => f.name));
+      return [...prev, ...selected.filter((f) => !existingNames.has(f.name))];
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removePendingFile = (name: string) =>
+    setPendingFiles((prev) => prev.filter((f) => f.name !== name));
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   // --- Validation & submit ---
 
@@ -162,7 +189,7 @@ export default function CreateProject() {
 
     setIsSubmitting(true);
     try {
-      await projectService.createProject({
+      const res = await projectService.createProject({
         courseId,
         name: name.trim(),
         description: description.trim(),
@@ -173,8 +200,29 @@ export default function CreateProject() {
         advisors: advisors.map((a) => ({ name: a.name.trim(), email: a.email.trim() })),
         majors: majors.map((m) => ({ major: m })),
       });
-      toast.success("Project created successfully!");
-      navigate("/dashboard");
+
+      const newProjectId = res.data.project._id;
+
+      // Upload any staged files sequentially
+      if (pendingFiles.length > 0) {
+        let failed = 0;
+        for (const file of pendingFiles) {
+          try {
+            await UploadService.uploadFile(newProjectId, file);
+          } catch {
+            failed++;
+          }
+        }
+        if (failed === 0) {
+          toast.success("Project created with files attached!");
+        } else {
+          toast.warning(`Project created, but ${failed} file(s) failed to upload.`);
+        }
+      } else {
+        toast.success("Project created successfully!");
+      }
+
+      navigate(`/project/${newProjectId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create project");
     } finally {
@@ -470,12 +518,73 @@ export default function CreateProject() {
                 </div>
               </div>
 
+              {/* Project Files */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="flex items-center gap-1.5">
+                    <Paperclip className="h-4 w-4" />
+                    Attach Files
+                    <span className="text-muted-foreground font-normal">(optional)</span>
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isSubmitting}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    + Add File
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept={ACCEPTED}
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                </div>
+                {pendingFiles.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No files selected. PDFs, Office docs, images, and ZIPs up to 10 MB each.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {pendingFiles.map((file) => (
+                      <div
+                        key={file.name}
+                        className="flex items-center justify-between px-3 py-2 border rounded-lg bg-muted/30"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={isSubmitting}
+                          onClick={() => removePendingFile(file.name)}
+                          className="ml-2 shrink-0 text-muted-foreground hover:text-red-500"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <Button
                 type="submit"
                 disabled={isSubmitting || courses.length === 0}
                 className="w-full bg-[#9B2335] hover:bg-[#7a1c2a] text-white"
               >
-                {isSubmitting ? "Creating Project…" : "Create Project"}
+                {isSubmitting
+                  ? pendingFiles.length > 0
+                    ? "Creating & Uploading…"
+                    : "Creating Project…"
+                  : "Create Project"}
               </Button>
             </form>
           </CardContent>

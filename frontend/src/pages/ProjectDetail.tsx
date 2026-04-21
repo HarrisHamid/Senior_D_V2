@@ -74,12 +74,11 @@ const ProjectDetail = () => {
         } else if (user?.role === "student" && user.groupId) {
           try {
             const groupRes = await groupService.getGroupById(user.groupId);
-            const group = groupRes.data.group;
-            const interested = group.interestedProjects.some(
-              (pid: unknown) =>
-                typeof pid === "string"
-                  ? pid === id
-                  : (pid as { _id: string })?._id === id,
+            const group = groupRes.data;
+            const interested = group.interestedProjects.some((pid: unknown) =>
+              typeof pid === "string"
+                ? pid === id
+                : (pid as { _id: string })?._id === id,
             );
             setAlreadyInterested(interested);
             setGroupAssigned(!!group.assignedProject);
@@ -327,24 +326,28 @@ const ProjectDetail = () => {
                 <CardContent className="space-y-4">
                   {groupAssigned ? (
                     <p className="text-sm text-muted-foreground">
-                      Your group is already assigned to a project and cannot express interest in others.
+                      Your group is already assigned to a project and cannot
+                      express interest in others.
                     </p>
                   ) : interestLimitReached ? (
                     <p className="text-sm text-muted-foreground">
-                      Your group has reached the maximum of 4 interested projects.
+                      Your group has reached the maximum of 4 interested
+                      projects.
                     </p>
                   ) : (
                     <>
                       <p className="text-sm text-muted-foreground">
-                        Your group can show interest in up to 4 projects. This will
-                        notify the course coordinator.
+                        Your group can show interest in up to 4 projects. This
+                        will notify the course coordinator.
                       </p>
                       <Button
                         onClick={handleShowInterest}
                         className="w-full sm:w-auto"
                         disabled={alreadyInterested}
                       >
-                        {alreadyInterested ? "Interest Registered" : "Express Interest"}
+                        {alreadyInterested
+                          ? "Interest Registered"
+                          : "Express Interest"}
                       </Button>
                     </>
                   )}
@@ -352,7 +355,7 @@ const ProjectDetail = () => {
               </Card>
             )}
 
-          {/* For Coordinators */}
+          {/* For Coordinators — Group Assignment */}
           {user?.role === "course coordinator" && (
             <Card>
               <CardHeader>
