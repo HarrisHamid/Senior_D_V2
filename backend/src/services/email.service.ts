@@ -2,6 +2,14 @@ import fs from "fs";
 import { Resend } from "resend";
 import { env } from "../config/env";
 
+const esc = (s: string) =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 interface SendEmailInput {
   to: string;
   subject: string;
@@ -82,7 +90,7 @@ export const sendPasswordResetEmail = async (
     html: `
       <p>You requested a password reset. Click the link below to set a new password.</p>
       <p>This link expires in <strong>${expiresInMinutes} minutes</strong>.</p>
-      <p><a href="${resetLink}">${resetLink}</a></p>
+      <p><a href="${esc(resetLink)}">${esc(resetLink)}</a></p>
       <p>If you did not request this, you can safely ignore this email.</p>
     `,
   });
@@ -99,7 +107,7 @@ export const sendVerificationCodeEmail = async (
     text: `Your verification code is ${verificationCode}. It expires in ${expiresInMinutes} minutes.`,
     html: `
       <p>Your verification code is:</p>
-      <h2 style="letter-spacing:4px;font-family:monospace">${verificationCode}</h2>
+      <h2 style="letter-spacing:4px;font-family:monospace">${esc(verificationCode)}</h2>
       <p>This code expires in <strong>${expiresInMinutes} minutes</strong>.</p>
     `,
   });
@@ -118,15 +126,15 @@ export const sendGroupInterestEmail = async (
   memberNames: string[],
 ): Promise<void> => {
   const memberList = memberNames.map((n) => `• ${n}`).join("\n");
-  const memberListHtml = memberNames.map((n) => `<li>${n}</li>`).join("");
+  const memberListHtml = memberNames.map((n) => `<li>${esc(n)}</li>`).join("");
 
   await provider.send({
     to: coordinatorEmail,
     subject: `Group ${groupNumber} expressed interest in "${projectName}"`,
     text: `Hi ${coordinatorName},\n\nGroup ${groupNumber} has expressed interest in your project "${projectName}".\n\nGroup members:\n${memberList}\n\nLog in to the Senior Design Marketplace to review and manage group assignments.`,
     html: `
-      <p>Hi ${coordinatorName},</p>
-      <p><strong>Group ${groupNumber}</strong> has expressed interest in your project <strong>"${projectName}"</strong>.</p>
+      <p>Hi ${esc(coordinatorName)},</p>
+      <p><strong>Group ${groupNumber}</strong> has expressed interest in your project <strong>"${esc(projectName)}"</strong>.</p>
       <p>Group members:</p>
       <ul>${memberListHtml}</ul>
       <p>Log in to the Senior Design Marketplace to review and manage group assignments.</p>
@@ -150,7 +158,7 @@ export const sendGroupAssignedEmail = async (
         text: `Congratulations!\n\nYour group has been assigned to the project "${projectName}" by ${coordinatorName}.\n\nLog in to the Senior Design Marketplace for more details.`,
         html: `
           <p>Congratulations!</p>
-          <p>Your group has been assigned to the project <strong>"${projectName}"</strong> by ${coordinatorName}.</p>
+          <p>Your group has been assigned to the project <strong>"${esc(projectName)}"</strong> by ${esc(coordinatorName)}.</p>
           <p>Log in to the Senior Design Marketplace for more details.</p>
         `,
       }),
@@ -174,7 +182,7 @@ export const sendGroupUnassignedEmail = async (
         text: `Hi,\n\nYour group has been unassigned from the project "${projectName}" by ${coordinatorName}.\n\nLog in to the Senior Design Marketplace to explore other available projects.`,
         html: `
           <p>Hi,</p>
-          <p>Your group has been unassigned from the project <strong>"${projectName}"</strong> by ${coordinatorName}.</p>
+          <p>Your group has been unassigned from the project <strong>"${esc(projectName)}"</strong> by ${esc(coordinatorName)}.</p>
           <p>Log in to the Senior Design Marketplace to explore other available projects.</p>
         `,
       }),
@@ -196,8 +204,8 @@ export const sendJoinRequestEmail = async (
     subject: `${requesterName} wants to join Group ${groupNumber}`,
     text: `Hi ${leaderName},\n\n${requesterName} has requested to join your group (Group ${groupNumber}).\n\nLog in to the Senior Design Marketplace to approve or reject the request.`,
     html: `
-      <p>Hi ${leaderName},</p>
-      <p><strong>${requesterName}</strong> has requested to join your group (<strong>Group ${groupNumber}</strong>).</p>
+      <p>Hi ${esc(leaderName)},</p>
+      <p><strong>${esc(requesterName)}</strong> has requested to join your group (<strong>Group ${groupNumber}</strong>).</p>
       <p>Log in to the Senior Design Marketplace to approve or reject the request.</p>
     `,
   });
@@ -223,7 +231,7 @@ export const sendJoinRequestResponseEmail = async (
     to: requesterEmail,
     subject,
     text: `Hi ${requesterName},\n\n${body}`,
-    html: `<p>Hi ${requesterName},</p><p>${body}</p>`,
+    html: `<p>Hi ${esc(requesterName)},</p><p>${esc(body)}</p>`,
   });
 };
 
@@ -241,8 +249,8 @@ export const sendStudentJoinedCourseEmail = async (
     subject: `${studentName} joined your course`,
     text: `Hi ${coordinatorName},\n\n${studentName} has joined your course "${courseName}".\n\nLog in to the Senior Design Marketplace to view your course roster.`,
     html: `
-      <p>Hi ${coordinatorName},</p>
-      <p><strong>${studentName}</strong> has joined your course <strong>"${courseName}"</strong>.</p>
+      <p>Hi ${esc(coordinatorName)},</p>
+      <p><strong>${esc(studentName)}</strong> has joined your course <strong>"${esc(courseName)}"</strong>.</p>
       <p>Log in to the Senior Design Marketplace to view your course roster.</p>
     `,
   });

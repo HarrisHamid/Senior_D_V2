@@ -43,17 +43,19 @@ npm run lint   # ESLint
 | `/api/auth` | `auth.routes.ts` | `POST /register`, `POST /login`, `POST /logout`, `GET /me`, `POST /forgot-password`, `POST /reset-password/:token`, `POST /verification/resend`, `POST /verification/verify` |
 | `/api/courses` | `course.routes.ts` | `POST /` (coordinator), `GET /my-courses` (coordinator), `POST /join` (student), `GET /:id`, `PATCH /:id/close`, `PATCH /:id/open`, `GET /:id/stats`, `GET /:id/export` (XLSX) |
 | `/api/projects` | `project.routes.ts` | `POST /`, `GET /course/:courseId`, `GET /:id`, `PATCH /:id`, `DELETE /:id`, `POST /:id/assign-group`, `PATCH /:id/unassign-group` |
-| `/api/groups` | `group.routes.ts` | `POST /` (create), `PATCH /join`, `GET /course/:courseId`, `GET /interested/:projectId`, `GET /:groupId`, `DELETE /:groupId/leave`, `PATCH /:groupId/toggle-status`, `POST /:groupId/interested-projects`, `DELETE /:groupId/interested-projects` |
+| `/api/groups` | `group.routes.ts` | `POST /` (create), `PATCH /join`, `GET /course/:courseId`, `GET /interested/:projectId`, `GET /:groupId`, `DELETE /:groupId/leave`, `PATCH /:groupId/toggle-status`, `PATCH /:groupId/toggle-visibility`, `PATCH /:groupId/join-requests/:requestId`, `POST /:groupId/interested-projects`, `DELETE /:groupId/interested-projects` |
 | `/api/users` | `user.routes.ts` | `GET /`, `PATCH /`, `PATCH /password` |
-| `/api/uploads` | `upload.routes.ts` | File upload via multer |
+| `/api/uploads` | `upload.routes.ts` | `POST /:projectId` (upload), `GET /:projectId` (list), `GET /:projectId/:fileId` (download), `DELETE /:projectId/:fileId` (delete) |
 
 **Important route ordering:** Static paths (e.g. `/course/:courseId`) must be registered before dynamic paths (e.g. `/:id`) to avoid route collision. This pattern is consistent across all route files.
 
 - **Auth** (`src/middleware/auth.middleware.ts`): Extracts JWT from `req.cookies.token` or `Authorization: Bearer`. Fetches full user from DB, attaches as `req.user` (typed as `AuthRequest`). Never attach the password—`User.model.ts` has `select: false` on the password field.
 - **Validation** (`src/middleware/validation.middleware.ts`): Wraps Zod schemas; all schemas live in `src/validation/` and validate `body`, `params`, and/or `query` together.
 - **Rate limiting** (`src/middleware/rateLimiter.ts`): In-memory, no Redis. `authLimiter` (10 req / 15 min), `verificationLimiter` (5 req / 15 min), `generalLimiter` (100 req / 15 min). `resetRateLimiters()` is called in `clearTestDB()` so tests start clean.
-- **Email** (`src/services/email.service.ts`): Controlled by `EMAIL_PROVIDER` env var. `"console"` (default dev) logs to stderr and appends to `/tmp/dev-emails.log`. `"disabled"` is a no-op (used in tests). Sends verification codes and password reset links.
-- **File uploads** (`src/middleware/upload.middleware.ts`, `src/routes/upload.routes.ts`): Uses multer. Uploaded file metadata is stored in the `UploadedFile` model.
+- **Email** (`src/services/email.service.ts`): Controlled by `EMAIL_PROVIDER` env var. `"console"` (default dev) logs to stderr and appends to `/tmp/dev-emails.log`. `"disabled"` is a no-op (used in tests). `"resend"` uses the Resend API (requires `RESEND_API_KEY` and `EMAIL_FROM`). Beyond auth emails, event-driven functions notify coordinators of group interest / student joins, notify group members of assignment/unassignment, and handle join-request approval/rejection notifications.
+- **Verification service** (`src/services/verification.service.ts`): Generates a random numeric code, hashes it with SHA-256, upserts a `VerificationCode` document, and sends the email. `validateVerificationCode` does a constant-time hash comparison and deletes the record on success.
+- **File uploads** (`src/middleware/upload.middleware.ts`, `src/routes/upload.routes.ts`): Uses multer. Uploaded file metadata (originalName, filename, path, mimetype, size, projectId, uploadedBy) stored in `UploadedFile` model. Delete permission: uploader or the project-owning coordinator.
+- **Schools/majors** (`src/constants/schools.ts`): Static list of schools and their majors. Export `ALL_MAJORS` and `MAJORS_BY_SCHOOL` for filtering; used when creating/filtering projects.
 - **XLSX export** (`src/utils/xlsxBuilder.ts`): Zero-dependency XLSX builder (hand-rolled XML). Used by `GET /api/courses/:id/export` to export course assignment data.
 
 ### Backend — Data Models
@@ -117,6 +119,7 @@ Helper fixtures live in `src/testing/helpers/` (`fixtures.ts` — shared test da
 | `/group` | `Group` | Student only |
 | `/course/create` | `CreateCourse` | Coordinator only |
 | `/project/add` | `CreateProject` | Coordinator only |
+| `/verify-email` | `VerifyEmail` | Authenticated — email verification code entry |
 | `/logout` | `LogoutScreen` | Authenticated |
 
 **API layer** (`src/services/api.ts`): Single Axios instance with `withCredentials: true` and a response interceptor that normalizes errors to `new Error(message)`. Base URL is `VITE_API_URL` or `http://localhost:5000/api`. Each domain has its own service file (`auth.service.ts`, `course.service.ts`, `group.service.ts`, `project.service.ts`, `upload.service.ts`, `user.service.ts`).
@@ -131,14 +134,17 @@ PORT=5000
 MONGO_URI=mongodb://localhost:27017/senior_d
 CORS_ORIGIN=http://localhost:5173
 JWT_SECRET=<secret>
-JWT_EXPIRES_IN=7d
+JWT_EXPIRE=7d
 JWT_COOKIE_EXPIRE=7
 ```
 
 Optional (all have defaults):
 ```
-EMAIL_PROVIDER=console     # "console" | "disabled"
+EMAIL_PROVIDER=console     # "console" | "disabled" | "resend"
+EMAIL_FROM=no-reply@seniordesignmarketplace.local
+RESEND_API_KEY=            # required when EMAIL_PROVIDER=resend
 FRONTEND_URL=http://localhost:5173
+VERIFICATION_CODE_LENGTH=6
 VERIFICATION_CODE_TTL_MINUTES=10
 PASSWORD_RESET_TOKEN_EXPIRES_MINUTES=60
 ```
