@@ -3,24 +3,26 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { GridPattern } from "@/components/ui/grid-pattern";
-import { MAJORS_BY_SCHOOL, SCHOOL_NAMES, type SchoolName } from "@/data/schools";
 
 const requirements = [
   { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
-  { label: "At least one uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
+  {
+    label: "At least one uppercase letter",
+    test: (p: string) => /[A-Z]/.test(p),
+  },
   { label: "At least one number", test: (p: string) => /[0-9]/.test(p) },
-  { label: "At least one special character (!@#$...)", test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+  {
+    label: "At least one special character (!@#$...)",
+    test: (p: string) => /[^a-zA-Z0-9]/.test(p),
+  },
 ];
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [school, setSchool] = useState<SchoolName | "">("");
-  const [major, setMajor] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<"student" | "course coordinator">("student");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +51,9 @@ export default function Signup() {
       return;
     }
     if (!/^[a-zA-Z\s'-]+$/.test(trimmedFirst)) {
-      setError("First name can only contain letters, spaces, hyphens, and apostrophes");
+      setError(
+        "First name can only contain letters, spaces, hyphens, and apostrophes",
+      );
       return;
     }
 
@@ -63,7 +67,9 @@ export default function Signup() {
       return;
     }
     if (!/^[a-zA-Z\s'-]+$/.test(trimmedLast)) {
-      setError("Last name can only contain letters, spaces, hyphens, and apostrophes");
+      setError(
+        "Last name can only contain letters, spaces, hyphens, and apostrophes",
+      );
       return;
     }
 
@@ -81,26 +87,6 @@ export default function Signup() {
     //   setError("You must use a Stevens email address (@stevens.edu)");
     //   return;
     // }
-
-    if (role === "student") {
-      if (!school) {
-        setError("School is required for students");
-        return;
-      }
-      if (!major) {
-        setError("Major is required for students");
-        return;
-      }
-    }
-
-    if (
-      school &&
-      major &&
-      !(MAJORS_BY_SCHOOL[school] as readonly string[]).includes(major)
-    ) {
-      setError("Major must belong to the selected school");
-      return;
-    }
 
     // Password validation
     if (password.length < 8) {
@@ -137,9 +123,7 @@ export default function Signup() {
         name: `${trimmedFirst} ${trimmedLast}`,
         email: trimmedEmail,
         password,
-        role,
-        school: school || undefined,
-        major: major || undefined,
+        role: "student",
       });
       navigate(
         courseCode ? `/dashboard?courseCode=${courseCode}` : "/dashboard",
@@ -162,7 +146,11 @@ export default function Signup() {
         <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
           {/* Logo */}
           <div className="flex justify-center">
-            <img src="/logo.jpg" alt="Senior Design Marketplace" className="w-16 h-16 rounded object-cover" />
+            <img
+              src="/logo.jpg"
+              alt="Senior Design Marketplace"
+              className="w-16 h-16 rounded object-cover"
+            />
           </div>
 
           {/* Header */}
@@ -245,66 +233,6 @@ export default function Signup() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="school"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  School{role === "student" ? "" : " (optional)"}
-                </label>
-                <select
-                  id="school"
-                  value={school}
-                  onChange={(e) => {
-                    setSchool(e.target.value as SchoolName | "");
-                    setMajor("");
-                  }}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
-                    focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
-                    transition-all duration-200 ease-in-out"
-                  required={role === "student"}
-                  disabled={isSubmitting}
-                >
-                  <option value="">Select school</option>
-                  {SCHOOL_NAMES.map((schoolName) => (
-                    <option key={schoolName} value={schoolName}>
-                      {schoolName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="major"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Major{role === "student" ? "" : " (optional)"}
-                </label>
-                <select
-                  id="major"
-                  value={major}
-                  onChange={(e) => setMajor(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
-                    focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
-                    transition-all duration-200 ease-in-out"
-                  required={role === "student"}
-                  disabled={isSubmitting || !school}
-                >
-                  <option value="">
-                    {school ? "Select major" : "Select school first"}
-                  </option>
-                  {school &&
-                    MAJORS_BY_SCHOOL[school].map((majorName) => (
-                      <option key={majorName} value={majorName}>
-                        {majorName}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            </div>
-
             {/* Password */}
             <div>
               <label
@@ -332,7 +260,11 @@ export default function Signup() {
                   tabIndex={-1}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
 
@@ -348,7 +280,9 @@ export default function Signup() {
                           met ? "text-green-600" : "text-gray-400"
                         }`}
                       >
-                        <Check className={`w-3.5 h-3.5 shrink-0 ${met ? "opacity-100" : "opacity-30"}`} />
+                        <Check
+                          className={`w-3.5 h-3.5 shrink-0 ${met ? "opacity-100" : "opacity-30"}`}
+                        />
                         {req.label}
                       </li>
                     );
@@ -384,49 +318,12 @@ export default function Signup() {
                   tabIndex={-1}
                   aria-label={showConfirm ? "Hide password" : "Show password"}
                 >
-                  {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirm ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
-              </div>
-            </div>
-
-            {/* Role Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                I am a:
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="role"
-                    value="student"
-                    checked={role === "student"}
-                    onChange={(e) =>
-                      setRole(
-                        e.target.value as "student" | "course coordinator",
-                      )
-                    }
-                    className="w-4 h-4 text-[#9B2335] border-gray-300 focus:ring-[#9B2335]"
-                    disabled={isSubmitting}
-                  />
-                  <span className="ml-2 text-gray-700">Student</span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="role"
-                    value="course coordinator"
-                    checked={role === "course coordinator"}
-                    onChange={(e) =>
-                      setRole(
-                        e.target.value as "student" | "course coordinator",
-                      )
-                    }
-                    className="w-4 h-4 text-[#9B2335] border-gray-300 focus:ring-[#9B2335]"
-                    disabled={isSubmitting}
-                  />
-                  <span className="ml-2 text-gray-700">Course Coordinator</span>
-                </label>
               </div>
             </div>
 

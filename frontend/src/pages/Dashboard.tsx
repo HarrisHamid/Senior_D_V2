@@ -15,7 +15,6 @@ import {
   BookOpen,
   Users,
   FolderOpen,
-  Plus,
   BarChart3,
   Globe,
   Lock,
@@ -359,37 +358,6 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks to get you started</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Button variant="outline" asChild>
-              <Link
-                to="/marketplace"
-                className="h-auto py-4 flex flex-col gap-2"
-              >
-                <FolderOpen className="h-6 w-6" />
-                Browse Projects
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/group" className="h-auto py-4 flex flex-col gap-2">
-                <Users className="h-6 w-6" />
-                Manage Group
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/course" className="h-auto py-4 flex flex-col gap-2">
-                <BookOpen className="h-6 w-6" />
-                View Course
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
@@ -509,48 +477,6 @@ const CoordinatorDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Quick Actions */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Button asChild>
-              <Link
-                to="/course/create"
-                className="h-auto py-4 flex flex-col gap-2"
-              >
-                <Plus className="h-6 w-6" />
-                Create Course
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link
-                to="/project/add"
-                className="h-auto py-4 flex flex-col gap-2"
-              >
-                <Plus className="h-6 w-6" />
-                Add Project
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link
-                to="/marketplace"
-                className="h-auto py-4 flex flex-col gap-2"
-              >
-                <FolderOpen className="h-6 w-6" />
-                View Projects
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/course" className="h-auto py-4 flex flex-col gap-2">
-                <BarChart3 className="h-6 w-6" />
-                Export Data
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
 
         {/* Managed Courses */}
         <Card>

@@ -14,7 +14,7 @@ import { env } from "../config/env";
 // Register a new user
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password, role, school, major } = req.body;
+    const { name, email, password, school, major } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -26,12 +26,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Create new user
+    // Create new user — role is always "student" on self-registration
     const user = await User.create({
       name,
       email,
       password,
-      role,
+      role: "student",
       school: school || null,
       major: major || null,
       verificationNeeded: true,
