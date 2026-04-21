@@ -63,8 +63,6 @@ export const uploadFile = async (
       size: req.file.size,
     });
 
-    const { _id, originalName, filename, mimetype, size, createdAt } =
-      uploadedFile.toObject();
     res.status(201).json({
       success: true,
       data: { file: serializeUploadedFile(uploadedFile) },
