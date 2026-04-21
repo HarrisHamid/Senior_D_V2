@@ -14,6 +14,7 @@ export interface IProject extends Document {
   internal: boolean;
   assignedGroup: Types.ObjectId | null;
   isOpen: boolean;
+  sourceProposal: Types.ObjectId | null;
 }
 
 // Mongoose Schema
@@ -92,6 +93,12 @@ const ProjectSchema = new Schema<IProject>(
     isOpen: {
       type: Boolean,
       default: true,
+      index: true,
+    },
+    sourceProposal: {
+      type: Schema.Types.ObjectId,
+      ref: "Proposal",
+      default: null,
       index: true,
     },
   },

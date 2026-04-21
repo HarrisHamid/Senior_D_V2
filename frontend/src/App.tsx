@@ -14,6 +14,8 @@ import Group from "./pages/Group";
 import Profile from "./pages/Profile";
 import CreateCourse from "./pages/CreateCourse";
 import CreateProject from "./pages/CreateProject";
+import ProposalForm from "./pages/ProposalForm";
+import AdminProposals from "./pages/AdminProposals";
 import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/routing/ProtectedRoute";
 import PublicOnlyRoute from "@/components/routing/PublicOnlyRoute";
@@ -33,6 +35,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/logout" element={<LogoutScreen />} />
+        <Route path="/proposals/student" element={<ProposalForm role="student" />} />
+        <Route path="/proposals/faculty" element={<ProposalForm role="faculty" />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/verify-email" element={<VerifyEmail />} />
@@ -49,6 +53,7 @@ function App() {
           <Route element={<RoleRoute allowedRoles={["course coordinator"]} />}>
             <Route path="/course/create" element={<CreateCourse />} />
             <Route path="/project/add" element={<CreateProject />} />
+            <Route path="/admin/proposals" element={<AdminProposals />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

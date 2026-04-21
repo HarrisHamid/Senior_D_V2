@@ -255,3 +255,22 @@ export const sendStudentJoinedCourseEmail = async (
     `,
   });
 };
+
+export const sendProposalConfirmationEmail = async (
+  recipientEmail: string,
+  submitterName: string,
+  proposalId: string,
+  proposalTitle: string,
+): Promise<void> => {
+  await provider.send({
+    to: recipientEmail,
+    subject: `Proposal received: ${proposalId}`,
+    text: `Hi ${submitterName},\n\nWe received your senior design proposal "${proposalTitle}".\n\nProposal ID: ${proposalId}\nStatus: Pending Review\n\nKeep this ID for your records. The Senior Design team will review your submission and follow up if more information is needed.`,
+    html: `
+      <p>Hi ${esc(submitterName)},</p>
+      <p>We received your senior design proposal <strong>"${esc(proposalTitle)}"</strong>.</p>
+      <p><strong>Proposal ID:</strong> ${esc(proposalId)}<br/><strong>Status:</strong> Pending Review</p>
+      <p>Keep this ID for your records. The Senior Design team will review your submission and follow up if more information is needed.</p>
+    `,
+  });
+};

@@ -53,6 +53,7 @@ export interface ProjectData {
   internal: boolean;
   assignedGroup: string | null;
   isOpen: boolean;
+  sourceProposal?: string | null;
   createdAt: string;
   updatedAt: string;
 }
