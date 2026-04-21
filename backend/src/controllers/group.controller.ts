@@ -29,7 +29,9 @@ export const createNewGroup = async (
       Group as unknown as import("mongoose").Model<{ groupCode: string }>,
     );
 
-    const lastGroup = await Group.findOne({}).sort({ groupNumber: -1 }).select("groupNumber");
+    const lastGroup = await Group.findOne({})
+      .sort({ groupNumber: -1 })
+      .select("groupNumber");
     const groupNumber = (lastGroup?.groupNumber ?? 0) + 1;
 
     const newGroup = await Group.create({
