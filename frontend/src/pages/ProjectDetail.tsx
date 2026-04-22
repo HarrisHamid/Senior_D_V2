@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Mail, Users, Building2 } from "lucide-react";
+import { ArrowLeft, Mail, Users, Building2, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { projectService } from "@/services/project.service";
@@ -44,11 +44,12 @@ const ProjectDetail = () => {
 
   const [project, setProject] = useState<ProjectData | null>(null);
   const [interestedGroups, setInterestedGroups] = useState<
-    { _id: string; groupNumber: number; groupMembers: unknown[] }[]
+    { _id: string; groupNumber: number; name?: string; groupMembers: { _id: string; name: string; email: string }[] }[]
   >([]);
   const [allGroups, setAllGroups] = useState<
     { _id: string; groupNumber: number; groupMembers: unknown[] }[]
   >([]);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [selectedGroup, setSelectedGroup] = useState("");
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -69,7 +70,7 @@ const ProjectDetail = () => {
             groupService.getAllInterestedGroups(id),
             groupService.getAllGroups(),
           ]);
-          setInterestedGroups(interestedRes.data ?? []);
+          setInterestedGroups((interestedRes.data ?? []) as unknown as typeof interestedGroups);
           setAllGroups(allGroupsRes.data ?? []);
         } else if (user?.role === "student" && user.groupId) {
           try {
@@ -364,31 +365,66 @@ const ProjectDetail = () => {
               <CardContent className="space-y-4">
                 {interestedGroups.length > 0 ? (
                   <div className="space-y-3">
-                    {interestedGroups.map((group) => (
-                      <div
-                        key={group._id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">
-                            Group {group.groupNumber}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {group.groupMembers?.length ?? 0} members
-                          </p>
+                    {interestedGroups.map((group) => {
+                      const isExpanded = expandedGroups.has(group._id);
+                      return (
+                        <div key={group._id} className="border rounded-lg overflow-hidden">
+                          <div className="flex items-center justify-between p-3">
+                            <button
+                              className="flex items-center gap-2 text-left flex-1"
+                              onClick={() =>
+                                setExpandedGroups((prev) => {
+                                  const next = new Set(prev);
+                                  isExpanded ? next.delete(group._id) : next.add(group._id);
+                                  return next;
+                                })
+                              }
+                            >
+                              <div>
+                                <p className="font-medium">
+                                  {group.name ?? `Group ${group.groupNumber}`}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {group.groupMembers?.length ?? 0} member{group.groupMembers?.length !== 1 ? "s" : ""}
+                                </p>
+                              </div>
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4 text-muted-foreground ml-2 shrink-0" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 shrink-0" />
+                              )}
+                            </button>
+                            {!project.assignedGroup && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={assigning}
+                                onClick={() => handleAssignGroup(group._id)}
+                                className="ml-3 shrink-0"
+                              >
+                                Assign
+                              </Button>
+                            )}
+                          </div>
+                          {isExpanded && group.groupMembers?.length > 0 && (
+                            <div className="border-t bg-muted/30 px-3 py-2 space-y-1">
+                              {group.groupMembers.map((member) => (
+                                <div key={member._id} className="flex items-center justify-between py-1">
+                                  <span className="text-sm font-medium text-foreground">{member.name}</span>
+                                  <a
+                                    href={`mailto:${member.email}`}
+                                    className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    {member.email}
+                                  </a>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        {!project.assignedGroup && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={assigning}
-                            onClick={() => handleAssignGroup(group._id)}
-                          >
-                            Assign
-                          </Button>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">

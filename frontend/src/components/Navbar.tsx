@@ -67,6 +67,15 @@ const Navbar = () => {
                 Browse Groups
               </NavLink>
             )}
+            {user.role === "course coordinator" && (
+              <NavLink
+                to="/my-projects"
+                className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                activeClassName="text-primary"
+              >
+                My Projects
+              </NavLink>
+            )}
 
             {/* User Dropdown */}
             <DropdownMenu>
@@ -146,6 +155,16 @@ const Navbar = () => {
                 onClick={toggleMenu}
               >
                 Browse Groups
+              </NavLink>
+            )}
+            {user.role === "course coordinator" && (
+              <NavLink
+                to="/my-projects"
+                className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+                activeClassName="bg-muted text-primary"
+                onClick={toggleMenu}
+              >
+                My Projects
               </NavLink>
             )}
             <Link

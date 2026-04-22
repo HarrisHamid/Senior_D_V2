@@ -753,7 +753,7 @@ export const getAllInterestedGroups = async (
 
     const groups = await Group.find({
       interestedProjects: new Types.ObjectId(projectId),
-    });
+    }).populate("groupMembers", "name email");
 
     res.status(200).json({
       success: true,
