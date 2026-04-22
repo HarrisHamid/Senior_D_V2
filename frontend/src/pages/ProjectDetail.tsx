@@ -375,7 +375,7 @@ const ProjectDetail = () => {
                               onClick={() =>
                                 setExpandedGroups((prev) => {
                                   const next = new Set(prev);
-                                  isExpanded ? next.delete(group._id) : next.add(group._id);
+                                  if (isExpanded) { next.delete(group._id); } else { next.add(group._id); }
                                   return next;
                                 })
                               }
