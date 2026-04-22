@@ -10,6 +10,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import Marketplace from "./pages/Marketplace";
 import Dashboard from "./pages/Dashboard";
 import Group from "./pages/Group";
+import BrowseGroups from "./pages/BrowseGroups";
 import Profile from "./pages/Profile";
 import CreateCourse from "./pages/CreateCourse";
 import CreateProject from "./pages/CreateProject";
@@ -42,6 +43,7 @@ function App() {
 
           <Route element={<RoleRoute allowedRoles={["student"]} />}>
             <Route path="/group" element={<Group />} />
+            <Route path="/browse-groups" element={<BrowseGroups />} />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={["course coordinator"]} />}>

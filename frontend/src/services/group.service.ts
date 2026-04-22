@@ -15,6 +15,7 @@ export interface GroupData {
   _id: string;
   courseId?: string;
   groupNumber: number;
+  name?: string;
   groupCode?: string;
   isOpen: boolean;
   isPublic: boolean;
@@ -39,8 +40,8 @@ export interface GroupResponse {
 }
 
 export const groupService = {
-  async createNewGroup(isPublic = true): Promise<GroupResponse> {
-    const response = await api.post<GroupResponse>("/groups", { isPublic });
+  async createNewGroup(isPublic = true, name?: string): Promise<GroupResponse> {
+    const response = await api.post<GroupResponse>("/groups", { isPublic, ...(name ? { name } : {}) });
     return response.data;
   },
 

@@ -23,7 +23,7 @@ export const createNewGroup = async (
       return;
     }
 
-    const { isPublic = true } = req.body;
+    const { isPublic = true, name } = req.body;
 
     const groupCode = await generateUniqueGroupCode(
       Group as unknown as import("mongoose").Model<{ groupCode: string }>,
@@ -36,6 +36,7 @@ export const createNewGroup = async (
 
     const newGroup = await Group.create({
       groupNumber,
+      ...(name ? { name } : {}),
       groupMembers: [new Types.ObjectId(user._id)],
       groupCode,
       isOpen: true,
@@ -419,6 +420,13 @@ export const getGroupById = async (
     if (!isMember && user?.role !== "course coordinator") {
       res.status(403).json({ success: false, message: "Forbidden" });
       return;
+    }
+
+    if (!group.groupCode) {
+      group.groupCode = await generateUniqueGroupCode(
+        Group as unknown as import("mongoose").Model<{ groupCode: string }>,
+      );
+      await group.save();
     }
 
     res.status(200).json({ success: true, data: group });

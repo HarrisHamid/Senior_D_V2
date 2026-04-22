@@ -48,13 +48,18 @@ const StudentDashboard = () => {
   const [joiningGroup, setJoiningGroup] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [creatingGroup, setCreatingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupVisibility, setNewGroupVisibility] = useState<"public" | "private" | null>(null);
 
-  const handleCreateGroup = async (isPublic: boolean) => {
+  const handleCreateGroup = async () => {
+    if (!newGroupVisibility) return;
     setCreatingGroup(true);
     try {
-      await groupService.createNewGroup(isPublic);
+      await groupService.createNewGroup(newGroupVisibility === "public", newGroupName.trim() || undefined);
       toast.success("Group created!");
       setCreateDialogOpen(false);
+      setNewGroupName("");
+      setNewGroupVisibility(null);
       await refreshUser();
     } catch (err) {
       toast.error(
@@ -192,7 +197,7 @@ const StudentDashboard = () => {
                 <>
                   <div className="flex-1 space-y-3">
                     <p className="text-xl font-bold text-gray-900">
-                      Group {group.groupNumber}
+                      {group.name ?? `Group ${group.groupNumber}`}
                     </p>
                     <div className="flex items-center gap-2">
                       <span
@@ -256,36 +261,67 @@ const StudentDashboard = () => {
                       <DialogHeader>
                         <DialogTitle>Create a Group</DialogTitle>
                         <DialogDescription>
-                          Choose how other students can join your group.
+                          Give your group a name and choose its visibility.
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="grid grid-cols-2 gap-3 mt-2">
-                        <button
-                          onClick={() => handleCreateGroup(true)}
-                          disabled={creatingGroup}
-                          className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-transparent hover:border-[#9B2335] hover:bg-[#9B2335]/5 transition-colors text-left disabled:opacity-50"
-                        >
-                          <Globe className="h-6 w-6 text-[#9B2335]" />
-                          <div>
-                            <p className="font-semibold text-sm">Public</p>
-                            <p className="text-xs text-gray-500">
-                              Anyone with the code joins instantly
-                            </p>
+                      <div className="space-y-4 mt-2">
+                        <div>
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
+                            Group Name <span className="text-gray-400 font-normal normal-case">(optional)</span>
+                          </label>
+                          <Input
+                            placeholder="e.g. Team Falcon"
+                            value={newGroupName}
+                            onChange={(e) => setNewGroupName(e.target.value)}
+                            maxLength={50}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
+                            Visibility
+                          </label>
+                          <div className="grid grid-cols-2 gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setNewGroupVisibility("public")}
+                              className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors text-left"
+                              style={{
+                                borderColor: newGroupVisibility === "public" ? "#9B2335" : "transparent",
+                                background: newGroupVisibility === "public" ? "rgba(155,35,53,0.05)" : "#f9fafb",
+                              }}
+                            >
+                              <Globe className="h-5 w-5" style={{ color: "#9B2335" }} />
+                              <div>
+                                <p className="font-semibold text-sm">Public</p>
+                                <p className="text-xs text-gray-500">Anyone can join instantly</p>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewGroupVisibility("private")}
+                              className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors text-left"
+                              style={{
+                                borderColor: newGroupVisibility === "private" ? "#9B2335" : "transparent",
+                                background: newGroupVisibility === "private" ? "rgba(155,35,53,0.05)" : "#f9fafb",
+                              }}
+                            >
+                              <Lock className="h-5 w-5" style={{ color: "#9B2335" }} />
+                              <div>
+                                <p className="font-semibold text-sm">Private</p>
+                                <p className="text-xs text-gray-500">You approve each request</p>
+                              </div>
+                            </button>
                           </div>
-                        </button>
-                        <button
-                          onClick={() => handleCreateGroup(false)}
-                          disabled={creatingGroup}
-                          className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-transparent hover:border-[#9B2335] hover:bg-[#9B2335]/5 transition-colors text-left disabled:opacity-50"
+                        </div>
+                        <Button
+                          onClick={handleCreateGroup}
+                          disabled={creatingGroup || !newGroupVisibility}
+                          className="w-full"
+                          style={{ background: "#9B2335" }}
                         >
-                          <Lock className="h-6 w-6 text-[#9B2335]" />
-                          <div>
-                            <p className="font-semibold text-sm">Private</p>
-                            <p className="text-xs text-gray-500">
-                              You approve each join request
-                            </p>
-                          </div>
-                        </button>
+                          {creatingGroup ? "Creating…" : "Create Group"}
+                        </Button>
                       </div>
                     </DialogContent>
                   </Dialog>

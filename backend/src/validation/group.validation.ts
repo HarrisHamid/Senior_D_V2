@@ -5,6 +5,10 @@ const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 export const createGroupSchema = z.object({
   body: z.object({
     isPublic: z.boolean().optional().default(true),
+    name: z
+      .string()
+      .max(50, "Group name must be 50 characters or less")
+      .optional(),
   }),
 });
 
