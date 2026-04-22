@@ -662,10 +662,16 @@ export const addInterestedProject = async (
       })
       .catch(console.error);
 
+    const populated = await Group.findById(group._id)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
+
     res.status(200).json({
       success: true,
       message: "Project added",
-      data: group,
+      data: populated,
     });
   } catch (error) {
     res.status(500).json({
@@ -717,10 +723,16 @@ export const removeInterestedProject = async (
 
     await group.save();
 
+    const populated = await Group.findById(group._id)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
+
     res.status(200).json({
       success: true,
       message: "Project removed",
-      data: group,
+      data: populated,
     });
   } catch (error) {
     res.status(500).json({
