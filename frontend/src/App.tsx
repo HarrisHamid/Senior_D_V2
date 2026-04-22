@@ -6,14 +6,15 @@ import ResetPassword from "./pages/ResetPassword";
 import LogoutScreen from "./pages/LogoutScreen";
 import VerifyEmail from "./pages/VerifyEmail";
 import Home from "./pages/Home";
-import Course from "./pages/Course";
 import ProjectDetail from "./pages/ProjectDetail";
 import Marketplace from "./pages/Marketplace";
 import Dashboard from "./pages/Dashboard";
 import Group from "./pages/Group";
+import BrowseGroups from "./pages/BrowseGroups";
 import Profile from "./pages/Profile";
 import CreateCourse from "./pages/CreateCourse";
 import CreateProject from "./pages/CreateProject";
+import MyProjects from "./pages/MyProjects";
 import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/routing/ProtectedRoute";
 import PublicOnlyRoute from "@/components/routing/PublicOnlyRoute";
@@ -36,7 +37,6 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/course" element={<Course />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -44,11 +44,13 @@ function App() {
 
           <Route element={<RoleRoute allowedRoles={["student"]} />}>
             <Route path="/group" element={<Group />} />
+            <Route path="/browse-groups" element={<BrowseGroups />} />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={["course coordinator"]} />}>
             <Route path="/course/create" element={<CreateCourse />} />
             <Route path="/project/add" element={<CreateProject />} />
+            <Route path="/my-projects" element={<MyProjects />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

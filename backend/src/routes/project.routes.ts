@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createProject,
+  getAllProjects,
   getProjectsByCourse,
   getProjectById,
   updateProject,
@@ -54,7 +55,13 @@ router.patch(
 );
 
 // Shared routes (any authenticated user)
-// NOTE: /course/:courseId must come before /:id to avoid route collision
+// NOTE: static paths must come before /:id to avoid route collision
+router.get(
+  "/",
+  validateRequest(projectSchemas.getAllProjectsQuery),
+  getAllProjects,
+);
+
 router.get(
   "/course/:courseId",
   validateRequest(projectSchemas.getProjectsQuery),

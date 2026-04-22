@@ -258,13 +258,6 @@ export const forgotPassword = async (
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
 
-    console.log(
-      "[forgotPassword] email lookup:",
-      email.toLowerCase().trim(),
-      "found:",
-      !!user,
-    );
-
     // Always respond 200 to avoid leaking whether an email exists
     if (!user) {
       res.status(200).json({

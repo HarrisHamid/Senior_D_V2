@@ -3,7 +3,6 @@ import { Types } from "mongoose";
 import { AuthRequest } from "../types";
 import { Group } from "../models/Group.model";
 import { Project } from "../models/Project.model";
-import Course from "../models/Course.model";
 import User from "../models/User.model";
 import { generateUniqueGroupCode } from "../utils/codeGenerator";
 import {
@@ -24,23 +23,20 @@ export const createNewGroup = async (
       return;
     }
 
-    const { courseId, isPublic = true } = req.body;
-    if (!courseId) {
-      res
-        .status(400)
-        .json({ success: false, message: "Course ID is required" });
-      return;
-    }
+    const { isPublic = true, name } = req.body;
 
     const groupCode = await generateUniqueGroupCode(
       Group as unknown as import("mongoose").Model<{ groupCode: string }>,
     );
 
-    const groupNumber = (await Group.countDocuments({ courseId })) + 1;
+    const lastGroup = await Group.findOne({})
+      .sort({ groupNumber: -1 })
+      .select("groupNumber");
+    const groupNumber = (lastGroup?.groupNumber ?? 0) + 1;
 
     const newGroup = await Group.create({
       groupNumber,
-      courseId,
+      ...(name ? { name } : {}),
       groupMembers: [new Types.ObjectId(user._id)],
       groupCode,
       isOpen: true,
@@ -421,13 +417,16 @@ export const getGroupById = async (
         user?._id,
     );
 
-    if (!isMember) {
-      const course = await Course.findById(group.courseId);
-      const isCoordinator = course?.userId === user?._id;
-      if (!isCoordinator) {
-        res.status(403).json({ success: false, message: "Forbidden" });
-        return;
-      }
+    if (!isMember && user?.role !== "course coordinator") {
+      res.status(403).json({ success: false, message: "Forbidden" });
+      return;
+    }
+
+    if (!group.groupCode) {
+      group.groupCode = await generateUniqueGroupCode(
+        Group as unknown as import("mongoose").Model<{ groupCode: string }>,
+      );
+      await group.save();
     }
 
     res.status(200).json({ success: true, data: group });
@@ -449,6 +448,30 @@ export const getAllGroupsByCourse = async (
     const { courseId } = req.params;
 
     const groups = await Group.find({ courseId });
+
+    res.status(200).json({
+      success: true,
+      data: groups.map((g) => ({
+        ...g.toObject(),
+        numberOfMembers: g.groupMembers.length,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch groups",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Get all groups (global view)
+export const getAllGroups = async (
+  _req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const groups = await Group.find({});
 
     res.status(200).json({
       success: true,
@@ -579,15 +602,6 @@ export const addInterestedProject = async (
       return;
     }
 
-    // Verify project belongs to the same course as the group
-    if (project.courseId.toString() !== group.courseId.toString()) {
-      res.status(400).json({
-        success: false,
-        message: "Project and group must belong to the same course",
-      });
-      return;
-    }
-
     // Verify project is not already assigned to a group
     if (project.assignedGroup) {
       res.status(400).json({
@@ -630,16 +644,17 @@ export const addInterestedProject = async (
     group.interestedProjects.push(new Types.ObjectId(projectId));
     await group.save();
 
-    // Fire-and-forget: notify coordinator that this group is interested
-    Course.findById(group.courseId)
-      .then(async (course) => {
-        if (!course) return;
+    // Fire-and-forget: notify the project's coordinator that this group is interested
+    User.findById(project.userId)
+      .select("name email")
+      .then(async (coordinator) => {
+        if (!coordinator) return;
         const members = await User.find({
           _id: { $in: group.groupMembers },
         }).select("name");
         return sendGroupInterestEmail(
-          course.email,
-          course.name,
+          coordinator.email,
+          coordinator.name,
           project.name,
           group.groupNumber,
           members.map((m) => m.name),
@@ -647,10 +662,16 @@ export const addInterestedProject = async (
       })
       .catch(console.error);
 
+    const populated = await Group.findById(group._id)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
+
     res.status(200).json({
       success: true,
       message: "Project added",
-      data: group,
+      data: populated,
     });
   } catch (error) {
     res.status(500).json({
@@ -702,10 +723,16 @@ export const removeInterestedProject = async (
 
     await group.save();
 
+    const populated = await Group.findById(group._id)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
+
     res.status(200).json({
       success: true,
       message: "Project removed",
-      data: group,
+      data: populated,
     });
   } catch (error) {
     res.status(500).json({
@@ -726,7 +753,7 @@ export const getAllInterestedGroups = async (
 
     const groups = await Group.find({
       interestedProjects: new Types.ObjectId(projectId),
-    });
+    }).populate("groupMembers", "name email");
 
     res.status(200).json({
       success: true,

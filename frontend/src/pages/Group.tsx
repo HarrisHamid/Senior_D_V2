@@ -46,6 +46,7 @@ interface PopulatedProject {
 interface PopulatedGroup {
   _id: string;
   groupNumber: number;
+  name?: string;
   groupCode?: string;
   isOpen: boolean;
   isPublic: boolean;
@@ -56,8 +57,14 @@ interface PopulatedGroup {
 }
 
 /* ── shared card chrome ─────────────────────────────────── */
-const CardShell = ({ children }: { children: React.ReactNode }) => (
-  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+const CardShell = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden ${className}`}>
     <div
       className="h-[3px]"
       style={{
@@ -300,7 +307,7 @@ const Group = () => {
                   My Group
                 </p>
                 <h1 className="text-[2rem] font-bold text-gray-900 tracking-tight leading-none">
-                  Group {myGroup.groupNumber}
+                  {myGroup.name ?? `Group ${myGroup.groupNumber}`}
                 </h1>
                 <p className="text-gray-400 mt-1.5 text-sm">
                   Manage your team and track project interests.
@@ -334,7 +341,7 @@ const Group = () => {
         {/* ── Two-column grid ── */}
         <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
           {/* ── Left column ── */}
-          <div className="space-y-5">
+          <div className="flex flex-col gap-5">
             {/* Members */}
             <CardShell>
               <div className="flex items-center justify-between mb-6">
@@ -393,7 +400,8 @@ const Group = () => {
             </CardShell>
 
             {/* Interested Projects */}
-            <CardShell>
+            <div className="flex-1">
+            <CardShell className="h-full">
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <SectionLabel>Interested Projects</SectionLabel>
@@ -501,37 +509,39 @@ const Group = () => {
                 </div>
               )}
             </CardShell>
+            </div>
           </div>
 
           {/* ── Right column ── */}
           <div className="space-y-5">
             {/* Group Overview / Invite Code */}
             <CardShell>
-              <div className="flex items-center justify-between mb-4">
-                <SectionLabel>Invite Code</SectionLabel>
-                <IconBadge icon={Copy} />
-              </div>
+              {myGroup.isPublic === false && (
+                <>
+                  <div className="mb-4">
+                    <SectionLabel>Invite Code</SectionLabel>
+                  </div>
 
-              <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3.5 py-3 border border-gray-100 mb-2">
-                <p className="text-lg font-mono font-bold text-gray-900 tracking-[0.12em]">
-                  {myGroup.groupCode}
-                </p>
-                <button
-                  onClick={handleCopyCode}
-                  className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
-                  style={{ color: "#9B2335" }}
-                >
-                  <Copy className="w-3.5 h-3.5" /> Copy
-                </button>
-              </div>
+                  <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3.5 py-3 border border-gray-100 mb-2">
+                    <p className="text-lg font-mono font-bold text-gray-900 tracking-[0.12em]">
+                      {myGroup.groupCode ?? "—"}
+                    </p>
+                    <button
+                      onClick={handleCopyCode}
+                      className="flex items-center gap-1.5 text-sm font-semibold transition-colors px-2 py-1 rounded-lg hover:bg-[rgba(155,35,53,0.08)] active:scale-95"
+                      style={{ color: "#9B2335" }}
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copy
+                    </button>
+                  </div>
 
-              <p className="text-xs text-gray-400">
-                {myGroup.isPublic !== false
-                  ? "Share to let students join instantly"
-                  : "Students request to join — you approve each one"}
-              </p>
+                  <p className="text-xs text-gray-400 mb-4">
+                    Share to let students join instantly
+                  </p>
+                </>
+              )}
 
-              <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className={myGroup.isPublic === false ? "pt-4 border-t border-gray-100" : ""}>
                 <SectionLabel>Controls</SectionLabel>
                 <div className="flex flex-col gap-2 mt-3">
                   <button
@@ -564,6 +574,30 @@ const Group = () => {
                       )}
                     </button>
                   )}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="flex items-center gap-2 px-3 py-2 rounded-xl border border-red-200 text-sm font-semibold text-red-500 hover:border-red-400 hover:bg-red-50 transition-colors active:scale-95">
+                        Leave Group
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Leave Group?</DialogTitle>
+                        <DialogDescription>
+                          Are you sure you want to leave Group {myGroup.groupNumber}
+                          ? This action cannot be undone.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex justify-end gap-2 mt-4">
+                        <DialogTrigger asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogTrigger>
+                        <Button variant="destructive" onClick={handleLeaveGroup}>
+                          Leave Group
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </CardShell>
@@ -630,34 +664,6 @@ const Group = () => {
               </CardShell>
             )}
 
-            {/* Leave Group */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-              <SectionLabel>Danger Zone</SectionLabel>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-red-500 hover:text-red-600 transition-colors">
-                    Leave Group
-                  </button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Leave Group?</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to leave Group {myGroup.groupNumber}
-                      ? This action cannot be undone.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <DialogTrigger asChild>
-                      <Button variant="outline">Cancel</Button>
-                    </DialogTrigger>
-                    <Button variant="destructive" onClick={handleLeaveGroup}>
-                      Leave Group
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
           </div>
         </div>
 

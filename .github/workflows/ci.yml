@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — lint, build, test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    env:
+      NODE_ENV: test
+      JWT_SECRET: test-jwt-secret-key-for-ci
+      MONGO_URI: mongodb://localhost:27017/test-placeholder
+      EMAIL_PROVIDER: disabled
+      CORS_ORIGIN: http://localhost:5173
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "./backend/package-lock.json"
+
+      - name: Install
+        run: npm ci
+
+      - name: Prettier (check)
+        run: npm run format:check
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript build
+        run: npm run build
+
+      - name: Jest
+        run: npm test
+
+  frontend:
+    name: Frontend — lint, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "./frontend/package-lock.json"
+
+      - name: Install
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Build (tsc + vite)
+        run: npm run build
+        env:
+          VITE_API_URL: http://localhost:5000/api
+
+      - name: Report build artifact size
+        run: |
+          echo "### Frontend bundle size" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          du -sh dist >> "$GITHUB_STEP_SUMMARY" || true
+          du -ah dist | sort -rh | head -n 20 >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 7

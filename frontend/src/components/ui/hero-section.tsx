@@ -5,30 +5,30 @@ import { TimelineContent } from "@/components/ui/timeline-animation";
 import { GridPattern } from "@/components/ui/grid-pattern";
 import { useRef } from "react";
 import { FolderOpen, Users, GraduationCap, LogIn } from "lucide-react";
+import browseProjects from "@/assets/browse_projects.jpg";
+import formTeams from "@/assets/form_teams.jpg";
+import realExperience from "@/assets/real_experience.jpg";
 
 const showcaseCards = [
   {
     id: "browse-projects",
     name: "Browse Projects",
     description: "Explore senior design projects across all schools.",
-    imgSrc:
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=870&auto=format&fit=crop",
+    imgSrc: browseProjects,
     icon: FolderOpen,
   },
   {
     id: "form-teams",
     name: "Form Teams",
     description: "Connect with fellow students and build your team.",
-    imgSrc:
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=869&auto=format&fit=crop",
+    imgSrc: formTeams,
     icon: Users,
   },
   {
     id: "real-experience",
     name: "Real Experience",
     description: "Work with industry sponsors and faculty advisors.",
-    imgSrc:
-      "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=870&auto=format&fit=crop",
+    imgSrc: realExperience,
     icon: GraduationCap,
   },
 ];
@@ -83,32 +83,35 @@ function HeroSection() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            {/* Sign In — neutral glass button */}
             <Link
               to="/login"
               className="relative inline-flex items-center gap-2 px-4 py-2 rounded-[10px] text-sm font-medium text-foreground overflow-hidden transition-all duration-200"
               style={{
-                background: "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(242,242,242,0.72) 100%)",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(242,242,242,0.72) 100%)",
                 backdropFilter: "blur(12px)",
                 WebkitBackdropFilter: "blur(12px)",
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)",
+                boxShadow:
+                  "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)",
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.boxShadow =
                   "0 0 0 1px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.11)";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+                (e.currentTarget as HTMLElement).style.transform =
+                  "translateY(-1px)";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.boxShadow =
                   "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                (e.currentTarget as HTMLElement).style.transform =
+                  "translateY(0)";
               }}
             >
-              {/* Inner glass highlight overlay */}
               <div
                 className="pointer-events-none absolute inset-0 rounded-[10px]"
                 style={{
-                  background: "linear-gradient(180deg, rgba(255,255,255,0.60) 0%, rgba(255,255,255,0.05) 55%, rgba(0,0,0,0.03) 100%)",
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.60) 0%, rgba(255,255,255,0.05) 55%, rgba(0,0,0,0.03) 100%)",
                 }}
               />
               <span className="relative z-10 flex items-center gap-2">
@@ -116,7 +119,6 @@ function HeroSection() {
                 Sign In
               </span>
             </Link>
-            {/* Register */}
             <Link
               to="/signup"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#c23b52] hover:bg-[#ad3248] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(194,59,82,0.45)] active:translate-y-0 active:shadow-none active:bg-[#9B2335] transition-all duration-200"
@@ -129,7 +131,8 @@ function HeroSection() {
 
       {/* Hero Content */}
       <div className="pt-24 pb-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <article className="w-fit mx-auto max-w-5xl text-center space-y-5">
+        {/* CHANGED: Used flex flex-col items-center to ensure strict horizontal centering of all items */}
+        <article className="w-full flex flex-col items-center text-center space-y-5">
           {/* Label */}
           <TimelineContent
             as="p"
@@ -147,7 +150,8 @@ function HeroSection() {
             animationNum={3}
             timelineRef={timelineRef}
             customVariants={revealVariants}
-            className="text-5xl sm:text-6xl xl:text-[5.5rem] font-bold tracking-tight leading-[1.05] text-[#0d0d0d] whitespace-nowrap"
+            /* CHANGED: Re-added whitespace-nowrap and used w-max to force one line and center correctly */
+            className="text-5xl sm:text-6xl xl:text-[5.5rem] font-bold tracking-tight leading-[1.05] text-[#0d0d0d] whitespace-nowrap w-max"
           >
             Senior Design{" "}
             <span
@@ -171,7 +175,7 @@ function HeroSection() {
             customVariants={revealVariants}
             className="text-lg text-muted-foreground tracking-wide"
           >
-            Find a Team, Select a Project, Continue to Innovate
+            Find a Team. Select a Project. Continue to Innovate
           </TimelineContent>
         </article>
 

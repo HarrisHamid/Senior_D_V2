@@ -10,9 +10,10 @@ export interface IJoinRequest {
 // Typescript Interface
 export interface IGroup extends Document {
   groupNumber: number;
-  courseId: string;
+  name?: string;
+  courseId?: string;
   groupMembers: Types.ObjectId[];
-  groupCode?: string; // Optional - reach goal: auto-generate for invite links
+  groupCode?: string;
   isOpen: boolean;
   isPublic: boolean;
   joinRequests: Types.DocumentArray<IJoinRequest>;
@@ -27,10 +28,15 @@ const GroupSchema = new Schema<IGroup>(
       type: Number,
       required: [true, "Group number is required"],
     },
+    name: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     courseId: {
       type: String,
-      required: [true, "Course ID is required"],
-      index: true, // adding index since you query by courseId
+      required: false,
+      index: true,
     },
     groupMembers: {
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],

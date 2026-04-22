@@ -49,13 +49,6 @@ const Navbar = () => {
             >
               Marketplace
             </NavLink>
-            <NavLink
-              to="/course"
-              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-              activeClassName="text-primary"
-            >
-              My Course
-            </NavLink>
             {user.role === "student" && (
               <NavLink
                 to="/group"
@@ -63,6 +56,24 @@ const Navbar = () => {
                 activeClassName="text-primary"
               >
                 My Group
+              </NavLink>
+            )}
+            {user.role === "student" && (
+              <NavLink
+                to="/browse-groups"
+                className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                activeClassName="text-primary"
+              >
+                Browse Groups
+              </NavLink>
+            )}
+            {user.role === "course coordinator" && (
+              <NavLink
+                to="/my-projects"
+                className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                activeClassName="text-primary"
+              >
+                My Projects
               </NavLink>
             )}
 
@@ -126,14 +137,6 @@ const Navbar = () => {
             >
               Marketplace
             </NavLink>
-            <NavLink
-              to="/course"
-              className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
-              activeClassName="bg-muted text-primary"
-              onClick={toggleMenu}
-            >
-              My Course
-            </NavLink>
             {user.role === "student" && (
               <NavLink
                 to="/group"
@@ -142,6 +145,26 @@ const Navbar = () => {
                 onClick={toggleMenu}
               >
                 My Group
+              </NavLink>
+            )}
+            {user.role === "student" && (
+              <NavLink
+                to="/browse-groups"
+                className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+                activeClassName="bg-muted text-primary"
+                onClick={toggleMenu}
+              >
+                Browse Groups
+              </NavLink>
+            )}
+            {user.role === "course coordinator" && (
+              <NavLink
+                to="/my-projects"
+                className="block px-3 py-2 text-base font-medium text-foreground hover:bg-muted rounded-md"
+                activeClassName="bg-muted text-primary"
+                onClick={toggleMenu}
+              >
+                My Projects
               </NavLink>
             )}
             <Link
