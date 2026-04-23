@@ -108,13 +108,21 @@ const Marketplace = () => {
       label: "School",
       type: "select",
       placeholder: "All Schools",
-      options: SCHOOLS.map((s) => ({ id: `school-${s.label}`, label: s.label, value: s.label })),
+      options: SCHOOLS.map((s) => ({
+        id: `school-${s.label}`,
+        label: s.label,
+        value: s.label,
+      })),
     },
     {
       id: "majors",
       label: "Required Majors",
       type: "checkbox",
-      options: visibleMajors.map((m) => ({ id: `major-${m}`, label: m, value: m })),
+      options: visibleMajors.map((m) => ({
+        id: `major-${m}`,
+        label: m,
+        value: m,
+      })),
     },
     {
       id: "status",
@@ -178,14 +186,28 @@ const Marketplace = () => {
     const matchesYear =
       yearFilter === "all" || project.year.toString() === yearFilter;
 
-    return matchesSearch && matchesSchool && matchesMajors && matchesStatus && matchesType && matchesYear;
+    return (
+      matchesSearch &&
+      matchesSchool &&
+      matchesMajors &&
+      matchesStatus &&
+      matchesType &&
+      matchesYear
+    );
   });
 
   const totalPages = Math.ceil(filteredProjects.length / PAGE_SIZE);
-  const pagedProjects = filteredProjects.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pagedProjects = filteredProjects.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
-  // Reset to page 1 whenever filters change
-  useEffect(() => { setPage(1); }, [searchParams.toString()]);
+  const searchParamsStr = searchParams.toString();
+  const [prevSearchParamsStr, setPrevSearchParamsStr] = useState(searchParamsStr);
+  if (prevSearchParamsStr !== searchParamsStr) {
+    setPrevSearchParamsStr(searchParamsStr);
+    setPage(1);
+  }
 
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
@@ -229,7 +251,13 @@ const Marketplace = () => {
             ) : (
               <>
                 <div className="mb-5 text-sm text-muted-foreground">
-                  Showing {Math.min((page - 1) * PAGE_SIZE + 1, filteredProjects.length)}–{Math.min(page * PAGE_SIZE, filteredProjects.length)} of {filteredProjects.length} projects
+                  Showing{" "}
+                  {Math.min(
+                    (page - 1) * PAGE_SIZE + 1,
+                    filteredProjects.length,
+                  )}
+                  –{Math.min(page * PAGE_SIZE, filteredProjects.length)} of{" "}
+                  {filteredProjects.length} projects
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
                   {pagedProjects.map((project) => (
@@ -248,7 +276,11 @@ const Marketplace = () => {
                     </CardContent>
                   </Card>
                 )}
-                <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
               </>
             )}
           </div>

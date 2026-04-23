@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Pagination from "@/components/Pagination";
 
@@ -110,7 +110,12 @@ const BrowseGroups = () => {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pagedGroups = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  useEffect(() => { setPage(1); }, [filter, search]);
+  const filterKey = `${filter}:${search}`;
+  const prevFilterRef = useRef(filterKey);
+  if (prevFilterRef.current !== filterKey) {
+    prevFilterRef.current = filterKey;
+    setPage(1);
+  }
 
   return (
     <div className="relative min-h-screen bg-gray-50/40 overflow-hidden">
@@ -203,120 +208,126 @@ const BrowseGroups = () => {
           </div>
         ) : (
           <>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {pagedGroups.map((group) => {
-              const isMyGroup = user?.groupId === group._id;
-              const memberCount =
-                group.numberOfMembers ?? group.groupMembers.length;
+            <div className="grid gap-4 sm:grid-cols-2">
+              {pagedGroups.map((group) => {
+                const isMyGroup = user?.groupId === group._id;
+                const memberCount =
+                  group.numberOfMembers ?? group.groupMembers.length;
 
-              return (
-                <div
-                  key={group._id}
-                  className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-                >
+                return (
                   <div
-                    className="h-[3px]"
-                    style={{
-                      background:
-                        "linear-gradient(to right, #9B2335, #c23b52, rgba(155,35,53,0.2))",
-                    }}
-                  />
-                  <div className="p-5">
-                    {/* Name + badges */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="min-w-0">
-                        <p className="font-bold text-gray-900 text-base truncate">
-                          {group.name ?? `Group ${group.groupNumber}`}
-                        </p>
-                        {group.name && (
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            Group {group.groupNumber}
+                    key={group._id}
+                    className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    <div
+                      className="h-[3px]"
+                      style={{
+                        background:
+                          "linear-gradient(to right, #9B2335, #c23b52, rgba(155,35,53,0.2))",
+                      }}
+                    />
+                    <div className="p-5">
+                      {/* Name + badges */}
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="min-w-0">
+                          <p className="font-bold text-gray-900 text-base truncate">
+                            {group.name ?? `Group ${group.groupNumber}`}
                           </p>
+                          {group.name && (
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              Group {group.groupNumber}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span
+                            className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                            style={
+                              group.isOpen
+                                ? { background: "#ecfdf5", color: "#065f46" }
+                                : { background: "#f3f4f6", color: "#6b7280" }
+                            }
+                          >
+                            <span
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{
+                                background: group.isOpen
+                                  ? "#10b981"
+                                  : "#9ca3af",
+                              }}
+                            />
+                            {group.isOpen ? "Open" : "Closed"}
+                          </span>
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                            {group.isPublic ? (
+                              <Globe className="w-3 h-3" />
+                            ) : (
+                              <Lock className="w-3 h-3" />
+                            )}
+                            {group.isPublic ? "Public" : "Private"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Member count */}
+                      <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-4">
+                        <Users className="w-3.5 h-3.5 text-gray-400" />
+                        {memberCount} {memberCount === 1 ? "member" : "members"}
+                      </div>
+
+                      {/* Footer row */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <SectionLabel>
+                          {group.isPublic
+                            ? "Open group"
+                            : "Private — enter code to join"}
+                        </SectionLabel>
+
+                        {isMyGroup ? (
+                          <button
+                            onClick={() => navigate("/group")}
+                            className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                            style={{ color: "#9B2335" }}
+                          >
+                            My Group <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        ) : group.isPublic ? (
+                          /* Public → direct join */
+                          <button
+                            onClick={() => handleJoinPublic(group)}
+                            disabled={joiningId === group._id || !group.isOpen}
+                            className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {joiningId === group._id
+                              ? "Joining…"
+                              : group.isOpen
+                                ? "Join"
+                                : "Closed"}
+                          </button>
+                        ) : (
+                          /* Private → open code dialog */
+                          <button
+                            onClick={() => {
+                              setPrivateDialogGroup(group);
+                              setPrivateCode("");
+                            }}
+                            disabled={!group.isOpen}
+                            className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {group.isOpen ? "Enter Code" : "Closed"}
+                          </button>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span
-                          className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                          style={
-                            group.isOpen
-                              ? { background: "#ecfdf5", color: "#065f46" }
-                              : { background: "#f3f4f6", color: "#6b7280" }
-                          }
-                        >
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{
-                              background: group.isOpen ? "#10b981" : "#9ca3af",
-                            }}
-                          />
-                          {group.isOpen ? "Open" : "Closed"}
-                        </span>
-                        <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                          {group.isPublic ? (
-                            <Globe className="w-3 h-3" />
-                          ) : (
-                            <Lock className="w-3 h-3" />
-                          )}
-                          {group.isPublic ? "Public" : "Private"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Member count */}
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-4">
-                      <Users className="w-3.5 h-3.5 text-gray-400" />
-                      {memberCount} {memberCount === 1 ? "member" : "members"}
-                    </div>
-
-                    {/* Footer row */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <SectionLabel>
-                        {group.isPublic
-                          ? "Open group"
-                          : "Private — enter code to join"}
-                      </SectionLabel>
-
-                      {isMyGroup ? (
-                        <button
-                          onClick={() => navigate("/group")}
-                          className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
-                          style={{ color: "#9B2335" }}
-                        >
-                          My Group <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      ) : group.isPublic ? (
-                        /* Public → direct join */
-                        <button
-                          onClick={() => handleJoinPublic(group)}
-                          disabled={joiningId === group._id || !group.isOpen}
-                          className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          {joiningId === group._id
-                            ? "Joining…"
-                            : group.isOpen
-                              ? "Join"
-                              : "Closed"}
-                        </button>
-                      ) : (
-                        /* Private → open code dialog */
-                        <button
-                          onClick={() => {
-                            setPrivateDialogGroup(group);
-                            setPrivateCode("");
-                          }}
-                          disabled={!group.isOpen}
-                          className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          {group.isOpen ? "Enter Code" : "Closed"}
-                        </button>
-                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                );
+              })}
+            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </>
         )}
       </div>
