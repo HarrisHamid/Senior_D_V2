@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 20;
 import Navbar from "@/components/Navbar";
 import { GridPattern } from "@/components/ui/grid-pattern";
 import { Users, Globe, Lock, ArrowRight, Search } from "lucide-react";
@@ -34,6 +37,7 @@ const BrowseGroups = () => {
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "open" | "closed">("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   // Private group join dialog
   const [privateDialogGroup, setPrivateDialogGroup] =
@@ -102,6 +106,11 @@ const BrowseGroups = () => {
     }
     return true;
   });
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pagedGroups = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => { setPage(1); }, [filter, search]);
 
   return (
     <div className="relative min-h-screen bg-gray-50/40 overflow-hidden">
@@ -193,8 +202,9 @@ const BrowseGroups = () => {
             </p>
           </div>
         ) : (
+          <>
           <div className="grid gap-4 sm:grid-cols-2">
-            {filtered.map((group) => {
+            {pagedGroups.map((group) => {
               const isMyGroup = user?.groupId === group._id;
               const memberCount =
                 group.numberOfMembers ?? group.groupMembers.length;
@@ -306,6 +316,8 @@ const BrowseGroups = () => {
               );
             })}
           </div>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
         )}
       </div>
 

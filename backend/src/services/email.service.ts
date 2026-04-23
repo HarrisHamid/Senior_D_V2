@@ -24,9 +24,11 @@ interface EmailProvider {
 class ConsoleEmailProvider implements EmailProvider {
   async send(input: SendEmailInput): Promise<void> {
     const urlMatch = input.text.match(/https?:\/\/\S+/);
-    const linkLine = urlMatch ? `\n  LINK → ${urlMatch[0]}\n` : "";
+    const codeMatch = input.text.match(/\b\d{4,8}\b/);
+    const linkLine = urlMatch ? `\n  LINK  → ${urlMatch[0]}` : "";
+    const codeLine = codeMatch ? `\n  CODE  → ${codeMatch[0]}` : "";
     process.stderr.write(
-      `\n[Email] to=${input.to} subject="${input.subject}"${linkLine}\n`,
+      `\n[Email] to=${input.to} subject="${input.subject}"${linkLine}${codeLine}\n`,
     );
     if (env.NODE_ENV !== "production") {
       const logLine = `to=${input.to}\nsubject=${input.subject}\n${input.text}\n---\n`;
