@@ -8,6 +8,9 @@ import type { ProjectData } from "@/services/project.service";
 import { FilterBar, type FilterConfig } from "@/components/FilterBar";
 import { ProjectCard } from "@/components/ProjectCard";
 import { GridPattern } from "@/components/ui/grid-pattern";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 20;
 
 const SCHOOLS: { label: string; majors: string[] }[] = [
   {
@@ -74,6 +77,7 @@ const Marketplace = () => {
   const [searchParams] = useSearchParams();
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (!user) return;
@@ -104,13 +108,21 @@ const Marketplace = () => {
       label: "School",
       type: "select",
       placeholder: "All Schools",
-      options: SCHOOLS.map((s) => ({ id: `school-${s.label}`, label: s.label, value: s.label })),
+      options: SCHOOLS.map((s) => ({
+        id: `school-${s.label}`,
+        label: s.label,
+        value: s.label,
+      })),
     },
     {
       id: "majors",
       label: "Required Majors",
       type: "checkbox",
-      options: visibleMajors.map((m) => ({ id: `major-${m}`, label: m, value: m })),
+      options: visibleMajors.map((m) => ({
+        id: `major-${m}`,
+        label: m,
+        value: m,
+      })),
     },
     {
       id: "status",
@@ -174,8 +186,28 @@ const Marketplace = () => {
     const matchesYear =
       yearFilter === "all" || project.year.toString() === yearFilter;
 
-    return matchesSearch && matchesSchool && matchesMajors && matchesStatus && matchesType && matchesYear;
+    return (
+      matchesSearch &&
+      matchesSchool &&
+      matchesMajors &&
+      matchesStatus &&
+      matchesType &&
+      matchesYear
+    );
   });
+
+  const totalPages = Math.ceil(filteredProjects.length / PAGE_SIZE);
+  const pagedProjects = filteredProjects.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
+
+  const searchParamsStr = searchParams.toString();
+  const [prevSearchParamsStr, setPrevSearchParamsStr] = useState(searchParamsStr);
+  if (prevSearchParamsStr !== searchParamsStr) {
+    setPrevSearchParamsStr(searchParamsStr);
+    setPage(1);
+  }
 
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
@@ -219,10 +251,16 @@ const Marketplace = () => {
             ) : (
               <>
                 <div className="mb-5 text-sm text-muted-foreground">
-                  Showing {filteredProjects.length} of {projects.length} projects
+                  Showing{" "}
+                  {Math.min(
+                    (page - 1) * PAGE_SIZE + 1,
+                    filteredProjects.length,
+                  )}
+                  –{Math.min(page * PAGE_SIZE, filteredProjects.length)} of{" "}
+                  {filteredProjects.length} projects
                 </div>
                 <div className="grid gap-5 md:grid-cols-2">
-                  {filteredProjects.map((project) => (
+                  {pagedProjects.map((project) => (
                     <ProjectCard key={project._id} project={project} />
                   ))}
                 </div>
@@ -238,6 +276,11 @@ const Marketplace = () => {
                     </CardContent>
                   </Card>
                 )}
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
               </>
             )}
           </div>
