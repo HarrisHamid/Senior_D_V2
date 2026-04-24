@@ -222,7 +222,7 @@ function HeroSection() {
       <footer className="relative z-10 border-t bg-white mt-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-sm text-muted-foreground">
-            <p>© 2026 Stevens Institute of Technology. All rights reserved.</p>
+            <p>© 2026 Anthony Curcio, Harris Hamid, Marcus Hom, Michael Loff, Nicholas Mirigliani, Andrew Tarnoski. All rights reserved.</p>
             <div className="mt-2">
               <a
                 href="https://www.stevens.edu"
