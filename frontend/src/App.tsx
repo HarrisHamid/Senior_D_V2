@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import CreateCourse from "./pages/CreateCourse";
 import CreateProject from "./pages/CreateProject";
 import MyProjects from "./pages/MyProjects";
+import NotFound from "./pages/NotFound";
 import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/routing/ProtectedRoute";
 import PublicOnlyRoute from "@/components/routing/PublicOnlyRoute";
@@ -53,7 +54,7 @@ function App() {
             <Route path="/my-projects" element={<MyProjects />} />
           </Route>
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
     </>
