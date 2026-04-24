@@ -1,9 +1,8 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GridPattern } from "@/components/ui/grid-pattern";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -12,7 +11,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Mail, Users, Building2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ArrowLeft,
+  Mail,
+  Users,
+  Building2,
+  ChevronDown,
+  ChevronUp,
+  GraduationCap,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { projectService } from "@/services/project.service";
@@ -25,17 +32,61 @@ const statusLabel = (project: ProjectData) => {
   return "Closed";
 };
 
-const statusClass = (project: ProjectData): string => {
-  if (project.assignedGroup) return "bg-gray-100 text-gray-700 border-gray-200";
-  if (project.isOpen) return "bg-green-100 text-green-800 border-green-200";
-  return "bg-red-100 text-red-800 border-red-200";
+const statusStyles: Record<string, React.CSSProperties> = {
+  Open: {
+    background: "linear-gradient(180deg, #d1fae5 0%, #a7f3d0 100%)",
+    color: "#065f46",
+    border: "1px solid #6ee7b7",
+  },
+  Closed: {
+    background: "linear-gradient(180deg, #fee2e2 0%, #fecaca 100%)",
+    color: "#991b1b",
+    border: "1px solid #fca5a5",
+  },
+  Assigned: {
+    background: "linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%)",
+    color: "#374151",
+    border: "1px solid #d1d5db",
+  },
 };
 
-const getMailtoHref = (email: string) => {
+const pillStyle: React.CSSProperties = {
+  background: "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
+  border: "1px solid #e5e7eb",
+  color: "#374151",
+};
+
+const cardStyle: React.CSSProperties = {
+  boxShadow: "0 0 0 1px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05)",
+};
+
+const getMailtoHref = (email: string | undefined | null) => {
+  if (!email) return null;
   const trimmedEmail = email.trim();
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
   return isValidEmail ? `mailto:${encodeURIComponent(trimmedEmail)}` : null;
 };
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+    {children}
+  </p>
+);
+
+const Panel = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div
+    className={`bg-white rounded-xl p-6 ${className}`}
+    style={cardStyle}
+  >
+    {children}
+  </div>
+);
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -44,7 +95,12 @@ const ProjectDetail = () => {
 
   const [project, setProject] = useState<ProjectData | null>(null);
   const [interestedGroups, setInterestedGroups] = useState<
-    { _id: string; groupNumber: number; name?: string; groupMembers: { _id: string; name: string; email: string }[] }[]
+    {
+      _id: string;
+      groupNumber: number;
+      name?: string;
+      groupMembers: { _id: string; name: string; email: string }[];
+    }[]
   >([]);
   const [allGroups, setAllGroups] = useState<
     { _id: string; groupNumber: number; groupMembers: unknown[] }[]
@@ -70,7 +126,9 @@ const ProjectDetail = () => {
             groupService.getAllInterestedGroups(id),
             groupService.getAllGroups(),
           ]);
-          setInterestedGroups((interestedRes.data ?? []) as unknown as typeof interestedGroups);
+          setInterestedGroups(
+            (interestedRes.data ?? []) as unknown as typeof interestedGroups,
+          );
           setAllGroups(allGroupsRes.data ?? []);
         } else if (user?.role === "student" && user.groupId) {
           try {
@@ -85,7 +143,7 @@ const ProjectDetail = () => {
             setGroupAssigned(!!group.assignedProject);
             setInterestLimitReached(group.interestedProjects.length >= 4);
           } catch {
-            // non-fatal — button just stays enabled
+            // non-fatal
           }
         }
       })
@@ -127,9 +185,14 @@ const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="relative min-h-screen bg-white overflow-hidden">
+        <GridPattern
+          width={40}
+          height={40}
+          className="fill-gray-100/60 stroke-gray-200/60"
+        />
         <Navbar />
-        <div className="mx-auto max-w-4xl px-4 py-16 text-center">
+        <div className="relative mx-auto max-w-5xl px-4 py-24 text-center">
           <p className="text-muted-foreground">Loading project…</p>
         </div>
       </div>
@@ -138,197 +201,114 @@ const ProjectDetail = () => {
 
   if (notFound || !project) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="relative min-h-screen bg-white overflow-hidden">
+        <GridPattern
+          width={40}
+          height={40}
+          className="fill-gray-100/60 stroke-gray-200/60"
+        />
         <Navbar />
-        <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold">Project not found</h1>
-          <Button className="mt-4" asChild>
-            <Link to="/marketplace">Back to Marketplace</Link>
-          </Button>
+        <div className="relative mx-auto max-w-5xl px-4 py-24 text-center">
+          <h1 className="text-2xl font-bold text-[#0d0d0d] mb-4">
+            Project not found
+          </h1>
+          <button
+            onClick={() => navigate("/marketplace")}
+            className="text-sm text-muted-foreground hover:text-[#9B2335] transition-colors flex items-center gap-1.5 mx-auto"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Marketplace
+          </button>
         </div>
       </div>
     );
   }
 
+  const status = statusLabel(project);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-white overflow-hidden">
+      <GridPattern
+        width={40}
+        height={40}
+        className="fill-gray-100/60 stroke-gray-200/60"
+      />
       <Navbar />
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-        <Button
-          variant="ghost"
+
+      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
+        {/* Back */}
+        <button
           onClick={() => navigate(-1)}
-          className="mb-6 gap-2"
+          className="mb-8 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#9B2335] transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
-        </Button>
+        </button>
 
-        <div className="space-y-6">
-          {/* Project Header */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold text-foreground">
-                    {project.name}
-                  </h1>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge className={statusClass(project)}>
-                      {statusLabel(project)}
-                    </Badge>
-                    <Badge variant="outline">
-                      {project.internal ? "Internal" : "External"}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {project.year}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+        {/* Page header */}
+        <div className="mb-8">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              style={statusStyles[status]}
+            >
+              {status}
+            </span>
+            <span
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              style={pillStyle}
+            >
+              {project.internal ? "Internal" : "External"}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {project.year}
+            </span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[#0d0d0d]">
+            {project.name}
+          </h1>
+        </div>
 
-          {/* Description */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Description</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground leading-relaxed">
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Description */}
+            <Panel>
+              <SectionLabel>Description</SectionLabel>
+              <p className="text-[#0d0d0d] leading-relaxed">
                 {project.description}
               </p>
-            </CardContent>
-          </Card>
+            </Panel>
 
-          {/* Advisors */}
-          {project.advisors.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Advisors
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {project.advisors.map((advisor, idx) => {
-                    const mailtoHref = getMailtoHref(advisor.email);
-
-                    return (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {advisor.name}
-                          </p>
-                          {mailtoHref ? (
-                            <a
-                              href={mailtoHref}
-                              className="text-sm text-primary hover:underline flex items-center gap-1"
-                            >
-                              <Mail className="h-3 w-3" />
-                              {advisor.email}
-                            </a>
-                          ) : (
-                            <span className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
-                              {advisor.email}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Sponsor */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Sponsor
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="font-medium text-foreground mb-3">
-                {project.sponsor}
-              </p>
-              {project.contacts.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Contacts
-                  </p>
-                  {project.contacts.map((contact, idx) => {
-                    const mailtoHref = getMailtoHref(contact.email);
-
-                    return (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {contact.name}
-                          </p>
-                          {mailtoHref ? (
-                            <a
-                              href={mailtoHref}
-                              className="text-sm text-primary hover:underline flex items-center gap-1"
-                            >
-                              <Mail className="h-3 w-3" />
-                              {contact.email}
-                            </a>
-                          ) : (
-                            <span className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
-                              {contact.email}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Required Majors */}
-          {project.majors.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Required Majors</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
+            {/* Required Majors */}
+            {project.majors.length > 0 && (
+              <Panel>
+                <SectionLabel>Required Majors</SectionLabel>
+                <div className="flex flex-wrap gap-1.5">
                   {project.majors.map((rm, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-sm">
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium"
+                      style={pillStyle}
+                    >
+                      <GraduationCap className="w-3 h-3 mr-1.5 opacity-60" />
                       {rm.major}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </Panel>
+            )}
 
-          {/* For Students */}
-          {user?.role === "student" &&
-            project.isOpen &&
-            !project.assignedGroup && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Show Interest</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            {/* Student: Show Interest */}
+            {user?.role === "student" &&
+              project.isOpen &&
+              !project.assignedGroup && (
+                <Panel>
+                  <SectionLabel>Express Interest</SectionLabel>
                   {groupAssigned ? (
                     <p className="text-sm text-muted-foreground">
-                      Your group is already assigned to a project and cannot
-                      express interest in others.
+                      Your group is already assigned to a project.
                     </p>
                   ) : interestLimitReached ? (
                     <p className="text-sm text-muted-foreground">
@@ -336,84 +316,119 @@ const ProjectDetail = () => {
                       projects.
                     </p>
                   ) : (
-                    <>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <p className="text-sm text-muted-foreground flex-1">
                         Your group can show interest in up to 4 projects. This
                         will notify the course coordinator.
                       </p>
-                      <Button
+                      <button
                         onClick={handleShowInterest}
-                        className="w-full sm:w-auto"
                         disabled={alreadyInterested}
+                        className="shrink-0 inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                        style={{
+                          background: alreadyInterested
+                            ? "linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%)"
+                            : "linear-gradient(135deg, hsl(351, 63%, 32%), hsl(0, 80%, 52%))",
+                          color: alreadyInterested ? "#374151" : "#fff",
+                          border: alreadyInterested
+                            ? "1px solid #d1d5db"
+                            : "none",
+                          boxShadow: alreadyInterested
+                            ? "none"
+                            : "0 2px 8px rgba(155,35,53,0.25)",
+                        }}
                       >
                         {alreadyInterested
                           ? "Interest Registered"
                           : "Express Interest"}
-                      </Button>
-                    </>
+                      </button>
+                    </div>
                   )}
-                </CardContent>
-              </Card>
-            )}
+                </Panel>
+              )}
 
-          {/* For Coordinators — Group Assignment */}
-          {user?.role === "course coordinator" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Interested Groups</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            {/* Coordinator: Interested Groups + Assign */}
+            {user?.role === "course coordinator" && (
+              <Panel>
+                <SectionLabel>Interested Groups</SectionLabel>
                 {interestedGroups.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2 mb-6">
                     {interestedGroups.map((group) => {
                       const isExpanded = expandedGroups.has(group._id);
                       return (
-                        <div key={group._id} className="border rounded-lg overflow-hidden">
-                          <div className="flex items-center justify-between p-3">
+                        <div
+                          key={group._id}
+                          className="rounded-xl overflow-hidden"
+                          style={{
+                            boxShadow:
+                              "0 0 0 1px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)",
+                          }}
+                        >
+                          <div className="flex items-center justify-between p-3.5 bg-white">
                             <button
                               className="flex items-center gap-2 text-left flex-1"
                               onClick={() =>
                                 setExpandedGroups((prev) => {
                                   const next = new Set(prev);
-                                  if (isExpanded) { next.delete(group._id); } else { next.add(group._id); }
+                                  if (isExpanded) {
+                                    next.delete(group._id);
+                                  } else {
+                                    next.add(group._id);
+                                  }
                                   return next;
                                 })
                               }
                             >
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                style={{
+                                  background: "linear-gradient(135deg, hsl(351,63%,90%), hsl(0,80%,92%))",
+                                }}
+                              >
+                                <Users className="w-4 h-4" style={{ color: "hsl(351,63%,32%)" }} />
+                              </div>
                               <div>
-                                <p className="font-medium">
+                                <p className="text-sm font-semibold text-[#0d0d0d]">
                                   {group.name ?? `Group ${group.groupNumber}`}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {group.groupMembers?.length ?? 0} member{group.groupMembers?.length !== 1 ? "s" : ""}
+                                <p className="text-xs text-muted-foreground">
+                                  {group.groupMembers?.length ?? 0} member
+                                  {group.groupMembers?.length !== 1 ? "s" : ""}
                                 </p>
                               </div>
                               {isExpanded ? (
-                                <ChevronUp className="w-4 h-4 text-muted-foreground ml-2 shrink-0" />
+                                <ChevronUp className="w-4 h-4 text-muted-foreground ml-auto shrink-0" />
                               ) : (
-                                <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 shrink-0" />
+                                <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto shrink-0" />
                               )}
                             </button>
                             {!project.assignedGroup && (
-                              <Button
-                                size="sm"
-                                variant="outline"
+                              <button
                                 disabled={assigning}
                                 onClick={() => handleAssignGroup(group._id)}
-                                className="ml-3 shrink-0"
+                                className="ml-3 shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all duration-200 disabled:opacity-50"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg, hsl(351,63%,32%), hsl(0,80%,52%))",
+                                  boxShadow: "0 2px 6px rgba(155,35,53,0.2)",
+                                }}
                               >
                                 Assign
-                              </Button>
+                              </button>
                             )}
                           </div>
                           {isExpanded && group.groupMembers?.length > 0 && (
-                            <div className="border-t bg-muted/30 px-3 py-2 space-y-1">
+                            <div className="border-t border-gray-100 bg-gray-50/60 px-4 py-3 space-y-2">
                               {group.groupMembers.map((member) => (
-                                <div key={member._id} className="flex items-center justify-between py-1">
-                                  <span className="text-sm font-medium text-foreground">{member.name}</span>
+                                <div
+                                  key={member._id}
+                                  className="flex items-center justify-between"
+                                >
+                                  <span className="text-sm font-medium text-[#0d0d0d]">
+                                    {member.name}
+                                  </span>
                                   <a
                                     href={`mailto:${member.email}`}
-                                    className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                                    className="text-xs text-muted-foreground hover:text-[#9B2335] flex items-center gap-1 transition-colors"
                                   >
                                     <Mail className="w-3 h-3" />
                                     {member.email}
@@ -427,14 +442,14 @@ const ProjectDetail = () => {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mb-6">
                     No groups have shown interest yet.
                   </p>
                 )}
 
                 {!project.assignedGroup && allGroups.length > 0 && (
-                  <div className="pt-4 border-t">
-                    <Label className="text-sm font-medium mb-2 block">
+                  <div className="pt-5 border-t border-gray-100">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3 block">
                       Assign any group
                     </Label>
                     <div className="flex gap-2">
@@ -457,6 +472,12 @@ const ProjectDetail = () => {
                       <Button
                         disabled={!selectedGroup || assigning}
                         onClick={() => handleAssignGroup(selectedGroup)}
+                        className="shrink-0"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, hsl(351,63%,32%), hsl(0,80%,52%))",
+                          border: "none",
+                        }}
                       >
                         Assign
                       </Button>
@@ -469,9 +490,133 @@ const ProjectDetail = () => {
                     This project has been assigned to a group.
                   </p>
                 )}
-              </CardContent>
-            </Card>
-          )}
+              </Panel>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Sponsor */}
+            <Panel>
+              <SectionLabel>Sponsor</SectionLabel>
+              <div className="flex items-center gap-2 mb-4">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, hsl(351,63%,90%), hsl(0,80%,92%))",
+                  }}
+                >
+                  <Building2
+                    className="w-4 h-4"
+                    style={{ color: "hsl(351,63%,32%)" }}
+                  />
+                </div>
+                <p className="font-semibold text-[#0d0d0d]">
+                  {project.sponsor}
+                </p>
+              </div>
+
+              {project.contacts.length > 0 && (
+                <>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                    Contacts
+                  </p>
+                  <div className="space-y-2">
+                    {project.contacts.map((contact, idx) => {
+                      const mailtoHref = getMailtoHref(contact.email);
+                      return (
+                        <div
+                          key={idx}
+                          className="p-3 rounded-lg"
+                          style={{
+                            background:
+                              "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
+                            border: "1px solid #e5e7eb",
+                          }}
+                        >
+                          <p className="text-sm font-medium text-[#0d0d0d]">
+                            {contact.name}
+                          </p>
+                          {mailtoHref ? (
+                            <a
+                              href={mailtoHref}
+                              className="text-xs text-muted-foreground hover:text-[#9B2335] flex items-center gap-1 mt-0.5 transition-colors"
+                            >
+                              <Mail className="h-3 w-3" />
+                              {contact.email}
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <Mail className="h-3 w-3" />
+                              {contact.email}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </Panel>
+
+            {/* Advisors */}
+            {project.advisors.length > 0 && (
+              <Panel>
+                <div className="flex items-center gap-2 mb-4">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, hsl(351,63%,90%), hsl(0,80%,92%))",
+                    }}
+                  >
+                    <Users
+                      className="w-4 h-4"
+                      style={{ color: "hsl(351,63%,32%)" }}
+                    />
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Advisors
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {project.advisors.map((advisor, idx) => {
+                    const mailtoHref = getMailtoHref(advisor.email);
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-lg"
+                        style={{
+                          background:
+                            "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
+                          border: "1px solid #e5e7eb",
+                        }}
+                      >
+                        <p className="text-sm font-medium text-[#0d0d0d]">
+                          {advisor.name}
+                        </p>
+                        {mailtoHref ? (
+                          <a
+                            href={mailtoHref}
+                            className="text-xs text-muted-foreground hover:text-[#9B2335] flex items-center gap-1 mt-0.5 transition-colors"
+                          >
+                            <Mail className="h-3 w-3" />
+                            {advisor.email}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Mail className="h-3 w-3" />
+                            {advisor.email}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </Panel>
+            )}
+          </div>
         </div>
       </div>
     </div>

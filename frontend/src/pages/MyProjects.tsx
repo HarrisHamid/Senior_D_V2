@@ -1,12 +1,17 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FolderOpen, ArrowRight, Plus } from "lucide-react";
+import { FolderOpen, ArrowRight, Plus, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { GridPattern } from "@/components/ui/grid-pattern";
 import { projectService } from "@/services/project.service";
 import { groupService } from "@/services/group.service";
 import type { ProjectData } from "@/services/project.service";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 20;
+
+type StatusFilter = "all" | "open" | "closed" | "assigned";
 
 const MyProjects = () => {
   const { user } = useAuth();
@@ -14,11 +19,14 @@ const MyProjects = () => {
     { project: ProjectData; interestedCount: number }[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<StatusFilter>("all");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (!user) return;
     projectService
-      .getAllProjects()
+      .getAllProjects({ limit: 1000 })
       .then((res) => {
         const allProjects: ProjectData[] = res.data.projects;
         const mine = allProjects.filter((p) => p.userId === user.id);
@@ -46,6 +54,29 @@ const MyProjects = () => {
     if (p.isOpen) return { label: "Open", color: "#059669", bg: "#ecfdf5" };
     return { label: "Closed", color: "#dc2626", bg: "#fef2f2" };
   };
+
+  const filtered = myProjects.filter(({ project }) => {
+    const status = projectStatus(project);
+    if (filter === "open" && status.label !== "Open") return false;
+    if (filter === "closed" && status.label !== "Closed") return false;
+    if (filter === "assigned" && status.label !== "Assigned") return false;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      if (
+        !project.name.toLowerCase().includes(q) &&
+        !project.sponsor.toLowerCase().includes(q)
+      )
+        return false;
+    }
+    return true;
+  });
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pagedProjects = filtered.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
+
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -112,7 +143,58 @@ const MyProjects = () => {
           </div>
         </div>
 
+        {/* Search */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search by project name or sponsor…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+            style={{ ["--tw-ring-color" as string]: "#9B2335" }}
+          />
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-1 mb-6 bg-white border border-gray-200 rounded-xl p-1 w-fit shadow-sm">
+          {(["all", "open", "closed", "assigned"] as const).map((tab) => {
+            const count =
+              tab === "all"
+                ? myProjects.length
+                : myProjects.filter(({ project }) => {
+                    const s = projectStatus(project);
+                    return s.label.toLowerCase() === tab;
+                  }).length;
+            return (
+              <button
+                key={tab}
+                onClick={() => { setFilter(tab); setPage(1); }}
+                className="px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 capitalize"
+                style={
+                  filter === tab
+                    ? { background: "#9B2335", color: "#fff" }
+                    : { color: "#6b7280" }
+                }
+              >
+                {tab === "all" ? "All" : tab.charAt(0).toUpperCase() + tab.slice(1)} ({count})
+              </button>
+            );
+          })}
+        </div>
+
         {/* Projects List */}
+        {!loading && myProjects.length > 0 && (
+          <div className="mb-4 text-sm text-muted-foreground">
+            Showing{" "}
+            {filtered.length === 0
+              ? 0
+              : Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}
+            –{Math.min(page * PAGE_SIZE, filtered.length)} of{" "}
+            {filtered.length} projects
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="divide-y divide-gray-50">
             {loading && (
@@ -140,8 +222,18 @@ const MyProjects = () => {
               </div>
             )}
 
+            {!loading && myProjects.length > 0 && filtered.length === 0 && (
+              <div className="px-6 py-16 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                  <FolderOpen className="w-5 h-5 text-gray-400" />
+                </div>
+                <p className="text-sm font-semibold text-gray-600">No projects match</p>
+                <p className="text-sm text-gray-400 mt-1">Try a different filter or search.</p>
+              </div>
+            )}
+
             {!loading &&
-              myProjects.map(({ project, interestedCount }) => {
+              pagedProjects.map(({ project, interestedCount }) => {
                 const status = projectStatus(project);
                 return (
                   <div
@@ -157,7 +249,7 @@ const MyProjects = () => {
                         <p className="font-semibold text-gray-900 text-sm truncate">
                           {project.name}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">{project.year}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{project.year} · {project.sponsor}</p>
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                           <span
                             className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
@@ -193,6 +285,8 @@ const MyProjects = () => {
               })}
           </div>
         </div>
+
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       </div>
     </div>

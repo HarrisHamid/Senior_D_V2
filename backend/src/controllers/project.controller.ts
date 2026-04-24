@@ -123,7 +123,7 @@ export const getProjectsByCourse = async (
     }
 
     const page = parseInt(query.page as string) || 1;
-    const limit = Math.min(parseInt(query.limit as string) || 20, 100);
+    const limit = Math.min(parseInt(query.limit as string) || 20, 1000);
     const skip = (page - 1) * limit;
 
     const [projects, total] = await Promise.all([
@@ -203,7 +203,7 @@ export const getAllProjects = async (
     }
 
     const page = parseInt(query.page as string) || 1;
-    const limit = Math.min(parseInt(query.limit as string) || 20, 100);
+    const limit = Math.min(parseInt(query.limit as string) || 20, 1000);
     const skip = (page - 1) * limit;
 
     const [projects, total] = await Promise.all([

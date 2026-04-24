@@ -82,7 +82,7 @@ const Marketplace = () => {
   useEffect(() => {
     if (!user) return;
     projectService
-      .getAllProjects()
+      .getAllProjects({ limit: 1000 })
       .then((res) => setProjects(res.data.projects))
       .catch(() => {})
       .finally(() => setLoading(false));
