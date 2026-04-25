@@ -109,11 +109,7 @@ const StudentDashboard = () => {
   }, [user]);
 
   const firstName = user?.name?.split(" ")[0] ?? "there";
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+
 
   return (
     <div className="relative min-h-screen bg-gray-50/40 overflow-hidden">
@@ -153,12 +149,6 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            <div className="hidden sm:flex flex-col items-end gap-0.5 bg-white border border-gray-100 rounded-xl px-4 py-2.5 shadow-sm">
-              <p className="text-sm font-semibold text-gray-700">{today}</p>
-              <p className="text-xs text-gray-400">
-                Stevens Institute of Technology
-              </p>
-            </div>
           </div>
         </div>
 
@@ -438,11 +428,7 @@ const CoordinatorDashboard = () => {
     }).catch(() => {});
   }, [user?.id]);
 
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+
 
   const stats = [
     { label: "Total Projects", value: totalProjects ?? "—", Icon: FolderOpen },
@@ -487,10 +473,6 @@ const CoordinatorDashboard = () => {
               </div>
             </div>
 
-            <div className="hidden sm:flex flex-col items-end gap-0.5 bg-white border border-gray-100 rounded-xl px-4 py-2.5 shadow-sm">
-              <p className="text-sm font-semibold text-gray-700">{today}</p>
-              <p className="text-xs text-gray-400">Stevens Institute of Technology</p>
-            </div>
           </div>
         </div>
 

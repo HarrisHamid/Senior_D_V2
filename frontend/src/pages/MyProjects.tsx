@@ -78,11 +78,6 @@ const MyProjects = () => {
   );
 
 
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
 
   return (
     <div className="relative min-h-screen bg-gray-50/40 overflow-hidden">
@@ -122,10 +117,6 @@ const MyProjects = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex flex-col items-end gap-0.5 bg-white border border-gray-100 rounded-xl px-4 py-2.5 shadow-sm">
-                <p className="text-sm font-semibold text-gray-700">{today}</p>
-                <p className="text-xs text-gray-400">Stevens Institute of Technology</p>
-              </div>
               <Link
                 to="/project/add"
                 className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm"
