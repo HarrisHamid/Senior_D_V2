@@ -5,7 +5,7 @@ import Pagination from "@/components/Pagination";
 const PAGE_SIZE = 20;
 import Navbar from "@/components/Navbar";
 import { GridPattern } from "@/components/ui/grid-pattern";
-import { Users, Globe, Lock, ArrowRight, Search } from "lucide-react";
+import { Users, Globe, Lock, ArrowRight, Search, Info } from "lucide-react";
 import { toast } from "sonner";
 import { groupService } from "@/services/group.service";
 import type { GroupData } from "@/services/group.service";
@@ -19,6 +19,28 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+interface PopulatedMember {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+interface PopulatedProject {
+  _id: string;
+  name: string;
+  description: string;
+  isOpen: boolean;
+  assignedGroup: string | null;
+}
+
+interface PopulatedGroup extends Omit<
+  GroupData,
+  "groupMembers" | "interestedProjects"
+> {
+  groupMembers: PopulatedMember[];
+  interestedProjects: PopulatedProject[];
+}
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <p
@@ -44,6 +66,11 @@ const BrowseGroups = () => {
     useState<GroupData | null>(null);
   const [privateCode, setPrivateCode] = useState("");
   const [submittingCode, setSubmittingCode] = useState(false);
+
+  // Group info dialog
+  const [infoGroup, setInfoGroup] = useState<GroupData | null>(null);
+  const [infoDetail, setInfoDetail] = useState<PopulatedGroup | null>(null);
+  const [infoLoading, setInfoLoading] = useState(false);
 
   useEffect(() => {
     groupService
@@ -92,6 +119,21 @@ const BrowseGroups = () => {
       );
     } finally {
       setSubmittingCode(false);
+    }
+  };
+
+  const handleOpenInfo = async (group: GroupData) => {
+    setInfoGroup(group);
+    setInfoDetail(null);
+    setInfoLoading(true);
+    try {
+      const res = await groupService.getGroupById(group._id);
+      setInfoDetail(res.data as unknown as PopulatedGroup);
+    } catch {
+      toast.error("Failed to load group details.");
+      setInfoGroup(null);
+    } finally {
+      setInfoLoading(false);
     }
   };
 
@@ -283,40 +325,52 @@ const BrowseGroups = () => {
                             : "Private — enter code to join"}
                         </SectionLabel>
 
-                        {isMyGroup ? (
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => navigate("/group")}
-                            className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
-                            style={{ color: "#9B2335" }}
+                            onClick={() => handleOpenInfo(group)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                            title="View group details"
                           >
-                            My Group <ArrowRight className="w-3.5 h-3.5" />
+                            <Info className="w-4 h-4" />
                           </button>
-                        ) : group.isPublic ? (
-                          /* Public → direct join */
-                          <button
-                            onClick={() => handleJoinPublic(group)}
-                            disabled={joiningId === group._id || !group.isOpen}
-                            className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                          >
-                            {joiningId === group._id
-                              ? "Joining…"
-                              : group.isOpen
-                                ? "Join"
-                                : "Closed"}
-                          </button>
-                        ) : (
-                          /* Private → open code dialog */
-                          <button
-                            onClick={() => {
-                              setPrivateDialogGroup(group);
-                              setPrivateCode("");
-                            }}
-                            disabled={!group.isOpen}
-                            className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                          >
-                            {group.isOpen ? "Enter Code" : "Closed"}
-                          </button>
-                        )}
+
+                          {isMyGroup ? (
+                            <button
+                              onClick={() => navigate("/group")}
+                              className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                              style={{ color: "#9B2335" }}
+                            >
+                              My Group <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          ) : group.isPublic ? (
+                            /* Public → direct join */
+                            <button
+                              onClick={() => handleJoinPublic(group)}
+                              disabled={
+                                joiningId === group._id || !group.isOpen
+                              }
+                              className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              {joiningId === group._id
+                                ? "Joining…"
+                                : group.isOpen
+                                  ? "Join"
+                                  : "Closed"}
+                            </button>
+                          ) : (
+                            /* Private → open code dialog */
+                            <button
+                              onClick={() => {
+                                setPrivateDialogGroup(group);
+                                setPrivateCode("");
+                              }}
+                              disabled={!group.isOpen}
+                              className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              {group.isOpen ? "Enter Code" : "Closed"}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -331,6 +385,141 @@ const BrowseGroups = () => {
           </>
         )}
       </div>
+
+      {/* Group info dialog */}
+      <Dialog
+        open={!!infoGroup}
+        onOpenChange={(open) => {
+          if (!open) {
+            setInfoGroup(null);
+            setInfoDetail(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-2 flex-wrap">
+              <DialogTitle>
+                {infoGroup?.name ?? `Group ${infoGroup?.groupNumber}`}
+              </DialogTitle>
+              {infoGroup && (
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                    style={
+                      infoGroup.isOpen
+                        ? { background: "#ecfdf5", color: "#065f46" }
+                        : { background: "#f3f4f6", color: "#6b7280" }
+                    }
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{
+                        background: infoGroup.isOpen ? "#10b981" : "#9ca3af",
+                      }}
+                    />
+                    {infoGroup.isOpen ? "Open" : "Closed"}
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                    {infoGroup.isPublic ? (
+                      <Globe className="w-3 h-3" />
+                    ) : (
+                      <Lock className="w-3 h-3" />
+                    )}
+                    {infoGroup.isPublic ? "Public" : "Private"}
+                  </span>
+                </div>
+              )}
+            </div>
+            <DialogDescription>
+              {infoGroup?.name ? `Group ${infoGroup.groupNumber} · ` : ""}
+              {infoGroup?.numberOfMembers ??
+                infoGroup?.groupMembers.length ??
+                0}{" "}
+              {(infoGroup?.numberOfMembers ??
+                infoGroup?.groupMembers.length ??
+                0) === 1
+                ? "member"
+                : "members"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {infoLoading ? (
+            <div className="py-8 text-center text-sm text-gray-400">
+              Loading details…
+            </div>
+          ) : infoDetail ? (
+            <div className="mt-2 space-y-5">
+              {/* Members */}
+              <div>
+                <p
+                  className="text-[10px] font-bold uppercase text-gray-400 mb-2"
+                  style={{ letterSpacing: "0.18em" }}
+                >
+                  Members
+                </p>
+                {infoDetail.groupMembers.length === 0 ? (
+                  <p className="text-sm text-gray-400">No members yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {infoDetail.groupMembers.map((m, i) => (
+                      <li key={m._id} className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-xs font-bold text-gray-500">
+                          {m.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate">
+                            {m.name}
+                            {i === 0 && (
+                              <span className="ml-1.5 text-[10px] font-bold uppercase text-amber-600">
+                                Leader
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">
+                            {m.email}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Interested Projects */}
+              <div>
+                <p
+                  className="text-[10px] font-bold uppercase text-gray-400 mb-2"
+                  style={{ letterSpacing: "0.18em" }}
+                >
+                  Interested Projects
+                </p>
+                {infoDetail.interestedProjects.length === 0 ? (
+                  <p className="text-sm text-gray-400">None yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {infoDetail.interestedProjects.map((p) => (
+                      <li
+                        key={p._id}
+                        className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2"
+                      >
+                        <p className="text-sm font-semibold text-gray-800 truncate">
+                          {p.name}
+                        </p>
+                        {p.description && (
+                          <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">
+                            {p.description}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {/* Private group join dialog */}
       <Dialog

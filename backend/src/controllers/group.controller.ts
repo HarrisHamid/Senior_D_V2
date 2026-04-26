@@ -488,7 +488,6 @@ export const getGroupById = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user;
     const { groupId } = req.params;
 
     if (!Types.ObjectId.isValid(groupId)) {
@@ -504,17 +503,6 @@ export const getGroupById = async (
 
     if (!group) {
       res.status(404).json({ success: false, message: "Group not found" });
-      return;
-    }
-
-    const isMember = group.groupMembers.some(
-      (m) =>
-        (m as unknown as { _id: { toString(): string } })._id.toString() ===
-        user?._id,
-    );
-
-    if (!isMember && user?.role !== "course coordinator") {
-      res.status(403).json({ success: false, message: "Forbidden" });
       return;
     }
 
