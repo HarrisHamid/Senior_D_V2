@@ -238,7 +238,7 @@ export default function CreateCourse() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#9B2335] hover:bg-[#7a1c2a] text-white"
+                className="w-full bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none text-white transition-all duration-200"
               >
                 {isSubmitting ? "Creating Course..." : "Create Course"}
               </Button>

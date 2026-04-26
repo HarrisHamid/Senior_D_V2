@@ -324,19 +324,11 @@ const ProjectDetail = () => {
                       <button
                         onClick={handleShowInterest}
                         disabled={alreadyInterested}
-                        className="shrink-0 inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                        style={{
-                          background: alreadyInterested
-                            ? "linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%)"
-                            : "linear-gradient(135deg, hsl(351, 63%, 32%), hsl(0, 80%, 52%))",
-                          color: alreadyInterested ? "#374151" : "#fff",
-                          border: alreadyInterested
-                            ? "1px solid #d1d5db"
-                            : "none",
-                          boxShadow: alreadyInterested
-                            ? "none"
-                            : "0 2px 8px rgba(155,35,53,0.25)",
-                        }}
+                        className={`shrink-0 inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed ${
+                          alreadyInterested
+                            ? "bg-gray-100 text-gray-600 border border-gray-200"
+                            : "text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none"
+                        }`}
                       >
                         {alreadyInterested
                           ? "Interest Registered"
@@ -405,12 +397,7 @@ const ProjectDetail = () => {
                               <button
                                 disabled={assigning}
                                 onClick={() => handleAssignGroup(group._id)}
-                                className="ml-3 shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all duration-200 disabled:opacity-50"
-                                style={{
-                                  background:
-                                    "linear-gradient(135deg, hsl(351,63%,32%), hsl(0,80%,52%))",
-                                  boxShadow: "0 2px 6px rgba(155,35,53,0.2)",
-                                }}
+                                className="ml-3 shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 Assign
                               </button>
@@ -472,12 +459,7 @@ const ProjectDetail = () => {
                       <Button
                         disabled={!selectedGroup || assigning}
                         onClick={() => handleAssignGroup(selectedGroup)}
-                        className="shrink-0"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, hsl(351,63%,32%), hsl(0,80%,52%))",
-                          border: "none",
-                        }}
+                        className="shrink-0 bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0"
                       >
                         Assign
                       </Button>

@@ -119,14 +119,7 @@ const MyProjects = () => {
             <div className="flex items-center gap-3">
               <Link
                 to="/project/add"
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm"
-                style={{ background: "#9B2335" }}
-                onMouseEnter={(e) =>
-                  ((e.currentTarget as HTMLAnchorElement).style.background = "#7d1c2b")
-                }
-                onMouseLeave={(e) =>
-                  ((e.currentTarget as HTMLAnchorElement).style.background = "#9B2335")
-                }
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200"
               >
                 <Plus className="w-4 h-4" /> Add Project
               </Link>
@@ -260,14 +253,7 @@ const MyProjects = () => {
 
                     <Link
                       to={`/project/${project._id}`}
-                      className="flex items-center gap-1.5 text-sm font-semibold transition-colors shrink-0 ml-4"
-                      style={{ color: "#9B2335" }}
-                      onMouseEnter={(e) =>
-                        ((e.currentTarget as HTMLAnchorElement).style.color = "#7d1c2b")
-                      }
-                      onMouseLeave={(e) =>
-                        ((e.currentTarget as HTMLAnchorElement).style.color = "#9B2335")
-                      }
+                      className="flex items-center gap-1.5 text-sm font-semibold text-[#9B2335] hover:text-[#7f1d2d] transition-colors shrink-0 ml-4"
                     >
                       View <ArrowRight className="w-4 h-4" />
                     </Link>

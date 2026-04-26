@@ -273,8 +273,7 @@ const Group = () => {
           </p>
           <Link
             to="/dashboard"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors"
-            style={{ background: "#9B2335" }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200"
           >
             Go to Dashboard <ArrowRight className="w-4 h-4" />
           </Link>
@@ -762,7 +761,7 @@ const Group = () => {
               </Button>
               <Button
                 onClick={handlePromoteLeader}
-                style={{ background: "#9B2335" }}
+                className="bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0"
               >
                 Promote
               </Button>

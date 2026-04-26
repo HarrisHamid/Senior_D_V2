@@ -83,10 +83,12 @@ export default function VerifyEmail() {
             <button
               type="submit"
               disabled={verifying || code.length !== 6}
-              className="w-full py-3 px-4 bg-[#9B2335] text-white font-medium rounded-lg
-                hover:bg-[#7a1c2a] disabled:opacity-50 disabled:cursor-not-allowed
+              className="w-full py-3 px-4 bg-[#9B2335] text-white font-semibold rounded-lg
+                hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)]
+                active:translate-y-0 active:shadow-none
                 focus:ring-2 focus:ring-[#9B2335] focus:ring-offset-2 focus:outline-none
-                transition-all duration-200"
+                transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {verifying ? "Verifying…" : "Verify Email"}
             </button>

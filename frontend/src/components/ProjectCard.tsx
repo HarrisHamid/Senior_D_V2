@@ -114,21 +114,7 @@ export const ProjectCard = ({ project }: { project: ProjectData }) => {
           </div>
           <Link
             to={`/project/${project._id}`}
-            className="relative inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium text-foreground overflow-hidden transition-all duration-200"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(242,242,242,0.72) 100%)",
-              boxShadow:
-                "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow =
-                "0 0 0 1px rgba(0,0,0,0.13), 0 2px 6px rgba(0,0,0,0.10)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow =
-                "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)";
-            }}
+            className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-700 border border-gray-200 hover:border-[#9B2335] hover:text-[#9B2335] transition-colors duration-200"
           >
             View Details
           </Link>

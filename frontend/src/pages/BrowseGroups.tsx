@@ -349,7 +349,7 @@ const BrowseGroups = () => {
                               disabled={
                                 joiningId === group._id || !group.isOpen
                               }
-                              className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                              className="text-sm font-semibold px-4 py-2 rounded-lg bg-[#9B2335] text-white hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               {joiningId === group._id
                                 ? "Joining…"
@@ -365,7 +365,7 @@ const BrowseGroups = () => {
                                 setPrivateCode("");
                               }}
                               disabled={!group.isOpen}
-                              className="text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 bg-[#9B2335] text-white hover:bg-[#7f1d2d] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                              className="text-sm font-semibold px-4 py-2 rounded-lg bg-[#9B2335] text-white hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               {group.isOpen ? "Enter Code" : "Closed"}
                             </button>
@@ -555,8 +555,7 @@ const BrowseGroups = () => {
             <Button
               onClick={handleJoinPrivate}
               disabled={submittingCode || privateCode.trim().length !== 10}
-              className="w-full"
-              style={{ background: "#9B2335" }}
+              className="w-full bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0"
             >
               {submittingCode ? "Sending request…" : "Request to Join"}
             </Button>

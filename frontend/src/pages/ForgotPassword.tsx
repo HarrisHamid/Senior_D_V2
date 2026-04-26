@@ -115,10 +115,11 @@ export default function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 px-4 bg-[#9B2335] text-white font-medium rounded-lg
-                    hover:bg-[#7a1c2a] hover:shadow-lg
+                  className="w-full py-3 px-4 bg-[#9B2335] text-white font-semibold rounded-lg
+                    hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)]
+                    active:translate-y-0 active:shadow-none
                     focus:ring-2 focus:ring-[#9B2335] focus:ring-offset-2 focus:outline-none
-                    transition-all duration-200 ease-in-out
+                    transition-all duration-200
                     disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Sending..." : "Send reset link"}

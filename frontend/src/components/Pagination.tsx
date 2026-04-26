@@ -41,18 +41,11 @@ const Pagination = ({ page, totalPages, onPageChange }: PaginationProps) => {
           <button
             key={p}
             onClick={() => onPageChange(p as number)}
-            className="w-9 h-9 rounded-lg text-sm font-semibold transition-colors border"
-            style={
+            className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors border ${
               p === page
-                ? { background: "#9B2335", color: "#fff", borderColor: "#9B2335" }
-                : { background: "#fff", color: "#374151", borderColor: "#e5e7eb" }
-            }
-            onMouseEnter={(e) => {
-              if (p !== page) (e.currentTarget as HTMLButtonElement).style.borderColor = "#9B2335";
-            }}
-            onMouseLeave={(e) => {
-              if (p !== page) (e.currentTarget as HTMLButtonElement).style.borderColor = "#e5e7eb";
-            }}
+                ? "bg-[#9B2335] text-white border-[#9B2335]"
+                : "bg-white text-gray-700 border-gray-200 hover:border-[#9B2335] hover:text-[#9B2335]"
+            }`}
           >
             {p}
           </button>

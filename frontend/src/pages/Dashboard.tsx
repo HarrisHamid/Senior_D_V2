@@ -225,16 +225,7 @@ const StudentDashboard = () => {
                     </p>
                     <button
                       onClick={() => setCreateDialogOpen(true)}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-white text-sm font-semibold transition-colors"
-                      style={{ background: "#9B2335" }}
-                      onMouseEnter={(e) =>
-                        ((e.currentTarget as HTMLButtonElement).style.background =
-                          "#ad3248")
-                      }
-                      onMouseLeave={(e) =>
-                        ((e.currentTarget as HTMLButtonElement).style.background =
-                          "#9B2335")
-                      }
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-white text-sm font-semibold bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200"
                     >
                       <Users className="w-4 h-4" /> Create a Group
                     </button>
@@ -304,8 +295,7 @@ const StudentDashboard = () => {
                         <Button
                           onClick={handleCreateGroup}
                           disabled={creatingGroup || !newGroupVisibility}
-                          className="w-full"
-                          style={{ background: "#9B2335" }}
+                          className="w-full bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0"
                         >
                           {creatingGroup ? "Creating…" : "Create Group"}
                         </Button>
@@ -384,16 +374,7 @@ const StudentDashboard = () => {
               <div className="mt-5 pt-4 border-t border-gray-100">
                 <Link
                   to="/marketplace"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors"
-                  style={{ background: "#9B2335" }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLAnchorElement).style.background =
-                      "#ad3248")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLAnchorElement).style.background =
-                      "#9B2335")
-                  }
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200"
                 >
                   Browse Projects <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
@@ -539,14 +520,7 @@ const CoordinatorDashboard = () => {
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <Link
                   to="/project/add"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors"
-                  style={{ background: "#9B2335" }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLAnchorElement).style.background = "#ad3248")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLAnchorElement).style.background = "#9B2335")
-                  }
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200"
                 >
                   <Plus className="w-4 h-4" /> Add Project
                 </Link>

@@ -231,7 +231,7 @@ const Profile = () => {
               <div className="flex gap-2 pt-4 border-t">
                 {isEditing ? (
                   <>
-                    <Button onClick={handleSaveProfile} disabled={isSaving}>
+                    <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0">
                       {isSaving && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
@@ -240,12 +240,13 @@ const Profile = () => {
                     <Button
                       variant="outline"
                       onClick={() => setIsEditing(false)}
+                      className="border-gray-200 text-gray-700 hover:border-[#9B2335] hover:text-[#9B2335] hover:bg-white"
                     >
                       Cancel
                     </Button>
                   </>
                 ) : (
-                  <Button onClick={() => setIsEditing(true)}>
+                  <Button onClick={() => setIsEditing(true)} className="bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0">
                     Edit Profile
                   </Button>
                 )}
@@ -410,7 +411,7 @@ const Profile = () => {
                   <Button
                     onClick={handleChangePassword}
                     disabled={!canSubmit || isChangingPassword}
-                    className="w-full"
+                    className="w-full bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0"
                   >
                     {isChangingPassword && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
