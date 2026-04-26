@@ -384,10 +384,11 @@ export const removeMember = async (
 
     await User.findByIdAndUpdate(memberId, { groupId: null });
 
-    const updatedGroup = await Group.findById(groupId).populate(
-      "groupMembers",
-      "name email",
-    );
+    const updatedGroup = await Group.findById(groupId)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
 
     res.status(200).json({
       success: true,
@@ -463,10 +464,11 @@ export const promoteLeader = async (
 
     await group.save();
 
-    const updatedGroup = await Group.findById(groupId).populate(
-      "groupMembers",
-      "name email",
-    );
+    const updatedGroup = await Group.findById(groupId)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
 
     res.status(200).json({
       success: true,
