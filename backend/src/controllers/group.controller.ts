@@ -4,6 +4,7 @@ import { AuthRequest } from "../types";
 import { Group } from "../models/Group.model";
 import { Project } from "../models/Project.model";
 import User from "../models/User.model";
+import Course from "../models/Course.model";
 import { generateUniqueGroupCode } from "../utils/codeGenerator";
 import {
   sendGroupInterestEmail,
@@ -103,6 +104,14 @@ export const joinGroup = async (
     const isPublic = group.isPublic !== false;
     if (isPublic) {
       group.groupMembers.push(new Types.ObjectId(user._id));
+
+      if (group.courseId) {
+        const course = await Course.findById(group.courseId);
+        if (course && group.groupMembers.length >= course.maxGroupSize) {
+          group.isOpen = false;
+        }
+      }
+
       await group.save();
 
       await User.findByIdAndUpdate(user._id, {
@@ -219,6 +228,13 @@ export const respondToJoinRequest = async (
 
       group.groupMembers.push(new Types.ObjectId(requestUserId));
 
+      if (group.courseId) {
+        const course = await Course.findById(group.courseId);
+        if (course && group.groupMembers.length >= course.maxGroupSize) {
+          group.isOpen = false;
+        }
+      }
+
       // Sync user's groupId
       await User.findByIdAndUpdate(requestUserId, {
         groupId: groupId,
@@ -243,13 +259,19 @@ export const respondToJoinRequest = async (
       })
       .catch(console.error);
 
+    const populated = await Group.findById(groupId)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
+
     res.status(200).json({
       success: true,
       message:
         status === "approved"
           ? "Request approved. Student added to group."
           : "Request rejected.",
-      data: group,
+      data: populated,
     });
   } catch (error) {
     res.status(500).json({
@@ -601,9 +623,15 @@ export const toggleStatus = async (
     group.isOpen = !group.isOpen;
     await group.save();
 
+    const populated = await Group.findById(groupId)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
+
     res.status(200).json({
       success: true,
-      data: group.isOpen,
+      data: populated,
       message: "Group status updated",
     });
   } catch (error) {
@@ -643,9 +671,15 @@ export const toggleVisibility = async (
     group.isPublic = !group.isPublic;
     await group.save();
 
+    const populated = await Group.findById(groupId)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
+
     res.status(200).json({
       success: true,
-      data: group,
+      data: populated,
       message: `Group is now ${group.isPublic ? "public" : "private"}`,
     });
   } catch (error) {

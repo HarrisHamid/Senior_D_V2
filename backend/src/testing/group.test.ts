@@ -437,7 +437,7 @@ describe("Group Routes - /api/groups", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data).toBe(false);
+      expect(res.body.data.isOpen).toBe(false);
     });
 
     it("should reopen a closed group (isOpen: false → true)", async () => {
@@ -454,7 +454,7 @@ describe("Group Routes - /api/groups", () => {
         .set(authHeader(studentToken));
 
       expect(res.status).toBe(200);
-      expect(res.body.data).toBe(true);
+      expect(res.body.data.isOpen).toBe(true);
     });
 
     it("should return 401 when no token is provided", async () => {

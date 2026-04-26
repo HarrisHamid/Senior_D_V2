@@ -99,7 +99,7 @@ const IconBadge = ({ icon: Icon }: { icon: React.ElementType }) => (
 
 /* ── component ──────────────────────────────────────────── */
 const Group = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const [myGroup, setMyGroup] = useState<PopulatedGroup | null>(null);
@@ -159,6 +159,7 @@ const Group = () => {
       } else {
         toast.success("You have left the group");
       }
+      await refreshUser();
       navigate("/dashboard");
     } catch (err) {
       toast.error(
