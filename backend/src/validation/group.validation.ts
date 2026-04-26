@@ -73,6 +73,18 @@ export const promoteLeaderSchema = z.object({
   }),
 });
 
+export const updateGroupNameSchema = z.object({
+  params: z.object({
+    groupId: z.string().regex(objectIdRegex, "Invalid group ID format"),
+  }),
+  body: z.object({
+    name: z
+      .string()
+      .min(1, "Group name cannot be empty")
+      .max(50, "Group name must be 50 characters or less"),
+  }),
+});
+
 export const groupSchemas = {
   create: createGroupSchema,
   join: joinGroupSchema,
@@ -83,4 +95,5 @@ export const groupSchemas = {
   respondJoinRequest: respondJoinRequestSchema,
   removeMember: removeMemberSchema,
   promoteLeader: promoteLeaderSchema,
+  updateGroupName: updateGroupNameSchema,
 };

@@ -23,6 +23,7 @@ import {
   FolderOpen,
   ArrowRight,
   Crown,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { groupService } from "@/services/group.service";
@@ -109,6 +110,8 @@ const Group = () => {
   );
   const [memberToPromote, setMemberToPromote] =
     useState<PopulatedMember | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editNameValue, setEditNameValue] = useState("");
 
   useEffect(() => {
     if (!user?.groupId) return;
@@ -212,6 +215,23 @@ const Group = () => {
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to remove member",
+      );
+    }
+  };
+
+  const handleUpdateGroupName = async () => {
+    if (!myGroup || !editNameValue.trim()) return;
+    try {
+      const res = await groupService.updateGroupName(
+        myGroup._id,
+        editNameValue.trim(),
+      );
+      setMyGroup(res.data as unknown as PopulatedGroup);
+      setIsEditingName(false);
+      toast.success("Group name updated");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update group name.",
       );
     }
   };
@@ -332,9 +352,53 @@ const Group = () => {
                 >
                   My Group
                 </p>
-                <h1 className="text-[2rem] font-bold text-gray-900 tracking-tight leading-none">
-                  {myGroup.name ?? `Group ${myGroup.groupNumber}`}
-                </h1>
+                {isEditingName ? (
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <input
+                      autoFocus
+                      value={editNameValue}
+                      onChange={(e) => setEditNameValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleUpdateGroupName();
+                        if (e.key === "Escape") setIsEditingName(false);
+                      }}
+                      maxLength={50}
+                      className="text-[1.6rem] font-bold text-gray-900 tracking-tight leading-none border-b-2 border-[#9B2335] bg-transparent outline-none w-64"
+                    />
+                    <button
+                      onClick={handleUpdateGroupName}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center bg-[rgba(155,35,53,0.08)] text-[#9B2335] hover:bg-[rgba(155,35,53,0.15)] transition-colors"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setIsEditingName(false)}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-[2rem] font-bold text-gray-900 tracking-tight leading-none">
+                      {myGroup.name ?? `Group ${myGroup.groupNumber}`}
+                    </h1>
+                    {isLeader && (
+                      <button
+                        onClick={() => {
+                          setEditNameValue(
+                            myGroup.name ?? `Group ${myGroup.groupNumber}`,
+                          );
+                          setIsEditingName(true);
+                        }}
+                        title="Rename group"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-[#9B2335] hover:bg-[rgba(155,35,53,0.08)] transition-colors"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
                 <p className="text-gray-400 mt-1.5 text-sm">
                   Manage your team and track project interests.
                 </p>

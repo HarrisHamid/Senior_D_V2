@@ -5,6 +5,7 @@ import {
   leaveGroup,
   removeMember,
   promoteLeader,
+  updateGroupName,
   getGroupById,
   getAllGroups,
   getAllGroupsByCourse,
@@ -112,6 +113,13 @@ router.patch(
   requireRole("student"),
   validateRequest(groupSchemas.promoteLeader),
   promoteLeader,
+);
+
+router.patch(
+  "/:groupId/name",
+  requireRole("student"),
+  validateRequest(groupSchemas.updateGroupName),
+  updateGroupName,
 );
 
 export default router;

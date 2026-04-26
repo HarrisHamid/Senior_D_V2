@@ -160,6 +160,18 @@ export const groupService = {
     return response.data;
   },
 
+  async updateGroupName(
+    groupId: string,
+    name: string,
+  ): Promise<{ success: boolean; data: GroupData; message: string }> {
+    const response = await api.patch<{
+      success: boolean;
+      data: GroupData;
+      message: string;
+    }>(`/groups/${groupId}/name`, { name });
+    return response.data;
+  },
+
   async removeInterestedProject(
     groupId: string,
     projectId: string,

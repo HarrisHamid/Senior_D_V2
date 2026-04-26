@@ -26,6 +26,23 @@ export const createNewGroup = async (
 
     const { isPublic = true, name } = req.body;
 
+    // Enforce unique group name (case-insensitive)
+    if (name) {
+      const existing = await Group.findOne({
+        name: {
+          $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          $options: "i",
+        },
+      });
+      if (existing) {
+        res.status(409).json({
+          success: false,
+          message: "A group with that name already exists",
+        });
+        return;
+      }
+    }
+
     const groupCode = await generateUniqueGroupCode(
       Group as unknown as import("mongoose").Model<{ groupCode: string }>,
     );
@@ -858,6 +875,74 @@ export const removeInterestedProject = async (
     res.status(500).json({
       success: false,
       message: "Failed to remove project",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Update group name (leader only)
+export const updateGroupName = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user;
+    const { groupId } = req.params;
+    const { name } = req.body as { name: string };
+
+    if (!user) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    if (group.groupMembers[0]?.toString() !== user._id) {
+      res.status(403).json({
+        success: false,
+        message: "Only the group leader can rename the group",
+      });
+      return;
+    }
+
+    // Check uniqueness (case-insensitive), excluding this group
+    const existing = await Group.findOne({
+      _id: { $ne: group._id },
+      name: {
+        $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+        $options: "i",
+      },
+    });
+    if (existing) {
+      res.status(409).json({
+        success: false,
+        message: "A group with that name already exists",
+      });
+      return;
+    }
+
+    group.name = name.trim();
+    await group.save();
+
+    const populated = await Group.findById(groupId)
+      .populate("groupMembers", "name email")
+      .populate("interestedProjects")
+      .populate("assignedProject")
+      .populate("joinRequests.userId", "name email");
+
+    res.status(200).json({
+      success: true,
+      message: "Group name updated",
+      data: populated,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update group name",
       error: (error as Error).message,
     });
   }
