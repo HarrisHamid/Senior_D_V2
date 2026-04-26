@@ -75,7 +75,7 @@ export const ProjectCard = ({ project }: { project: ProjectData }) => {
         {project.majors.length > 0 && (
           <div className="mb-4">
             <p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
-              Required Majors
+              Recommended Majors
             </p>
             <div className="flex flex-wrap gap-1.5">
               {project.majors.map((rm, idx) => (

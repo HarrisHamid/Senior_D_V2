@@ -80,10 +80,7 @@ const Panel = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div
-    className={`bg-white rounded-xl p-6 ${className}`}
-    style={cardStyle}
-  >
+  <div className={`bg-white rounded-xl p-6 ${className}`} style={cardStyle}>
     {children}
   </div>
 );
@@ -281,10 +278,10 @@ const ProjectDetail = () => {
               </p>
             </Panel>
 
-            {/* Required Majors */}
+            {/* Recommended Majors */}
             {project.majors.length > 0 && (
               <Panel>
-                <SectionLabel>Required Majors</SectionLabel>
+                <SectionLabel>Recommended Majors</SectionLabel>
                 <div className="flex flex-wrap gap-1.5">
                   {project.majors.map((rm, idx) => (
                     <span
@@ -371,12 +368,17 @@ const ProjectDetail = () => {
                                 })
                               }
                             >
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                                 style={{
-                                  background: "linear-gradient(135deg, hsl(351,63%,90%), hsl(0,80%,92%))",
+                                  background:
+                                    "linear-gradient(135deg, hsl(351,63%,90%), hsl(0,80%,92%))",
                                 }}
                               >
-                                <Users className="w-4 h-4" style={{ color: "hsl(351,63%,32%)" }} />
+                                <Users
+                                  className="w-4 h-4"
+                                  style={{ color: "hsl(351,63%,32%)" }}
+                                />
                               </div>
                               <div>
                                 <p className="text-sm font-semibold text-[#0d0d0d]">

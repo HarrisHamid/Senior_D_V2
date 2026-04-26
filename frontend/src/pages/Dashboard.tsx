@@ -46,13 +46,18 @@ const StudentDashboard = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
-  const [newGroupVisibility, setNewGroupVisibility] = useState<"public" | "private" | null>(null);
+  const [newGroupVisibility, setNewGroupVisibility] = useState<
+    "public" | "private" | null
+  >(null);
 
   const handleCreateGroup = async () => {
     if (!newGroupVisibility) return;
     setCreatingGroup(true);
     try {
-      await groupService.createNewGroup(newGroupVisibility === "public", newGroupName.trim() || undefined);
+      await groupService.createNewGroup(
+        newGroupVisibility === "public",
+        newGroupName.trim() || undefined,
+      );
       toast.success("Group created!");
       setCreateDialogOpen(false);
       setNewGroupName("");
@@ -110,7 +115,6 @@ const StudentDashboard = () => {
 
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
-
   return (
     <div className="relative min-h-screen bg-gray-50/40 overflow-hidden">
       <GridPattern
@@ -120,7 +124,6 @@ const StudentDashboard = () => {
       />
       <Navbar />
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-
         {/* ── Header ── */}
         <div className="mb-10">
           <div className="flex items-start justify-between">
@@ -148,13 +151,11 @@ const StudentDashboard = () => {
                 </p>
               </div>
             </div>
-
           </div>
         </div>
 
         {/* ── Cards ── */}
         <div className="grid gap-5 md:grid-cols-2">
-
           {/* My Group */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden">
             <div
@@ -245,7 +246,8 @@ const StudentDashboard = () => {
                       <div className="space-y-4 mt-2">
                         <div>
                           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
-                            Group Name <span className="text-gray-400 font-normal normal-case">(optional)</span>
+                            Group Name{" "}
+                            <span className="text-gray-400 font-normal normal-case"></span>
                           </label>
                           <Input
                             placeholder="e.g. Team Falcon"
@@ -265,14 +267,25 @@ const StudentDashboard = () => {
                               onClick={() => setNewGroupVisibility("public")}
                               className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors text-left"
                               style={{
-                                borderColor: newGroupVisibility === "public" ? "#9B2335" : "transparent",
-                                background: newGroupVisibility === "public" ? "rgba(155,35,53,0.05)" : "#f9fafb",
+                                borderColor:
+                                  newGroupVisibility === "public"
+                                    ? "#9B2335"
+                                    : "transparent",
+                                background:
+                                  newGroupVisibility === "public"
+                                    ? "rgba(155,35,53,0.05)"
+                                    : "#f9fafb",
                               }}
                             >
-                              <Globe className="h-5 w-5" style={{ color: "#9B2335" }} />
+                              <Globe
+                                className="h-5 w-5"
+                                style={{ color: "#9B2335" }}
+                              />
                               <div>
                                 <p className="font-semibold text-sm">Public</p>
-                                <p className="text-xs text-gray-500">Anyone can join instantly</p>
+                                <p className="text-xs text-gray-500">
+                                  Anyone can join instantly
+                                </p>
                               </div>
                             </button>
                             <button
@@ -280,14 +293,25 @@ const StudentDashboard = () => {
                               onClick={() => setNewGroupVisibility("private")}
                               className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors text-left"
                               style={{
-                                borderColor: newGroupVisibility === "private" ? "#9B2335" : "transparent",
-                                background: newGroupVisibility === "private" ? "rgba(155,35,53,0.05)" : "#f9fafb",
+                                borderColor:
+                                  newGroupVisibility === "private"
+                                    ? "#9B2335"
+                                    : "transparent",
+                                background:
+                                  newGroupVisibility === "private"
+                                    ? "rgba(155,35,53,0.05)"
+                                    : "#f9fafb",
                               }}
                             >
-                              <Lock className="h-5 w-5" style={{ color: "#9B2335" }} />
+                              <Lock
+                                className="h-5 w-5"
+                                style={{ color: "#9B2335" }}
+                              />
                               <div>
                                 <p className="font-semibold text-sm">Private</p>
-                                <p className="text-xs text-gray-500">You approve each request</p>
+                                <p className="text-xs text-gray-500">
+                                  You approve each request
+                                </p>
                               </div>
                             </button>
                           </div>
@@ -381,7 +405,6 @@ const StudentDashboard = () => {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -398,18 +421,17 @@ const CoordinatorDashboard = () => {
   const [matchedCount, setMatchedCount] = useState<number | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      projectService.getAllProjects(),
-      groupService.getAllGroups(),
-    ]).then(([projectsRes, groupsRes]) => {
-      setTotalProjects(projectsRes.data.pagination.total);
-      setTotalGroups(groupsRes.data.length);
-      const allProjects: ProjectData[] = projectsRes.data.projects;
-      setMatchedCount(allProjects.filter((p) => p.assignedGroup !== null).length);
-    }).catch(() => {});
+    Promise.all([projectService.getAllProjects(), groupService.getAllGroups()])
+      .then(([projectsRes, groupsRes]) => {
+        setTotalProjects(projectsRes.data.pagination.total);
+        setTotalGroups(groupsRes.data.length);
+        const allProjects: ProjectData[] = projectsRes.data.projects;
+        setMatchedCount(
+          allProjects.filter((p) => p.assignedGroup !== null).length,
+        );
+      })
+      .catch(() => {});
   }, [user?.id]);
-
-
 
   const stats = [
     { label: "Total Projects", value: totalProjects ?? "—", Icon: FolderOpen },
@@ -426,7 +448,6 @@ const CoordinatorDashboard = () => {
       />
       <Navbar />
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-
         {/* ── Header ── */}
         <div className="mb-10">
           <div className="flex items-start justify-between">
@@ -435,7 +456,8 @@ const CoordinatorDashboard = () => {
                 className="mt-0.5 w-[3px] rounded-full"
                 style={{
                   height: "3.5rem",
-                  background: "linear-gradient(to bottom, #9B2335, rgba(155,35,53,0.15))",
+                  background:
+                    "linear-gradient(to bottom, #9B2335, rgba(155,35,53,0.15))",
                 }}
               />
               <div>
@@ -453,7 +475,6 @@ const CoordinatorDashboard = () => {
                 </p>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -494,7 +515,8 @@ const CoordinatorDashboard = () => {
             <div
               className="h-[3px]"
               style={{
-                background: "linear-gradient(to right, #9B2335, #c23b52, rgba(155,35,53,0.2))",
+                background:
+                  "linear-gradient(to right, #9B2335, #c23b52, rgba(155,35,53,0.2))",
               }}
             />
             <div className="p-5 flex-1 flex flex-col">
@@ -509,7 +531,10 @@ const CoordinatorDashboard = () => {
                   className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                   style={{ background: "rgba(155,35,53,0.08)" }}
                 >
-                  <FolderOpen className="w-4 h-4" style={{ color: "#9B2335" }} />
+                  <FolderOpen
+                    className="w-4 h-4"
+                    style={{ color: "#9B2335" }}
+                  />
                 </div>
               </div>
               <div className="flex-1">
@@ -529,7 +554,6 @@ const CoordinatorDashboard = () => {
           </div>
           <div />
         </div>
-
       </div>
     </div>
   );

@@ -5,12 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { projectService } from "@/services/project.service";
 import { UploadService } from "@/services/upload.service";
 import Navbar from "@/components/Navbar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,22 +86,31 @@ export default function CreateProject() {
 
   // --- Dynamic field helpers ---
 
-  const addContact = () => setContacts((prev) => [...prev, { name: "", email: "" }]);
-  const removeContact = (i: number) => setContacts((prev) => prev.filter((_, idx) => idx !== i));
+  const addContact = () =>
+    setContacts((prev) => [...prev, { name: "", email: "" }]);
+  const removeContact = (i: number) =>
+    setContacts((prev) => prev.filter((_, idx) => idx !== i));
   const updateContact = (i: number, field: "name" | "email", value: string) =>
-    setContacts((prev) => prev.map((c, idx) => (idx === i ? { ...c, [field]: value } : c)));
+    setContacts((prev) =>
+      prev.map((c, idx) => (idx === i ? { ...c, [field]: value } : c)),
+    );
 
-  const addAdvisor = () => setAdvisors((prev) => [...prev, { name: "", email: "" }]);
-  const removeAdvisor = (i: number) => setAdvisors((prev) => prev.filter((_, idx) => idx !== i));
+  const addAdvisor = () =>
+    setAdvisors((prev) => [...prev, { name: "", email: "" }]);
+  const removeAdvisor = (i: number) =>
+    setAdvisors((prev) => prev.filter((_, idx) => idx !== i));
   const updateAdvisor = (i: number, field: "name" | "email", value: string) =>
-    setAdvisors((prev) => prev.map((a, idx) => (idx === i ? { ...a, [field]: value } : a)));
+    setAdvisors((prev) =>
+      prev.map((a, idx) => (idx === i ? { ...a, [field]: value } : a)),
+    );
 
   const selectedMajors = new Set(majors);
   const addMajor = () => {
     const next = AVAILABLE_MAJORS.find((m) => !selectedMajors.has(m));
     if (next) setMajors((prev) => [...prev, next]);
   };
-  const removeMajor = (i: number) => setMajors((prev) => prev.filter((_, idx) => idx !== i));
+  const removeMajor = (i: number) =>
+    setMajors((prev) => prev.filter((_, idx) => idx !== i));
   const updateMajor = (i: number, value: string) =>
     setMajors((prev) => prev.map((m, idx) => (idx === i ? value : m)));
 
@@ -115,7 +119,8 @@ export default function CreateProject() {
 
   // --- File staging helpers ---
 
-  const ACCEPTED = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.zip";
+  const ACCEPTED =
+    ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.zip";
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? []);
@@ -142,18 +147,29 @@ export default function CreateProject() {
     e.preventDefault();
     setError("");
 
-    if (!name.trim()) { setError("Project name is required"); return; }
-    if (!description.trim()) { setError("Description is required"); return; }
+    if (!name.trim()) {
+      setError("Project name is required");
+      return;
+    }
+    if (!description.trim()) {
+      setError("Description is required");
+      return;
+    }
     const yearNum = parseInt(year, 10);
     if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
       setError("Year must be between 2020 and 2100");
       return;
     }
-    if (!sponsor.trim()) { setError("Sponsor name is required"); return; }
+    if (!sponsor.trim()) {
+      setError("Sponsor name is required");
+      return;
+    }
 
     for (const [idx, c] of contacts.entries()) {
       if (!c.name.trim() || !c.email.trim()) {
-        setError(`Sponsor contact ${idx + 1}: both name and email are required`);
+        setError(
+          `Sponsor contact ${idx + 1}: both name and email are required`,
+        );
         return;
       }
       if (!EMAIL_REGEX.test(c.email)) {
@@ -181,8 +197,14 @@ export default function CreateProject() {
         year: yearNum,
         internal: internal === "true",
         sponsor: sponsor.trim(),
-        contacts: contacts.map((c) => ({ name: c.name.trim(), email: c.email.trim() })),
-        advisors: advisors.map((a) => ({ name: a.name.trim(), email: a.email.trim() })),
+        contacts: contacts.map((c) => ({
+          name: c.name.trim(),
+          email: c.email.trim(),
+        })),
+        advisors: advisors.map((a) => ({
+          name: a.name.trim(),
+          email: a.email.trim(),
+        })),
         majors: majors.map((m) => ({ major: m })),
       });
 
@@ -201,7 +223,9 @@ export default function CreateProject() {
         if (failed === 0) {
           toast.success("Project created with files attached!");
         } else {
-          toast.warning(`Project created, but ${failed} file(s) failed to upload.`);
+          toast.warning(
+            `Project created, but ${failed} file(s) failed to upload.`,
+          );
         }
       } else {
         toast.success("Project created successfully!");
@@ -296,7 +320,11 @@ export default function CreateProject() {
                 </div>
                 <div>
                   <Label htmlFor="internal">Project Type</Label>
-                  <Select value={internal} onValueChange={setInternal} disabled={isSubmitting}>
+                  <Select
+                    value={internal}
+                    onValueChange={setInternal}
+                    disabled={isSubmitting}
+                  >
                     <SelectTrigger id="internal" className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
@@ -339,7 +367,9 @@ export default function CreateProject() {
                   </Button>
                 </div>
                 {contacts.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No contacts added.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No contacts added.
+                  </p>
                 )}
                 <div className="space-y-3">
                   {contacts.map((c, i) => (
@@ -348,14 +378,18 @@ export default function CreateProject() {
                         <Input
                           type="text"
                           value={c.name}
-                          onChange={(e) => updateContact(i, "name", e.target.value)}
+                          onChange={(e) =>
+                            updateContact(i, "name", e.target.value)
+                          }
                           placeholder="Name"
                           disabled={isSubmitting}
                         />
                         <Input
                           type="email"
                           value={c.email}
-                          onChange={(e) => updateContact(i, "email", e.target.value)}
+                          onChange={(e) =>
+                            updateContact(i, "email", e.target.value)
+                          }
                           placeholder="Email"
                           disabled={isSubmitting}
                         />
@@ -390,7 +424,9 @@ export default function CreateProject() {
                   </Button>
                 </div>
                 {advisors.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No advisors added.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No advisors added.
+                  </p>
                 )}
                 <div className="space-y-3">
                   {advisors.map((a, i) => (
@@ -399,14 +435,18 @@ export default function CreateProject() {
                         <Input
                           type="text"
                           value={a.name}
-                          onChange={(e) => updateAdvisor(i, "name", e.target.value)}
+                          onChange={(e) =>
+                            updateAdvisor(i, "name", e.target.value)
+                          }
                           placeholder="Name"
                           disabled={isSubmitting}
                         />
                         <Input
                           type="email"
                           value={a.email}
-                          onChange={(e) => updateAdvisor(i, "email", e.target.value)}
+                          onChange={(e) =>
+                            updateAdvisor(i, "email", e.target.value)
+                          }
                           placeholder="Email"
                           disabled={isSubmitting}
                         />
@@ -426,22 +466,26 @@ export default function CreateProject() {
                 </div>
               </div>
 
-              {/* Required Majors */}
+              {/* Recommended Majors */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label>Required Majors</Label>
+                  <Label>Recommended Majors</Label>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={addMajor}
-                    disabled={isSubmitting || majors.length >= AVAILABLE_MAJORS.length}
+                    disabled={
+                      isSubmitting || majors.length >= AVAILABLE_MAJORS.length
+                    }
                   >
                     + Add Major
                   </Button>
                 </div>
                 {majors.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No majors added.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No majors added.
+                  </p>
                 )}
                 <div className="space-y-2">
                   {majors.map((m, i) => (
@@ -483,7 +527,9 @@ export default function CreateProject() {
                   <Label className="flex items-center gap-1.5">
                     <Paperclip className="h-4 w-4" />
                     Attach Files
-                    <span className="text-muted-foreground font-normal">(optional)</span>
+                    <span className="text-muted-foreground font-normal">
+                      (optional)
+                    </span>
                   </Label>
                   <Button
                     type="button"
@@ -505,7 +551,8 @@ export default function CreateProject() {
                 </div>
                 {pendingFiles.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No files selected. PDFs, Office docs, images, and ZIPs up to 10 MB each.
+                    No files selected. PDFs, Office docs, images, and ZIPs up to
+                    10 MB each.
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -515,8 +562,12 @@ export default function CreateProject() {
                         className="flex items-center justify-between px-3 py-2 border rounded-lg bg-muted/30"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
+                          <p className="text-sm font-medium truncate">
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatBytes(file.size)}
+                          </p>
                         </div>
                         <Button
                           type="button"

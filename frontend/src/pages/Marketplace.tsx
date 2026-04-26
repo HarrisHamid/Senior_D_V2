@@ -116,7 +116,7 @@ const Marketplace = () => {
     },
     {
       id: "majors",
-      label: "Required Majors",
+      label: "Recommended Majors",
       type: "checkbox",
       options: visibleMajors.map((m) => ({
         id: `major-${m}`,
@@ -203,7 +203,8 @@ const Marketplace = () => {
   );
 
   const searchParamsStr = searchParams.toString();
-  const [prevSearchParamsStr, setPrevSearchParamsStr] = useState(searchParamsStr);
+  const [prevSearchParamsStr, setPrevSearchParamsStr] =
+    useState(searchParamsStr);
   if (prevSearchParamsStr !== searchParamsStr) {
     setPrevSearchParamsStr(searchParamsStr);
     setPage(1);
