@@ -22,6 +22,7 @@ import {
   UserPlus,
   FolderOpen,
   ArrowRight,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { groupService } from "@/services/group.service";
@@ -64,7 +65,9 @@ const CardShell = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden ${className}`}>
+  <div
+    className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+  >
     <div
       className="h-[3px]"
       style={{
@@ -104,6 +107,8 @@ const Group = () => {
   const [memberToRemove, setMemberToRemove] = useState<PopulatedMember | null>(
     null,
   );
+  const [memberToPromote, setMemberToPromote] =
+    useState<PopulatedMember | null>(null);
 
   useEffect(() => {
     if (!user?.groupId) return;
@@ -148,12 +153,33 @@ const Group = () => {
   const handleLeaveGroup = async () => {
     if (!myGroup) return;
     try {
-      await groupService.leaveGroup(myGroup._id);
-      toast.success("You have left the group");
+      const res = await groupService.leaveGroup(myGroup._id);
+      if (res.leadershipTransferred && res.newLeader) {
+        toast.success(`${res.newLeader.name} is now the group leader`);
+      } else {
+        toast.success("You have left the group");
+      }
       navigate("/dashboard");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to leave group.",
+      );
+    }
+  };
+
+  const handlePromoteLeader = async () => {
+    if (!myGroup || !memberToPromote) return;
+    try {
+      const res = await groupService.promoteLeader(
+        myGroup._id,
+        memberToPromote._id,
+      );
+      setMyGroup(res.data as unknown as PopulatedGroup);
+      setMemberToPromote(null);
+      toast.success(`${memberToPromote.name} is now the group leader`);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to promote member",
       );
     }
   };
@@ -387,12 +413,21 @@ const Group = () => {
                       </div>
                     </div>
                     {isLeader && idx !== 0 && (
-                      <button
-                        onClick={() => setMemberToRemove(member)}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
+                        <button
+                          onClick={() => setMemberToPromote(member)}
+                          title="Promote to leader"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-amber-500 hover:bg-amber-50 transition-colors"
+                        >
+                          <Crown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setMemberToRemove(member)}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -401,114 +436,114 @@ const Group = () => {
 
             {/* Interested Projects */}
             <div className="flex-1">
-            <CardShell className="h-full">
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <SectionLabel>Interested Projects</SectionLabel>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {interestedProjects.length} of 4 selected
-                  </p>
-                </div>
-                <Link
-                  to="/marketplace"
-                  className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
-                  style={{ color: "#9B2335" }}
-                >
-                  Browse <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              {interestedProjects.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                    <FolderOpen className="w-5 h-5 text-gray-400" />
+              <CardShell className="h-full">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <SectionLabel>Interested Projects</SectionLabel>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {interestedProjects.length} of 4 selected
+                    </p>
                   </div>
-                  <p className="text-sm font-medium text-gray-600">
-                    No projects selected yet
-                  </p>
-                  <p className="text-sm text-gray-400 mt-1">
-                    Browse the marketplace to add up to 4 interests.
-                  </p>
                   <Link
                     to="/marketplace"
-                    className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold transition-colors"
+                    className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
                     style={{ color: "#9B2335" }}
                   >
-                    Browse Projects <ArrowRight className="w-3.5 h-3.5" />
+                    Browse <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {interestedProjects.map((project: PopulatedProject) => {
-                    const status = projectStatus(project);
-                    return (
-                      <div
-                        key={project._id}
-                        className="flex items-start justify-between p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50/60 transition-colors"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-gray-900 text-sm truncate">
-                              {project.name}
-                            </h3>
-                            <span
-                              className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                              style={
-                                status === "Assigned"
-                                  ? {
-                                      background: "#f5f3ff",
-                                      color: "#6d28d9",
-                                    }
-                                  : status === "Open"
+
+                {interestedProjects.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                      <FolderOpen className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-600">
+                      No projects selected yet
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Browse the marketplace to add up to 4 interests.
+                    </p>
+                    <Link
+                      to="/marketplace"
+                      className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold transition-colors"
+                      style={{ color: "#9B2335" }}
+                    >
+                      Browse Projects <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {interestedProjects.map((project: PopulatedProject) => {
+                      const status = projectStatus(project);
+                      return (
+                        <div
+                          key={project._id}
+                          className="flex items-start justify-between p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50/60 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-gray-900 text-sm truncate">
+                                {project.name}
+                              </h3>
+                              <span
+                                className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                                style={
+                                  status === "Assigned"
                                     ? {
-                                        background: "#ecfdf5",
-                                        color: "#065f46",
+                                        background: "#f5f3ff",
+                                        color: "#6d28d9",
                                       }
-                                    : {
-                                        background: "#f3f4f6",
-                                        color: "#6b7280",
-                                      }
-                              }
+                                    : status === "Open"
+                                      ? {
+                                          background: "#ecfdf5",
+                                          color: "#065f46",
+                                        }
+                                      : {
+                                          background: "#f3f4f6",
+                                          color: "#6b7280",
+                                        }
+                                }
+                              >
+                                {status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-400 line-clamp-2 mb-2">
+                              {project.description}
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {(project.majors ?? [])
+                                .slice(0, 3)
+                                .map((rm: { major: string }, i: number) => (
+                                  <span
+                                    key={i}
+                                    className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+                                  >
+                                    {rm.major}
+                                  </span>
+                                ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 ml-3 shrink-0">
+                            <Link
+                              to={`/project/${project._id}`}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#9B2335] hover:bg-[rgba(155,35,53,0.06)] transition-colors"
                             >
-                              {status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-400 line-clamp-2 mb-2">
-                            {project.description}
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {(project.majors ?? [])
-                              .slice(0, 3)
-                              .map((rm: { major: string }, i: number) => (
-                                <span
-                                  key={i}
-                                  className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
-                                >
-                                  {rm.major}
-                                </span>
-                              ))}
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
+                            <button
+                              onClick={() => handleRemoveInterest(project._id)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 ml-3 shrink-0">
-                          <Link
-                            to={`/project/${project._id}`}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#9B2335] hover:bg-[rgba(155,35,53,0.06)] transition-colors"
-                          >
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
-                          <button
-                            onClick={() => handleRemoveInterest(project._id)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardShell>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardShell>
             </div>
           </div>
 
@@ -541,7 +576,13 @@ const Group = () => {
                 </>
               )}
 
-              <div className={myGroup.isPublic === false ? "pt-4 border-t border-gray-100" : ""}>
+              <div
+                className={
+                  myGroup.isPublic === false
+                    ? "pt-4 border-t border-gray-100"
+                    : ""
+                }
+              >
                 <SectionLabel>Controls</SectionLabel>
                 <div className="flex flex-col gap-2 mt-3">
                   <button
@@ -584,15 +625,18 @@ const Group = () => {
                       <DialogHeader>
                         <DialogTitle>Leave Group?</DialogTitle>
                         <DialogDescription>
-                          Are you sure you want to leave Group {myGroup.groupNumber}
-                          ? This action cannot be undone.
+                          Are you sure you want to leave Group{" "}
+                          {myGroup.groupNumber}? This action cannot be undone.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="flex justify-end gap-2 mt-4">
                         <DialogTrigger asChild>
                           <Button variant="outline">Cancel</Button>
                         </DialogTrigger>
-                        <Button variant="destructive" onClick={handleLeaveGroup}>
+                        <Button
+                          variant="destructive"
+                          onClick={handleLeaveGroup}
+                        >
                           Leave Group
                         </Button>
                       </div>
@@ -663,7 +707,6 @@ const Group = () => {
                 )}
               </CardShell>
             )}
-
           </div>
         </div>
 
@@ -689,6 +732,39 @@ const Group = () => {
               </Button>
               <Button variant="destructive" onClick={handleRemoveMember}>
                 Remove
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Promote to Leader Confirmation */}
+        <Dialog
+          open={!!memberToPromote}
+          onOpenChange={(open) => !open && setMemberToPromote(null)}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Promote to Group Leader?</DialogTitle>
+              <DialogDescription>
+                Promote{" "}
+                <span className="font-semibold text-foreground">
+                  {memberToPromote?.name}
+                </span>{" "}
+                to group leader? You will no longer be the leader.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setMemberToPromote(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePromoteLeader}
+                style={{ background: "#9B2335" }}
+              >
+                Promote
               </Button>
             </div>
           </DialogContent>

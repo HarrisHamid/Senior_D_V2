@@ -280,6 +280,8 @@ export const leaveGroup = async (
       return;
     }
 
+    const wasLeader = group.groupMembers[0]?.toString() === user._id;
+
     group.groupMembers = group.groupMembers.filter(
       (id) => id.toString() !== user._id,
     );
@@ -298,10 +300,25 @@ export const leaveGroup = async (
 
     await group.save();
 
+    let newLeader: { _id: string; name: string } | undefined;
+    if (wasLeader) {
+      const newLeaderDoc = await User.findById(group.groupMembers[0]).select(
+        "name",
+      );
+      if (newLeaderDoc) {
+        newLeader = {
+          _id: newLeaderDoc._id.toString(),
+          name: newLeaderDoc.name,
+        };
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Left group successfully",
       data: group,
+      leadershipTransferred: wasLeader,
+      newLeader,
     });
   } catch (error) {
     res.status(500).json({
@@ -381,6 +398,85 @@ export const removeMember = async (
     res.status(500).json({
       success: false,
       message: "Failed to remove member",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Promote a member to group leader (leader only)
+export const promoteLeader = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user;
+    const { groupId } = req.params;
+    const { memberId } = req.body;
+
+    if (!user) {
+      res.status(401).json({ success: false, message: "Not authenticated" });
+      return;
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    if (group.groupMembers[0]?.toString() !== user._id) {
+      res.status(403).json({
+        success: false,
+        message: "Only the group leader can promote members",
+      });
+      return;
+    }
+
+    if (memberId === user._id) {
+      res.status(400).json({
+        success: false,
+        message: "You are already the group leader",
+      });
+      return;
+    }
+
+    const promotedId = group.groupMembers.find(
+      (id) => id.toString() === memberId,
+    );
+    if (!promotedId) {
+      res
+        .status(404)
+        .json({ success: false, message: "Member not found in group" });
+      return;
+    }
+
+    const promoted = await User.findById(memberId).select("name");
+
+    // Move promoted member to front
+    const remaining = group.groupMembers.filter(
+      (id) => id.toString() !== memberId,
+    );
+    group.groupMembers = [
+      promotedId,
+      ...remaining,
+    ] as typeof group.groupMembers;
+
+    await group.save();
+
+    const updatedGroup = await Group.findById(groupId).populate(
+      "groupMembers",
+      "name email",
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `${promoted?.name ?? "Member"} is now the group leader`,
+      data: updatedGroup,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to promote member",
       error: (error as Error).message,
     });
   }

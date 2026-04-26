@@ -64,6 +64,15 @@ export const removeMemberSchema = z.object({
   }),
 });
 
+export const promoteLeaderSchema = z.object({
+  params: z.object({
+    groupId: z.string().regex(objectIdRegex, "Invalid group ID format"),
+  }),
+  body: z.object({
+    memberId: z.string().regex(objectIdRegex, "Invalid member ID format"),
+  }),
+});
+
 export const groupSchemas = {
   create: createGroupSchema,
   join: joinGroupSchema,
@@ -73,4 +82,5 @@ export const groupSchemas = {
   interestedProject: interestedProjectSchema,
   respondJoinRequest: respondJoinRequestSchema,
   removeMember: removeMemberSchema,
+  promoteLeader: promoteLeaderSchema,
 };

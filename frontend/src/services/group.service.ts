@@ -37,11 +37,16 @@ export interface GroupResponse {
   data: { group: GroupData } | GroupData;
   message?: string;
   requestPending?: boolean;
+  leadershipTransferred?: boolean;
+  newLeader?: { _id: string; name: string };
 }
 
 export const groupService = {
   async createNewGroup(isPublic = true, name?: string): Promise<GroupResponse> {
-    const response = await api.post<GroupResponse>("/groups", { isPublic, ...(name ? { name } : {}) });
+    const response = await api.post<GroupResponse>("/groups", {
+      isPublic,
+      ...(name ? { name } : {}),
+    });
     return response.data;
   },
 
@@ -140,6 +145,18 @@ export const groupService = {
       data: GroupData;
       message: string;
     }>(`/groups/${groupId}/members/${memberId}`);
+    return response.data;
+  },
+
+  async promoteLeader(
+    groupId: string,
+    memberId: string,
+  ): Promise<{ success: boolean; data: GroupData; message: string }> {
+    const response = await api.patch<{
+      success: boolean;
+      data: GroupData;
+      message: string;
+    }>(`/groups/${groupId}/promote-leader`, { memberId });
     return response.data;
   },
 
