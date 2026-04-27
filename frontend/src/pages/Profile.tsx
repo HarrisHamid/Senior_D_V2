@@ -1,19 +1,12 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/services/user.service";
 import { toast } from "sonner";
+import { GridPattern } from "@/components/ui/grid-pattern";
 import {
   User,
   Mail,
@@ -61,6 +54,14 @@ const Profile = () => {
 
   if (!user) return null;
 
+  const initials =
+    user.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() ?? "?";
+
   const handleSaveProfile = async () => {
     const trimmedFirst = formData.firstName.trim();
     const trimmedLast = formData.lastName.trim();
@@ -75,7 +76,9 @@ const Profile = () => {
       return;
     }
     if (!nameRegex.test(trimmedFirst)) {
-      toast.error("First name can only contain letters, spaces, hyphens, and apostrophes");
+      toast.error(
+        "First name can only contain letters, spaces, hyphens, and apostrophes",
+      );
       return;
     }
     if (!trimmedLast) {
@@ -87,15 +90,15 @@ const Profile = () => {
       return;
     }
     if (!nameRegex.test(trimmedLast)) {
-      toast.error("Last name can only contain letters, spaces, hyphens, and apostrophes");
+      toast.error(
+        "Last name can only contain letters, spaces, hyphens, and apostrophes",
+      );
       return;
     }
 
     try {
       setIsSaving(true);
-      await updateUser({
-        name: `${trimmedFirst} ${trimmedLast}`,
-      });
+      await updateUser({ name: `${trimmedFirst} ${trimmedLast}` });
       setIsEditing(false);
       toast.success("Profile updated successfully");
     } catch (error) {
@@ -129,34 +132,102 @@ const Profile = () => {
     }
   };
 
+  const allRequirementsMet = passwordRequirements.every((r) =>
+    r.test(passwordData.newPassword),
+  );
+  const passwordsMatch =
+    passwordData.newPassword === passwordData.confirmPassword &&
+    passwordData.confirmPassword.length > 0;
+  const canSubmit =
+    passwordData.oldPassword.length > 0 && allRequirementsMet && passwordsMatch;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-gray-50/40 overflow-hidden">
+      <GridPattern
+        width={40}
+        height={40}
+        className="fill-gray-100/60 stroke-gray-200/60"
+      />
       <Navbar />
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Profile</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your account information
-          </p>
+
+      <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="flex items-start gap-4">
+            <div
+              className="mt-0.5 w-[3px] rounded-full"
+              style={{
+                height: "3.5rem",
+                background:
+                  "linear-gradient(to bottom, #9B2335, rgba(155,35,53,0.15))",
+              }}
+            />
+            <div>
+              <p
+                className="text-[11px] font-bold uppercase mb-1.5"
+                style={{ letterSpacing: "0.18em", color: "#9B2335" }}
+              >
+                Account
+              </p>
+              <h1 className="text-[2rem] font-bold text-gray-900 tracking-tight leading-none">
+                My Profile
+              </h1>
+              <p className="text-gray-400 mt-1.5 text-sm">
+                Manage your personal information and security settings.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Profile Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Profile Information
-              </CardTitle>
-              <CardDescription>
-                Your personal information and account details
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4">
+        <div className="space-y-5">
+          {/* Profile Information Card */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+            <div
+              className="h-[3px]"
+              style={{
+                background:
+                  "linear-gradient(to right, #9B2335, #c23b52, rgba(155,35,53,0.2))",
+              }}
+            />
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <p
+                  className="text-[10px] font-bold uppercase text-gray-400"
+                  style={{ letterSpacing: "0.18em" }}
+                >
+                  Profile Information
+                </p>
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: "rgba(155,35,53,0.08)" }}
+                >
+                  <User className="w-4 h-4" style={{ color: "#9B2335" }} />
+                </div>
+              </div>
+
+              {/* Avatar + name */}
+              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg font-bold shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, #9B2335, #c23b52)",
+                  }}
+                >
+                  {initials}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900">{user.name}</p>
+                  <p className="text-sm text-gray-400">{user.email}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-5">
+                {/* Name fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>First Name</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      First Name
+                    </Label>
                     {isEditing ? (
                       <Input
                         value={formData.firstName}
@@ -168,13 +239,15 @@ const Profile = () => {
                         }
                       />
                     ) : (
-                      <p className="text-foreground font-medium">
-                        {names[0] || ""}
+                      <p className="text-sm font-medium text-gray-900 py-2">
+                        {names[0] || "—"}
                       </p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Last Name</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Last Name
+                    </Label>
                     {isEditing ? (
                       <Input
                         value={formData.lastName}
@@ -183,245 +256,279 @@ const Profile = () => {
                         }
                       />
                     ) : (
-                      <p className="text-foreground font-medium">
-                        {names.slice(1).join(" ") || ""}
+                      <p className="text-sm font-medium text-gray-900 py-2">
+                        {names.slice(1).join(" ") || "—"}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5" /> Email
                   </Label>
-                  <p className="text-foreground font-medium">{user.email}</p>
+                  <p className="text-sm font-medium text-gray-900 py-2">
+                    {user.email}
+                  </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Role
-                  </Label>
-                  <Badge variant="outline" className="w-fit">
-                    {user.role === "student" ? "student" : "course coordinator"}
-                  </Badge>
-                </div>
+                {/* Major (students only) */}
+                {user.role === "student" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Major
+                    </Label>
+                    <p className="text-sm font-medium text-gray-900 py-2">
+                      {user.major ?? "—"}
+                    </p>
+                  </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label>Verification Status</Label>
-                  <div className="flex items-center gap-2">
-                    {!user.verificationNeeded ? (
-                      <>
-                        <CheckCircle2 className="h-5 w-5 text-success" />
-                        <span className="text-sm text-success">Verified</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-5 w-5 text-destructive" />
-                        <span className="text-sm text-destructive">
-                          Not Verified
-                        </span>
-                      </>
-                    )}
+                {/* Role + Verification row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5" /> Role
+                    </Label>
+                    <div className="py-2">
+                      <span
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold"
+                        style={{
+                          background: "rgba(155,35,53,0.08)",
+                          color: "#9B2335",
+                        }}
+                      >
+                        {user.role === "student"
+                          ? "Student"
+                          : "Course Coordinator"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Verification
+                    </Label>
+                    <div className="py-2 flex items-center gap-2">
+                      {!user.verificationNeeded ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          <span className="text-sm font-medium text-emerald-600">
+                            Verified
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-4 w-4 text-red-500" />
+                          <span className="text-sm font-medium text-red-600">
+                            Not Verified
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4 border-t">
+              {/* Actions */}
+              <div className="flex gap-2 pt-5 mt-5 border-t border-gray-100">
                 {isEditing ? (
                   <>
-                    <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0">
-                      {isSaving && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={isSaving}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
+                    >
+                      {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
                       Save Changes
-                    </Button>
-                    <Button
-                      variant="outline"
+                    </button>
+                    <button
                       onClick={() => setIsEditing(false)}
-                      className="border-gray-200 text-gray-700 hover:border-[#9B2335] hover:text-[#9B2335] hover:bg-white"
+                      className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:border-[#9B2335] hover:text-[#9B2335] transition-colors"
                     >
                       Cancel
-                    </Button>
+                    </button>
                   </>
                 ) : (
-                  <Button onClick={() => setIsEditing(true)} className="bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:border-[#9B2335] hover:text-[#9B2335] transition-colors"
+                  >
                     Edit Profile
-                  </Button>
+                  </button>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Change Password */}
-          {(() => {
-            const allRequirementsMet = passwordRequirements.every((r) =>
-              r.test(passwordData.newPassword),
-            );
-            const passwordsMatch =
-              passwordData.newPassword === passwordData.confirmPassword &&
-              passwordData.confirmPassword.length > 0;
-            const canSubmit =
-              passwordData.oldPassword.length > 0 &&
-              allRequirementsMet &&
-              passwordsMatch;
+          {/* Change Password Card */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+            <div
+              className="h-[3px]"
+              style={{
+                background:
+                  "linear-gradient(to right, #9B2335, #c23b52, rgba(155,35,53,0.2))",
+              }}
+            />
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <p
+                  className="text-[10px] font-bold uppercase text-gray-400"
+                  style={{ letterSpacing: "0.18em" }}
+                >
+                  Change Password
+                </p>
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: "rgba(155,35,53,0.08)" }}
+                >
+                  <Lock className="w-4 h-4" style={{ color: "#9B2335" }} />
+                </div>
+              </div>
 
-            return (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lock className="h-5 w-5" />
-                    Change Password
-                  </CardTitle>
-                  <CardDescription>
-                    Update your password to keep your account secure
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Current Password */}
-                  <div className="space-y-2">
-                    <Label htmlFor="oldPassword">Current Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="oldPassword"
-                        type={showOldPassword ? "text" : "password"}
-                        value={passwordData.oldPassword}
-                        onChange={(e) =>
-                          setPasswordData({
-                            ...passwordData,
-                            oldPassword: e.target.value,
-                          })
-                        }
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowOldPassword((v) => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                        tabIndex={-1}
-                      >
-                        {showOldPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
+              <div className="space-y-4">
+                {/* Current Password */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Current Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type={showOldPassword ? "text" : "password"}
+                      value={passwordData.oldPassword}
+                      onChange={(e) =>
+                        setPasswordData({
+                          ...passwordData,
+                          oldPassword: e.target.value,
+                        })
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOldPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showOldPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
+                </div>
 
-                  {/* New Password + Requirements */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">New Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="newPassword"
-                          type={showNewPassword ? "text" : "password"}
-                          value={passwordData.newPassword}
-                          onChange={(e) =>
-                            setPasswordData({
-                              ...passwordData,
-                              newPassword: e.target.value,
-                            })
-                          }
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          tabIndex={-1}
-                        >
-                          {showNewPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="md:pt-7">
-                      <ul className="space-y-1.5">
-                        {passwordRequirements.map((req) => {
-                          const met = req.test(passwordData.newPassword);
-                          return (
-                            <li
-                              key={req.label}
-                              className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${
-                                met ? "text-green-600" : "text-muted-foreground"
-                              }`}
-                            >
-                              <Check
-                                className={`h-3.5 w-3.5 shrink-0 ${met ? "opacity-100" : "opacity-30"}`}
-                              />
-                              {req.label}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Confirm New Password */}
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">
-                      Confirm New Password
+                {/* New Password + Requirements */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      New Password
                     </Label>
                     <div className="relative">
                       <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={passwordData.confirmPassword}
+                        type={showNewPassword ? "text" : "password"}
+                        value={passwordData.newPassword}
                         onChange={(e) =>
                           setPasswordData({
                             ...passwordData,
-                            confirmPassword: e.target.value,
+                            newPassword: e.target.value,
                           })
                         }
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword((v) => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        onClick={() => setShowNewPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                         tabIndex={-1}
                       >
-                        {showConfirmPassword ? (
+                        {showNewPassword ? (
                           <EyeOff className="h-4 w-4" />
                         ) : (
                           <Eye className="h-4 w-4" />
                         )}
                       </button>
                     </div>
-                    {passwordData.confirmPassword.length > 0 && (
-                      <p
-                        className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${
-                          passwordsMatch ? "text-green-600" : "text-destructive"
-                        }`}
-                      >
-                        <Check
-                          className={`h-3.5 w-3.5 shrink-0 ${passwordsMatch ? "opacity-100" : "opacity-30"}`}
-                        />
-                        {passwordsMatch
-                          ? "Passwords match"
-                          : "Passwords do not match"}
-                      </p>
-                    )}
                   </div>
 
-                  <Button
+                  <div className="md:pt-7">
+                    <ul className="space-y-1.5">
+                      {passwordRequirements.map((req) => {
+                        const met = req.test(passwordData.newPassword);
+                        return (
+                          <li
+                            key={req.label}
+                            className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${met ? "text-emerald-600" : "text-gray-400"}`}
+                          >
+                            <Check
+                              className={`h-3.5 w-3.5 shrink-0 ${met ? "opacity-100" : "opacity-30"}`}
+                            />
+                            {req.label}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Confirm New Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={passwordData.confirmPassword}
+                      onChange={(e) =>
+                        setPasswordData({
+                          ...passwordData,
+                          confirmPassword: e.target.value,
+                        })
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  {passwordData.confirmPassword.length > 0 && (
+                    <p
+                      className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${passwordsMatch ? "text-emerald-600" : "text-red-500"}`}
+                    >
+                      <Check
+                        className={`h-3.5 w-3.5 shrink-0 ${passwordsMatch ? "opacity-100" : "opacity-30"}`}
+                      />
+                      {passwordsMatch
+                        ? "Passwords match"
+                        : "Passwords do not match"}
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-1">
+                  <button
                     onClick={handleChangePassword}
                     disabled={!canSubmit || isChangingPassword}
-                    className="w-full bg-[#9B2335] hover:bg-[#7f1d2d] text-white border-0"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
                   >
                     {isChangingPassword && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     )}
                     Change Password
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })()}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
