@@ -276,7 +276,7 @@ const BrowseGroups = () => {
                           <p className="font-bold text-gray-900 text-base truncate">
                             {group.name ?? `Group ${group.groupNumber}`}
                           </p>
-                          {group.name && (
+                          {group.name && !/^Group \d+$/i.test(group.name) && (
                             <p className="text-xs text-gray-400 mt-0.5">
                               Group {group.groupNumber}
                             </p>

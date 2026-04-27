@@ -3,7 +3,6 @@ dotenv.config();
 
 import mongoose from "mongoose";
 import User from "./models/User.model";
-import Course from "./models/Course.model";
 import { Project } from "./models/Project.model";
 import { Group } from "./models/Group.model";
 
@@ -14,12 +13,15 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 
-// Hardcoded dev course codes, guaranteed unique after clearing the DB
-const COURSE_CODES = {
-  CS423A: "DEV1A2B",
-  CS423B: "DEV3C4D",
-  ee496A: "DEV5E6F",
-  CS423A_2023: "DEV7G8H",
+// Hardcoded dev group codes (10 chars each)
+const GROUP_CODES = {
+  g1: "GRP1NEURAL",
+  g2: "GRP2BYTEBR",
+  g3: "GRP3STACKO",
+  g4: "GRP4DEBUGD",
+  g5: "GRP5LAMBDA",
+  g6: "GRP6CIRCUI",
+  g7: "GRP7VOLTAG",
 };
 
 // Passwords are passed as plaintext. The User model pre-save hook hashes them
@@ -35,7 +37,6 @@ async function seed(): Promise<void> {
     console.log("Clearing existing data...");
     await Promise.all([
       User.deleteMany({}),
-      Course.deleteMany({}),
       Project.deleteMany({}),
       Group.deleteMany({}),
     ]);
@@ -57,239 +58,93 @@ async function seed(): Promise<void> {
       }).save(),
     ]);
 
-    //  Courses
-    console.log("Seeding courses...");
-    const [course1, course2, course3, course4] = await Promise.all([
-      // CS423 Fall 2025 — Section A (Dr. Chen)
-      new Course({
-        userId: coord1._id.toString(),
-        name: coord1.name,
-        email: coord1.email,
-        program: "Computer Science",
-        courseNumber: "CS423",
-        courseSection: "A",
-        season: "Fall",
-        year: 2025,
-        minGroupSize: 3,
-        maxGroupSize: 5,
-        courseCode: COURSE_CODES.CS423A,
-        lastGroupNumber: 0,
-        closed: false,
-      }).save(),
-      // CS423 Spring 2026 — Section B (Dr. Chen)
-      new Course({
-        userId: coord1._id.toString(),
-        name: coord1.name,
-        email: coord1.email,
-        program: "Computer Science",
-        courseNumber: "CS423",
-        courseSection: "B",
-        season: "Spring",
-        year: 2026,
-        minGroupSize: 3,
-        maxGroupSize: 5,
-        courseCode: COURSE_CODES.CS423B,
-        lastGroupNumber: 0,
-        closed: false,
-      }).save(),
-      // EE496 Fall 2025 — Section A (Dr. Torres)
-      new Course({
-        userId: coord2._id.toString(),
-        name: coord2.name,
-        email: coord2.email,
-        program: "Electrical Engineering",
-        courseNumber: "EE496",
-        courseSection: "A",
-        season: "Fall",
-        year: 2025,
-        minGroupSize: 2,
-        maxGroupSize: 4,
-        courseCode: COURSE_CODES.ee496A,
-        lastGroupNumber: 0,
-        closed: false,
-      }).save(),
-      // CS423 Fall 2023 — Section A (Dr. Chen)
-      new Course({
-        userId: coord1._id.toString(),
-        name: coord1.name,
-        email: coord1.email,
-        program: "Computer Science",
-        courseNumber: "CS423",
-        courseSection: "A",
-        season: "Fall",
-        year: 2023,
-        minGroupSize: 3,
-        maxGroupSize: 5,
-        courseCode: COURSE_CODES.CS423A_2023,
-        lastGroupNumber: 0,
-        closed: false,
-      }).save(),
-    ]);
-
-    const c1Id = course1._id.toString();
-    const c2Id = course2._id.toString();
-    const c3Id = course3._id.toString();
-    const c4Id = course4._id.toString();
-
     //  Students
     console.log("Seeding students...");
 
-    const mkStudent = (
-      name: string,
-      email: string,
-      courseId: string,
-      major: string,
-    ) =>
+    const mkStudent = (name: string, email: string, major: string) =>
       new User({
         name,
         email,
         password: DEV_PASSWORD,
         role: "student",
-        course: courseId,
         major,
       }).save();
 
-    // CS423 Fall 2025 — 12 students across 3 groups of 4
-    const [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12] =
-      await Promise.all([
-        mkStudent(
-          "Alex Johnson",
-          "ajohnson@stevens.edu",
-          c1Id,
-          "Computer Science",
-        ),
-        mkStudent(
-          "Emily Rodriguez",
-          "erodriguez@stevens.edu",
-          c1Id,
-          "Computer Engineering",
-        ),
-        mkStudent(
-          "Marcus Williams",
-          "mwilliams@stevens.edu",
-          c1Id,
-          "Computer Science",
-        ),
-        mkStudent(
-          "Sophie Park",
-          "spark@stevens.edu",
-          c1Id,
-          "Computer Engineering",
-        ),
-        mkStudent("Daniel Kim", "dkim@stevens.edu", c1Id, "Computer Science"),
-        mkStudent(
-          "Aisha Patel",
-          "apatel@stevens.edu",
-          c1Id,
-          "Computer Engineering",
-        ),
-        mkStudent(
-          "Ryan Thompson",
-          "rthompson@stevens.edu",
-          c1Id,
-          "Computer Science",
-        ),
-        mkStudent(
-          "Natalie Brown",
-          "nbrown@stevens.edu",
-          c1Id,
-          "Computer Engineering",
-        ),
-        mkStudent("Jordan Lee", "jlee@stevens.edu", c1Id, "Computer Science"),
-        mkStudent(
-          "Priya Sharma",
-          "psharma@stevens.edu",
-          c1Id,
-          "Computer Engineering",
-        ),
-        mkStudent(
-          "Chris Martinez",
-          "cmartinez@stevens.edu",
-          c1Id,
-          "Computer Science",
-        ),
-        mkStudent(
-          "Hannah Wilson",
-          "hwilson@stevens.edu",
-          c1Id,
-          "Computer Engineering",
-        ),
-      ]);
+    // Group 1 — Neural Knights (4 students)
+    const [s1, s2, s3, s4] = await Promise.all([
+      mkStudent("Alex Johnson", "ajohnson@stevens.edu", "Computer Science"),
+      mkStudent(
+        "Emily Rodriguez",
+        "erodriguez@stevens.edu",
+        "Computer Engineering",
+      ),
+      mkStudent("Marcus Williams", "mwilliams@stevens.edu", "Computer Science"),
+      mkStudent("Sophie Park", "spark@stevens.edu", "Computer Engineering"),
+    ]);
 
-    // CS423 Spring 2026 — 6 students across 2 groups of 3
-    const [s13, s14, s15, s16, s17, s18] = await Promise.all([
-      mkStudent("Tyler Davis", "tdavis@stevens.edu", c2Id, "Computer Science"),
+    // Group 2 — Byte Brigade (4 students)
+    const [s5, s6, s7, s8] = await Promise.all([
+      mkStudent("Daniel Kim", "dkim@stevens.edu", "Computer Science"),
+      mkStudent("Aisha Patel", "apatel@stevens.edu", "Computer Engineering"),
+      mkStudent("Ryan Thompson", "rthompson@stevens.edu", "Computer Science"),
+      mkStudent("Natalie Brown", "nbrown@stevens.edu", "Computer Engineering"),
+    ]);
+
+    // Group 3 — Stack Overflow (4 students)
+    const [s9, s10, s11, s12] = await Promise.all([
+      mkStudent("Jordan Lee", "jlee@stevens.edu", "Computer Science"),
+      mkStudent("Priya Sharma", "psharma@stevens.edu", "Computer Engineering"),
+      mkStudent("Chris Martinez", "cmartinez@stevens.edu", "Computer Science"),
+      mkStudent("Hannah Wilson", "hwilson@stevens.edu", "Computer Engineering"),
+    ]);
+
+    // Group 4 — Debug Dynasty (3 students)
+    const [s13, s14, s15] = await Promise.all([
+      mkStudent("Tyler Davis", "tdavis@stevens.edu", "Computer Science"),
       mkStudent(
         "Maya Anderson",
         "manderson@stevens.edu",
-        c2Id,
         "Computer Engineering",
       ),
-      mkStudent("Sam Nguyen", "snguyen@stevens.edu", c2Id, "Computer Science"),
+      mkStudent("Sam Nguyen", "snguyen@stevens.edu", "Computer Science"),
+    ]);
+
+    // Group 5 — Lambda Legion (3 students)
+    const [s16, s17, s18] = await Promise.all([
+      mkStudent("Isabella Clark", "iclark@stevens.edu", "Computer Engineering"),
+      mkStudent("Ethan White", "ewhite@stevens.edu", "Computer Science"),
+      mkStudent("Layla Hassan", "lhassan@stevens.edu", "Computer Engineering"),
+    ]);
+
+    // Group 6 — Circuit Breakers (4 students)
+    const [s19, s20, s21, s22] = await Promise.all([
+      mkStudent("James Cooper", "jcooper@stevens.edu", "Computer Science"),
+      mkStudent("Olivia Turner", "oturner@stevens.edu", "Computer Engineering"),
+      mkStudent("Noah Bennett", "nbennett@stevens.edu", "Computer Science"),
       mkStudent(
-        "Isabella Clark",
-        "iclark@stevens.edu",
-        c2Id,
-        "Computer Engineering",
-      ),
-      mkStudent("Ethan White", "ewhite@stevens.edu", c2Id, "Computer Science"),
-      mkStudent(
-        "Layla Hassan",
-        "lhassan@stevens.edu",
-        c2Id,
+        "Ava Mitchell",
+        "amitchell@stevens.edu",
         "Computer Engineering",
       ),
     ]);
 
-    // EE496 Fall 2025 — 8 students across 2 groups of 4
-    const [s19, s20, s21, s22, s23, s24, s25, s26] = await Promise.all([
-      mkStudent(
-        "James Cooper",
-        "jcooper@stevens.edu",
-        c3Id,
-        "Computer Science",
-      ),
-      mkStudent(
-        "Olivia Turner",
-        "oturner@stevens.edu",
-        c3Id,
-        "Computer Engineering",
-      ),
-      mkStudent(
-        "Noah Bennett",
-        "nbennett@stevens.edu",
-        c3Id,
-        "Computer Science",
-      ),
-      mkStudent(
-        "Ava Mitchell",
-        "amitchell@stevens.edu",
-        c3Id,
-        "Computer Engineering",
-      ),
-      mkStudent("Liam Garcia", "lgarcia@stevens.edu", c3Id, "Computer Science"),
+    // Group 7 — Voltage Vanguard (4 students)
+    const [s23, s24, s25, s26] = await Promise.all([
+      mkStudent("Liam Garcia", "lgarcia@stevens.edu", "Computer Science"),
       mkStudent(
         "Zoe Robinson",
         "zrobinson@stevens.edu",
-        c3Id,
         "Computer Engineering",
       ),
-      mkStudent("Mason Hall", "mhall@stevens.edu", c3Id, "Computer Science"),
-      mkStudent(
-        "Chloe Adams",
-        "cadams@stevens.edu",
-        c3Id,
-        "Computer Engineering",
-      ),
+      mkStudent("Mason Hall", "mhall@stevens.edu", "Computer Science"),
+      mkStudent("Chloe Adams", "cadams@stevens.edu", "Computer Engineering"),
     ]);
 
     //  Projects
     console.log("Seeding projects...");
 
-    // CS423 Fall 2025 — 6 projects (p6 is closed)
-    const [p1, p2, p3, p4, p5, p6] = await Promise.all([
+    const [p1, p2, p3, p4, p5] = await Promise.all([
       new Project({
-        courseId: c1Id,
         userId: coord1._id,
         name: "AI-Powered Medical Diagnosis Assistant",
         description:
@@ -310,7 +165,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c1Id,
         userId: coord1._id,
         name: "Smart Campus Energy Management System",
         description:
@@ -328,7 +182,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c1Id,
         userId: coord1._id,
         name: "Real-Time Traffic Optimization Platform",
         description:
@@ -346,7 +199,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c1Id,
         userId: coord1._id,
         name: "Blockchain-Based Academic Credential Verification",
         description:
@@ -361,7 +213,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c1Id,
         userId: coord1._id,
         name: "Autonomous Drone Delivery Route Planner",
         description:
@@ -378,9 +229,10 @@ async function seed(): Promise<void> {
         isOpen: true,
         assignedGroup: null,
       }).save(),
-      // Closed project — demonstrates isOpen: false state
+    ]);
+
+    const [p6, p7, p8] = await Promise.all([
       new Project({
-        courseId: c1Id,
         userId: coord1._id,
         name: "NLP Legal Document Analysis Tool",
         description:
@@ -394,12 +246,7 @@ async function seed(): Promise<void> {
         isOpen: false,
         assignedGroup: null,
       }).save(),
-    ]);
-
-    // CS423 Spring 2026 — 2 projects
-    const [p7, p8] = await Promise.all([
       new Project({
-        courseId: c2Id,
         userId: coord1._id,
         name: "Accessible Learning Platform for Visually Impaired Students",
         description:
@@ -417,7 +264,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c2Id,
         userId: coord1._id,
         name: "Predictive Maintenance System for Manufacturing",
         description:
@@ -436,10 +282,8 @@ async function seed(): Promise<void> {
       }).save(),
     ]);
 
-    // EE496 Fall 2025 — 3 projects
     const [p9, p10, p11] = await Promise.all([
       new Project({
-        courseId: c3Id,
         userId: coord2._id,
         name: "Solar-Powered IoT Environmental Monitoring Network",
         description:
@@ -459,7 +303,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c3Id,
         userId: coord2._id,
         name: "Smart Grid Dynamic Load Balancing",
         description:
@@ -479,7 +322,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c3Id,
         userId: coord2._id,
         name: "Wearable Cardiac Monitoring Device",
         description:
@@ -500,10 +342,9 @@ async function seed(): Promise<void> {
       }).save(),
     ]);
 
-    // CS423 Fall 2023 — 36 projects
+    // 2023 archive projects
     await Promise.all([
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "AIxandria: AI Tools for Tomorrow's Education",
         description:
@@ -518,7 +359,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Anti-Copy-Paster-Python Plugin",
         description:
@@ -533,7 +373,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "AntiCopyPaster IntelliJ Plugin",
         description:
@@ -548,7 +387,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Barcode Blitz",
         description:
@@ -563,7 +401,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Barista Bonanza",
         description:
@@ -578,7 +415,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "ChatVPT",
         description:
@@ -593,7 +429,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "ChatVPT AI Workout ChatBot",
         description:
@@ -608,7 +443,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "COVER.AI",
         description:
@@ -625,7 +459,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Cybersecurity for Critical Infrastructure and IoT under 5G and 6G",
         description:
@@ -642,7 +475,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Daia",
         description:
@@ -657,7 +489,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Data Leakage in ML Models",
         description:
@@ -672,7 +503,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Development of Aerial Access Points for UAV (Drone) Networks in SAGIN for 5G and 6G Communications",
         description:
@@ -687,7 +517,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Digital Coach",
         description:
@@ -705,7 +534,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Good Hood",
         description:
@@ -723,7 +551,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Grid Discovery",
         description:
@@ -741,7 +568,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Harbor Currents",
         description:
@@ -760,7 +586,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Hubba",
         description:
@@ -775,7 +600,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Jasmin",
         description:
@@ -790,7 +614,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Lenovo Integrated Sustainability Assistant",
         description:
@@ -810,7 +633,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "LifeSkills AI Integration",
         description:
@@ -828,7 +650,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Maestro+",
         description:
@@ -847,7 +668,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Nummle",
         description:
@@ -866,7 +686,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Onset Worldwide Employee Training Manual",
         description:
@@ -881,7 +700,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "OPENSIOP",
         description:
@@ -896,7 +714,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "PairProj",
         description:
@@ -914,7 +731,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Securing the Unprotected: Enhancing Heartbeat Messaging for MAVLink UAV Communications",
         description:
@@ -929,7 +745,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "SpringBoard",
         description:
@@ -947,11 +762,10 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "The PV-Rex App",
         description:
-          "The PV-Rex App is a virtual reality-based rehabilitation system that combines guided exercise and meditation environments with physiological feedback. It provides two adaptive VR experiences: one focused on structured physical activity and another designed for relaxation and stress reduction. Using real-time biometric signals, the system adjusts environmental visuals and audio to respond to the user’s physical and emotional state, aiming to support both physical rehabilitation and mental well-being. The platform is designed to help users improve endurance, coordination, and relaxation through immersive, sensor-driven interactions in a controlled virtual setting.",
+          "The PV-Rex App is a virtual reality-based rehabilitation system that combines guided exercise and meditation environments with physiological feedback. It provides two adaptive VR experiences: one focused on structured physical activity and another designed for relaxation and stress reduction. Using real-time biometric signals, the system adjusts environmental visuals and audio to respond to the user's physical and emotional state, aiming to support both physical rehabilitation and mental well-being. The platform is designed to help users improve endurance, coordination, and relaxation through immersive, sensor-driven interactions in a controlled virtual setting.",
         advisors: [{ name: "Aaron Klappholz", email: "aklappho@stevens.edu" }],
         sponsor: "Raviraj Nataraj",
         contacts: [],
@@ -962,7 +776,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Time Trek - LifeSkills",
         description:
@@ -977,7 +790,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "TLCengine Chat Search",
         description:
@@ -992,7 +804,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "TLCengine Commute Team",
         description:
@@ -1007,7 +818,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "TLCengine Intelligent Automation Homebuying Experience",
         description:
@@ -1022,7 +832,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "TLCengine Mortgage Website",
         description:
@@ -1037,7 +846,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Tyger Fitness App and Sensor",
         description:
@@ -1052,7 +860,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Using AI for Accessible Alt-Text",
         description:
@@ -1067,7 +874,6 @@ async function seed(): Promise<void> {
         assignedGroup: null,
       }).save(),
       new Project({
-        courseId: c4Id,
         userId: coord1._id,
         name: "Wang Wang Health",
         description:
@@ -1083,87 +889,105 @@ async function seed(): Promise<void> {
       }).save(),
     ]);
 
-    // p6 is a closed project not assigned to any group — suppress unused-var lint
+    // Suppress unused-var lint for closed/archive projects
     void p6;
 
     //  Groups
     console.log("Seeding groups...");
 
     const [g1, g2, g3, g4, g5, g6, g7] = await Promise.all([
-      // CS423 Fall 2025 — Group 1 (s1–s4): assigned to p1
+      // Neural Knights (s1–s4): assigned to p1
       new Group({
         groupNumber: 1,
-        courseId: c1Id,
+        name: "Neural Knights",
+        groupCode: GROUP_CODES.g1,
         groupMembers: [s1._id, s2._id, s3._id, s4._id],
         isOpen: false,
+        isPublic: true,
+        joinRequests: [],
         interestedProjects: [p1._id, p2._id],
         assignedProject: p1._id,
       }).save(),
-      // CS423 Fall 2025 — Group 2 (s5–s8): assigned to p3
+      // Byte Brigade (s5–s8): assigned to p3
       new Group({
         groupNumber: 2,
-        courseId: c1Id,
+        name: "Byte Brigade",
+        groupCode: GROUP_CODES.g2,
         groupMembers: [s5._id, s6._id, s7._id, s8._id],
         isOpen: false,
+        isPublic: true,
+        joinRequests: [],
         interestedProjects: [p3._id, p4._id, p5._id],
         assignedProject: p3._id,
       }).save(),
-      // CS423 Fall 2025 — Group 3 (s9–s12): interested but unassigned
+      // Stack Overflow (s9–s12): open, public, unassigned
       new Group({
         groupNumber: 3,
-        courseId: c1Id,
+        name: "Stack Overflow",
+        groupCode: GROUP_CODES.g3,
         groupMembers: [s9._id, s10._id, s11._id, s12._id],
         isOpen: true,
+        isPublic: true,
+        joinRequests: [],
         interestedProjects: [p2._id, p4._id],
         assignedProject: null,
       }).save(),
-      // CS423 Spring 2026 — Group 1 (s13–s15)
+      // Debug Dynasty (s13–s15): open, public
       new Group({
-        groupNumber: 1,
-        courseId: c2Id,
+        groupNumber: 4,
+        name: "Debug Dynasty",
+        groupCode: GROUP_CODES.g4,
         groupMembers: [s13._id, s14._id, s15._id],
         isOpen: true,
+        isPublic: true,
+        joinRequests: [],
         interestedProjects: [p7._id, p8._id],
         assignedProject: null,
       }).save(),
-      // CS423 Spring 2026 — Group 2 (s16–s18)
+      // Lambda Legion (s16–s18): open, private (code required)
       new Group({
-        groupNumber: 2,
-        courseId: c2Id,
+        groupNumber: 5,
+        name: "Lambda Legion",
+        groupCode: GROUP_CODES.g5,
         groupMembers: [s16._id, s17._id, s18._id],
         isOpen: true,
+        isPublic: false,
+        joinRequests: [],
         interestedProjects: [p7._id],
         assignedProject: null,
       }).save(),
-      // EE496 Fall 2025 — Group 1 (s19–s22): assigned to p9
+      // Circuit Breakers (s19–s22): assigned to p9
       new Group({
-        groupNumber: 1,
-        courseId: c3Id,
+        groupNumber: 6,
+        name: "Circuit Breakers",
+        groupCode: GROUP_CODES.g6,
         groupMembers: [s19._id, s20._id, s21._id, s22._id],
         isOpen: false,
+        isPublic: true,
+        joinRequests: [],
         interestedProjects: [p9._id, p10._id],
         assignedProject: p9._id,
       }).save(),
-      // EE496 Fall 2025 — Group 2 (s23–s26): unassigned
+      // Voltage Vanguard (s23–s26): open, private (code required)
       new Group({
-        groupNumber: 2,
-        courseId: c3Id,
+        groupNumber: 7,
+        name: "Voltage Vanguard",
+        groupCode: GROUP_CODES.g7,
         groupMembers: [s23._id, s24._id, s25._id, s26._id],
         isOpen: true,
+        isPublic: false,
+        joinRequests: [],
         interestedProjects: [p10._id, p11._id],
         assignedProject: null,
       }).save(),
     ]);
 
-    //  Backfill: project.assignedGroup, course.lastGroupNumber
+    //  Backfill: project.assignedGroup
     console.log("Linking assigned groups to projects...");
     await Promise.all([
       Project.findByIdAndUpdate(p1._id, { assignedGroup: g1._id }),
       Project.findByIdAndUpdate(p3._id, { assignedGroup: g2._id }),
       Project.findByIdAndUpdate(p9._id, { assignedGroup: g6._id }),
-      Course.findByIdAndUpdate(course1._id, { lastGroupNumber: 3 }),
-      Course.findByIdAndUpdate(course2._id, { lastGroupNumber: 2 }),
-      Course.findByIdAndUpdate(course3._id, { lastGroupNumber: 2 }),
     ]);
 
     //  Backfill: user.groupId
@@ -1207,31 +1031,43 @@ async function seed(): Promise<void> {
 
     //  Summary
     console.log("\n=== Seed complete ===");
-    console.log("\nCourses:");
-    console.log(
-      `  CS423 Fall 2025   Section A  | join code: ${COURSE_CODES.CS423A}`,
-    );
-    console.log(
-      `  CS423 Spring 2026 Section B  | join code: ${COURSE_CODES.CS423B}`,
-    );
-    console.log(
-      `  EE496 Fall 2025   Section A  | join code: ${COURSE_CODES.ee496A}`,
-    );
     console.log(`\nAll accounts use password: ${DEV_PASSWORD}`);
     console.log("\nCoordinators:");
-    console.log("  s.chen@stevens.edu     (CS423 coordinator)");
-    console.log("  m.torres@stevens.edu   (EE496 coordinator)");
+    console.log("  s.chen@stevens.edu     Dr. Sarah Chen");
+    console.log("  m.torres@stevens.edu   Dr. Michael Torres");
+    console.log("\nGroups:");
+    console.log(
+      `  Neural Knights   | code: ${GROUP_CODES.g1} | public  | assigned -> AI Medical Diagnosis`,
+    );
+    console.log(
+      `  Byte Brigade     | code: ${GROUP_CODES.g2} | public  | assigned -> Real-Time Traffic`,
+    );
+    console.log(
+      `  Stack Overflow   | code: ${GROUP_CODES.g3} | public  | open, unassigned`,
+    );
+    console.log(
+      `  Debug Dynasty    | code: ${GROUP_CODES.g4} | public  | open, unassigned`,
+    );
+    console.log(
+      `  Lambda Legion    | code: ${GROUP_CODES.g5} | private | open, unassigned`,
+    );
+    console.log(
+      `  Circuit Breakers | code: ${GROUP_CODES.g6} | public  | assigned -> Solar IoT Monitor`,
+    );
+    console.log(
+      `  Voltage Vanguard | code: ${GROUP_CODES.g7} | private | open, unassigned`,
+    );
     console.log("\nSample students:");
     console.log(
-      "  ajohnson@stevens.edu    CS423 Fall  Group 1  assigned -> AI Medical Diagnosis",
+      "  ajohnson@stevens.edu    Neural Knights   assigned -> AI Medical Diagnosis",
     );
-    console.log("  jlee@stevens.edu        CS423 Fall  Group 3  unassigned");
-    console.log("  tdavis@stevens.edu      CS423 Spring Group 1 unassigned");
+    console.log("  jlee@stevens.edu        Stack Overflow   open, unassigned");
+    console.log("  tdavis@stevens.edu      Debug Dynasty    open, unassigned");
     console.log(
-      "  jcooper@stevens.edu     EE496 Fall  Group 1  assigned -> Solar IoT Monitor",
+      "  jcooper@stevens.edu     Circuit Breakers assigned -> Solar IoT Monitor",
     );
     console.log(
-      "\nCounts: 2 coordinators | 26 students | 4 courses | 47 projects | 7 groups",
+      "\nCounts: 2 coordinators | 26 students | 47 projects | 7 groups",
     );
 
     await mongoose.disconnect();

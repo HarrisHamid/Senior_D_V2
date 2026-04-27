@@ -10,6 +10,7 @@ export interface User {
   major?: string;
   verificationNeeded?: boolean;
   groupId?: string;
+  course?: string;
 }
 
 export interface LoginRequest {

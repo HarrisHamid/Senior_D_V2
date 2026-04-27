@@ -98,5 +98,7 @@ const GroupSchema = new Schema<IGroup>(
   },
 );
 
+GroupSchema.index({ courseId: 1, name: 1 });
+
 // Export Model
 export const Group = model<IGroup>("Group", GroupSchema);

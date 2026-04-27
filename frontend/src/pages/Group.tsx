@@ -234,6 +234,7 @@ const Group = () => {
       toast.error(
         err instanceof Error ? err.message : "Failed to update group name.",
       );
+      setEditNameValue(myGroup.name ?? `Group ${myGroup.groupNumber}`);
     }
   };
 

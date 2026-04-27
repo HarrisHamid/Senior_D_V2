@@ -4,7 +4,6 @@ import { AuthRequest } from "../types";
 import { Group } from "../models/Group.model";
 import { Project } from "../models/Project.model";
 import User from "../models/User.model";
-import Course from "../models/Course.model";
 import { generateUniqueGroupCode } from "../utils/codeGenerator";
 import {
   sendGroupInterestEmail,
@@ -26,23 +25,6 @@ export const createNewGroup = async (
 
     const { isPublic = true, name } = req.body;
 
-    // Enforce unique group name (case-insensitive)
-    if (name) {
-      const existing = await Group.findOne({
-        name: {
-          $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-          $options: "i",
-        },
-      });
-      if (existing) {
-        res.status(409).json({
-          success: false,
-          message: "A group with that name already exists",
-        });
-        return;
-      }
-    }
-
     const groupCode = await generateUniqueGroupCode(
       Group as unknown as import("mongoose").Model<{ groupCode: string }>,
     );
@@ -52,9 +34,33 @@ export const createNewGroup = async (
       .select("groupNumber");
     const groupNumber = (lastGroup?.groupNumber ?? 0) + 1;
 
+    // Use provided name or auto-generate so every group has a stored name
+    const effectiveName = name?.trim() || `Group ${groupNumber}`;
+    const escapedName = effectiveName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const namedConflict = await Group.findOne({
+      name: { $regex: `^${escapedName}$`, $options: "i" },
+    });
+
+    const autoMatch = effectiveName.match(/^Group (\d+)$/i);
+    const autoConflict = autoMatch
+      ? await Group.findOne({
+          $or: [{ name: { $exists: false } }, { name: null }],
+          groupNumber: parseInt(autoMatch[1]),
+        })
+      : null;
+
+    if (namedConflict || autoConflict) {
+      res.status(409).json({
+        success: false,
+        message: "A group with that name already exists",
+      });
+      return;
+    }
+
     const newGroup = await Group.create({
       groupNumber,
-      ...(name ? { name } : {}),
+      name: effectiveName,
       groupMembers: [new Types.ObjectId(user._id)],
       groupCode,
       isOpen: true,
@@ -121,13 +127,6 @@ export const joinGroup = async (
     const isPublic = group.isPublic !== false;
     if (isPublic) {
       group.groupMembers.push(new Types.ObjectId(user._id));
-
-      if (group.courseId) {
-        const course = await Course.findById(group.courseId);
-        if (course && group.groupMembers.length >= course.maxGroupSize) {
-          group.isOpen = false;
-        }
-      }
 
       await group.save();
 
@@ -244,13 +243,6 @@ export const respondToJoinRequest = async (
       }
 
       group.groupMembers.push(new Types.ObjectId(requestUserId));
-
-      if (group.courseId) {
-        const course = await Course.findById(group.courseId);
-        if (course && group.groupMembers.length >= course.maxGroupSize) {
-          group.isOpen = false;
-        }
-      }
 
       // Sync user's groupId
       await User.findByIdAndUpdate(requestUserId, {
@@ -909,7 +901,6 @@ export const updateGroupName = async (
       return;
     }
 
-    // Check uniqueness (case-insensitive), excluding this group
     const existing = await Group.findOne({
       _id: { $ne: group._id },
       name: {
