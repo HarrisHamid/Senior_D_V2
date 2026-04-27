@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { GridPattern } from "@/components/ui/grid-pattern";
+import { SCHOOLS } from "@/constants/schools";
 
 const requirements = [
   { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
@@ -21,6 +22,7 @@ export default function Signup() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [major, setMajor] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -70,6 +72,12 @@ export default function Signup() {
       setError(
         "Last name can only contain letters, spaces, hyphens, and apostrophes",
       );
+      return;
+    }
+
+    // Major validation
+    if (!major) {
+      setError("Please select your major");
       return;
     }
 
@@ -124,6 +132,7 @@ export default function Signup() {
         email: trimmedEmail,
         password,
         role: "student",
+        major,
       });
       navigate(
         courseCode ? `/dashboard?courseCode=${courseCode}` : "/dashboard",
@@ -210,6 +219,39 @@ export default function Signup() {
                   disabled={isSubmitting}
                 />
               </div>
+            </div>
+
+            {/* Major */}
+            <div>
+              <label
+                htmlFor="major"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Major
+              </label>
+              <select
+                id="major"
+                value={major}
+                onChange={(e) => setMajor(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50
+                  focus:ring-2 focus:ring-[#9B2335] focus:border-transparent focus:outline-none
+                  transition-all duration-200 ease-in-out text-gray-900"
+                required
+                disabled={isSubmitting}
+              >
+                <option value="" disabled>
+                  Select your major
+                </option>
+                {SCHOOLS.map((school) => (
+                  <optgroup key={school.name} label={school.name}>
+                    {school.majors.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
             </div>
 
             <div>

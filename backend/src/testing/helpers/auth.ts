@@ -8,6 +8,7 @@ export interface TestUser {
   email: string;
   password: string;
   role: "student" | "course coordinator";
+  major?: string;
 }
 
 export const defaultCoordinator: TestUser = {
@@ -22,6 +23,7 @@ export const defaultStudent: TestUser = {
   email: "student@stevens.edu",
   password: "Password123!",
   role: "student",
+  major: "Computer Science",
 };
 
 export const registerAndGetToken = async (
@@ -44,11 +46,14 @@ export const registerAndGetToken = async (
     return { token, userId: created._id.toString() };
   }
 
-  const res = await request(app).post("/api/auth/register").send({
-    name: user.name,
-    email: user.email,
-    password: user.password,
-  });
+  const res = await request(app)
+    .post("/api/auth/register")
+    .send({
+      name: user.name,
+      email: user.email,
+      password: user.password,
+      major: user.major ?? "Computer Science",
+    });
 
   return {
     token: res.body.data.token,

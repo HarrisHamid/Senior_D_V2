@@ -134,52 +134,153 @@ async function seed(): Promise<void> {
     //  Students
     console.log("Seeding students...");
 
-    const mkStudent = (name: string, email: string, courseId: string) =>
+    const mkStudent = (
+      name: string,
+      email: string,
+      courseId: string,
+      major: string,
+    ) =>
       new User({
         name,
         email,
         password: DEV_PASSWORD,
         role: "student",
         course: courseId,
+        major,
       }).save();
 
     // CS423 Fall 2025 — 12 students across 3 groups of 4
     const [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12] =
       await Promise.all([
-        mkStudent("Alex Johnson", "ajohnson@stevens.edu", c1Id),
-        mkStudent("Emily Rodriguez", "erodriguez@stevens.edu", c1Id),
-        mkStudent("Marcus Williams", "mwilliams@stevens.edu", c1Id),
-        mkStudent("Sophie Park", "spark@stevens.edu", c1Id),
-        mkStudent("Daniel Kim", "dkim@stevens.edu", c1Id),
-        mkStudent("Aisha Patel", "apatel@stevens.edu", c1Id),
-        mkStudent("Ryan Thompson", "rthompson@stevens.edu", c1Id),
-        mkStudent("Natalie Brown", "nbrown@stevens.edu", c1Id),
-        mkStudent("Jordan Lee", "jlee@stevens.edu", c1Id),
-        mkStudent("Priya Sharma", "psharma@stevens.edu", c1Id),
-        mkStudent("Chris Martinez", "cmartinez@stevens.edu", c1Id),
-        mkStudent("Hannah Wilson", "hwilson@stevens.edu", c1Id),
+        mkStudent(
+          "Alex Johnson",
+          "ajohnson@stevens.edu",
+          c1Id,
+          "Computer Science",
+        ),
+        mkStudent(
+          "Emily Rodriguez",
+          "erodriguez@stevens.edu",
+          c1Id,
+          "Computer Engineering",
+        ),
+        mkStudent(
+          "Marcus Williams",
+          "mwilliams@stevens.edu",
+          c1Id,
+          "Computer Science",
+        ),
+        mkStudent(
+          "Sophie Park",
+          "spark@stevens.edu",
+          c1Id,
+          "Computer Engineering",
+        ),
+        mkStudent("Daniel Kim", "dkim@stevens.edu", c1Id, "Computer Science"),
+        mkStudent(
+          "Aisha Patel",
+          "apatel@stevens.edu",
+          c1Id,
+          "Computer Engineering",
+        ),
+        mkStudent(
+          "Ryan Thompson",
+          "rthompson@stevens.edu",
+          c1Id,
+          "Computer Science",
+        ),
+        mkStudent(
+          "Natalie Brown",
+          "nbrown@stevens.edu",
+          c1Id,
+          "Computer Engineering",
+        ),
+        mkStudent("Jordan Lee", "jlee@stevens.edu", c1Id, "Computer Science"),
+        mkStudent(
+          "Priya Sharma",
+          "psharma@stevens.edu",
+          c1Id,
+          "Computer Engineering",
+        ),
+        mkStudent(
+          "Chris Martinez",
+          "cmartinez@stevens.edu",
+          c1Id,
+          "Computer Science",
+        ),
+        mkStudent(
+          "Hannah Wilson",
+          "hwilson@stevens.edu",
+          c1Id,
+          "Computer Engineering",
+        ),
       ]);
 
     // CS423 Spring 2026 — 6 students across 2 groups of 3
     const [s13, s14, s15, s16, s17, s18] = await Promise.all([
-      mkStudent("Tyler Davis", "tdavis@stevens.edu", c2Id),
-      mkStudent("Maya Anderson", "manderson@stevens.edu", c2Id),
-      mkStudent("Sam Nguyen", "snguyen@stevens.edu", c2Id),
-      mkStudent("Isabella Clark", "iclark@stevens.edu", c2Id),
-      mkStudent("Ethan White", "ewhite@stevens.edu", c2Id),
-      mkStudent("Layla Hassan", "lhassan@stevens.edu", c2Id),
+      mkStudent("Tyler Davis", "tdavis@stevens.edu", c2Id, "Computer Science"),
+      mkStudent(
+        "Maya Anderson",
+        "manderson@stevens.edu",
+        c2Id,
+        "Computer Engineering",
+      ),
+      mkStudent("Sam Nguyen", "snguyen@stevens.edu", c2Id, "Computer Science"),
+      mkStudent(
+        "Isabella Clark",
+        "iclark@stevens.edu",
+        c2Id,
+        "Computer Engineering",
+      ),
+      mkStudent("Ethan White", "ewhite@stevens.edu", c2Id, "Computer Science"),
+      mkStudent(
+        "Layla Hassan",
+        "lhassan@stevens.edu",
+        c2Id,
+        "Computer Engineering",
+      ),
     ]);
 
     // EE496 Fall 2025 — 8 students across 2 groups of 4
     const [s19, s20, s21, s22, s23, s24, s25, s26] = await Promise.all([
-      mkStudent("James Cooper", "jcooper@stevens.edu", c3Id),
-      mkStudent("Olivia Turner", "oturner@stevens.edu", c3Id),
-      mkStudent("Noah Bennett", "nbennett@stevens.edu", c3Id),
-      mkStudent("Ava Mitchell", "amitchell@stevens.edu", c3Id),
-      mkStudent("Liam Garcia", "lgarcia@stevens.edu", c3Id),
-      mkStudent("Zoe Robinson", "zrobinson@stevens.edu", c3Id),
-      mkStudent("Mason Hall", "mhall@stevens.edu", c3Id),
-      mkStudent("Chloe Adams", "cadams@stevens.edu", c3Id),
+      mkStudent(
+        "James Cooper",
+        "jcooper@stevens.edu",
+        c3Id,
+        "Computer Science",
+      ),
+      mkStudent(
+        "Olivia Turner",
+        "oturner@stevens.edu",
+        c3Id,
+        "Computer Engineering",
+      ),
+      mkStudent(
+        "Noah Bennett",
+        "nbennett@stevens.edu",
+        c3Id,
+        "Computer Science",
+      ),
+      mkStudent(
+        "Ava Mitchell",
+        "amitchell@stevens.edu",
+        c3Id,
+        "Computer Engineering",
+      ),
+      mkStudent("Liam Garcia", "lgarcia@stevens.edu", c3Id, "Computer Science"),
+      mkStudent(
+        "Zoe Robinson",
+        "zrobinson@stevens.edu",
+        c3Id,
+        "Computer Engineering",
+      ),
+      mkStudent("Mason Hall", "mhall@stevens.edu", c3Id, "Computer Science"),
+      mkStudent(
+        "Chloe Adams",
+        "cadams@stevens.edu",
+        c3Id,
+        "Computer Engineering",
+      ),
     ]);
 
     //  Projects

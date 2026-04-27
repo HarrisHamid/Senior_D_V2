@@ -753,12 +753,14 @@ describe("Course Routes - /api/courses", () => {
         email: "studA@stevens.edu",
         password: "Password123!",
         role: "student",
+        major: "Computer Science",
       };
       const studentB: TestUser = {
         name: "Student B",
         email: "studB@stevens.edu",
         password: "Password123!",
         role: "student",
+        major: "Computer Engineering",
       };
 
       const [

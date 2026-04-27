@@ -23,7 +23,7 @@ export interface RegisterRequest {
   password: string;
   role: UserRole;
   school?: string;
-  major?: string;
+  major: string;
 }
 
 export interface AuthResponse {

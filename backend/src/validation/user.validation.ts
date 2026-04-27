@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ALL_MAJORS } from "../constants/schools";
 
 export const registerSchema = z.object({
   body: z.object({
@@ -26,6 +27,12 @@ export const registerSchema = z.object({
         /[^a-zA-Z0-9]/,
         "Password must contain at least one special character",
       ),
+    major: z
+      .string()
+      .min(1, "Please select your major")
+      .refine((val) => (ALL_MAJORS as readonly string[]).includes(val), {
+        message: "Please select a valid major",
+      }),
   }),
 });
 
