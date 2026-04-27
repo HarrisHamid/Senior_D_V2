@@ -96,7 +96,7 @@ const ProjectDetail = () => {
       _id: string;
       groupNumber: number;
       name?: string;
-      groupMembers: { _id: string; name: string; email: string }[];
+      groupMembers: { _id: string; name: string; email: string; major?: string }[];
     }[]
   >([]);
   const [allGroups, setAllGroups] = useState<
@@ -415,13 +415,20 @@ const ProjectDetail = () => {
                                   <span className="text-sm font-medium text-[#0d0d0d]">
                                     {member.name}
                                   </span>
-                                  <a
-                                    href={`mailto:${member.email}`}
-                                    className="text-xs text-muted-foreground hover:text-[#9B2335] flex items-center gap-1 transition-colors"
-                                  >
-                                    <Mail className="w-3 h-3" />
-                                    {member.email}
-                                  </a>
+                                  <div className="flex items-center gap-2">
+                                    {member.major && (
+                                      <span className="text-xs text-muted-foreground">
+                                        {member.major}
+                                      </span>
+                                    )}
+                                    <a
+                                      href={`mailto:${member.email}`}
+                                      className="text-xs text-muted-foreground hover:text-[#9B2335] flex items-center gap-1 transition-colors"
+                                    >
+                                      <Mail className="w-3 h-3" />
+                                      {member.email}
+                                    </a>
+                                  </div>
                                 </div>
                               ))}
                             </div>

@@ -24,6 +24,7 @@ interface PopulatedMember {
   _id: string;
   name: string;
   email: string;
+  major?: string;
 }
 
 interface PopulatedProject {
@@ -478,6 +479,11 @@ const BrowseGroups = () => {
                           </p>
                           <p className="text-xs text-gray-400 truncate">
                             {m.email}
+                            {m.major && (
+                              <span className="before:content-['·'] before:mx-1">
+                                {m.major}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </li>

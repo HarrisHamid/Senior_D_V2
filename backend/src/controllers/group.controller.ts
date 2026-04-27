@@ -277,10 +277,10 @@ export const respondToJoinRequest = async (
       .catch(console.error);
 
     const populated = await Group.findById(groupId)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     res.status(200).json({
       success: true,
@@ -424,10 +424,10 @@ export const removeMember = async (
     await User.findByIdAndUpdate(memberId, { groupId: null });
 
     const updatedGroup = await Group.findById(groupId)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     res.status(200).json({
       success: true,
@@ -504,10 +504,10 @@ export const promoteLeader = async (
     await group.save();
 
     const updatedGroup = await Group.findById(groupId)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     res.status(200).json({
       success: true,
@@ -537,10 +537,10 @@ export const getGroupById = async (
     }
 
     const group = await Group.findById(groupId)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     if (!group) {
       res.status(404).json({ success: false, message: "Group not found" });
@@ -641,10 +641,10 @@ export const toggleStatus = async (
     await group.save();
 
     const populated = await Group.findById(groupId)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     res.status(200).json({
       success: true,
@@ -689,10 +689,10 @@ export const toggleVisibility = async (
     await group.save();
 
     const populated = await Group.findById(groupId)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     res.status(200).json({
       success: true,
@@ -800,10 +800,10 @@ export const addInterestedProject = async (
       .catch(console.error);
 
     const populated = await Group.findById(group._id)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     res.status(200).json({
       success: true,
@@ -861,10 +861,10 @@ export const removeInterestedProject = async (
     await group.save();
 
     const populated = await Group.findById(group._id)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     res.status(200).json({
       success: true,
@@ -929,10 +929,10 @@ export const updateGroupName = async (
     await group.save();
 
     const populated = await Group.findById(groupId)
-      .populate("groupMembers", "name email")
+      .populate("groupMembers", "name email major")
       .populate("interestedProjects")
       .populate("assignedProject")
-      .populate("joinRequests.userId", "name email");
+      .populate("joinRequests.userId", "name email major");
 
     res.status(200).json({
       success: true,
@@ -958,7 +958,7 @@ export const getAllInterestedGroups = async (
 
     const groups = await Group.find({
       interestedProjects: new Types.ObjectId(projectId),
-    }).populate("groupMembers", "name email");
+    }).populate("groupMembers", "name email major");
 
     res.status(200).json({
       success: true,

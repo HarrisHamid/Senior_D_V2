@@ -6,6 +6,7 @@ export interface JoinRequest {
     _id: string;
     name: string;
     email: string;
+    major?: string;
   };
   status: "pending" | "approved" | "rejected";
   requestedAt: string;

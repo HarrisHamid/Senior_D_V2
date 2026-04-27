@@ -34,6 +34,7 @@ interface PopulatedMember {
   _id: string;
   name: string;
   email: string;
+  major?: string;
 }
 
 interface PopulatedProject {
@@ -474,6 +475,11 @@ const Group = () => {
                         <p className="text-xs text-gray-400 truncate mt-0.5">
                           {member.email}
                         </p>
+                        {member.major && (
+                          <p className="text-xs text-gray-400 truncate">
+                            {member.major}
+                          </p>
+                        )}
                       </div>
                     </div>
                     {isLeader && idx !== 0 && (
@@ -746,6 +752,11 @@ const Group = () => {
                           <p className="text-xs text-gray-400 truncate">
                             {req.userId.email}
                           </p>
+                          {req.userId.major && (
+                            <p className="text-xs text-gray-400 truncate">
+                              {req.userId.major}
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-1.5 shrink-0 ml-2">
                           <button
