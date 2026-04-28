@@ -62,7 +62,6 @@ export const authenticate = async (
       school: user.school,
       major: user.major,
       verificationNeeded: user.verificationNeeded,
-      course: user.course,
       groupId: user.groupId,
     };
 

@@ -40,7 +40,6 @@ export interface AssignGroupRequest {
 
 export interface ProjectData {
   _id: string;
-  courseId?: string;
   userId: string;
   name: string;
   description: string;
@@ -97,17 +96,6 @@ export const projectService = {
     const response = await api.get<ProjectsResponse>("/projects", {
       params: query,
     });
-    return response.data;
-  },
-
-  async getProjectsByCourse(
-    courseId: string,
-    query?: GetProjectsQuery,
-  ): Promise<ProjectsResponse> {
-    const response = await api.get<ProjectsResponse>(
-      `/projects/course/${courseId}`,
-      { params: query },
-    );
     return response.data;
   },
 

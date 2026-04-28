@@ -15,7 +15,7 @@ import {
   authHeader,
   TestUser,
 } from "./helpers/auth";
-import { validCourseData, validProjectData } from "./helpers/fixtures";
+import { validProjectData } from "./helpers/fixtures";
 import { Group } from "../models/Group.model";
 
 describe("Project Routes - /api/projects", () => {
@@ -31,21 +31,11 @@ describe("Project Routes - /api/projects", () => {
     await clearTestDB();
   });
 
-  // Helper: register coordinator + create course
-  const setupCourse = async (coordinator?: TestUser) => {
+  // Helper: register coordinator + create project
+  const setupProject = async (coordinator?: TestUser) => {
     const { token: coordToken, userId } = await registerAndGetToken(
       coordinator || defaultCoordinator,
     );
-    const courseRes = await request(app)
-      .post("/api/courses/")
-      .set(authHeader(coordToken))
-      .send(validCourseData);
-    return { coordToken, userId, course: courseRes.body.data.course };
-  };
-
-  // Helper: register coordinator + create course + create project
-  const setupProject = async (coordinator?: TestUser) => {
-    const { coordToken, userId, course } = await setupCourse(coordinator);
     const projectRes = await request(app)
       .post("/api/projects/")
       .set(authHeader(coordToken))
@@ -53,7 +43,6 @@ describe("Project Routes - /api/projects", () => {
     return {
       coordToken,
       userId,
-      course,
       project: projectRes.body.data.project,
     };
   };
@@ -76,7 +65,8 @@ describe("Project Routes - /api/projects", () => {
   // =====================================================================
   describe("POST /api/projects/ - Create Project", () => {
     it("should create a project as Coordinator and return 201", async () => {
-      const { coordToken } = await setupCourse();
+      const { token: coordToken } =
+        await registerAndGetToken(defaultCoordinator);
 
       const res = await request(app)
         .post("/api/projects/")
@@ -118,7 +108,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 400 when name is missing", async () => {
-      const { coordToken } = await setupCourse();
+      const { token: coordToken } =
+        await registerAndGetToken(defaultCoordinator);
       const { name: _name, ...noName } = validProjectData;
 
       const res = await request(app)
@@ -131,7 +122,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 400 when description is missing", async () => {
-      const { coordToken } = await setupCourse();
+      const { token: coordToken } =
+        await registerAndGetToken(defaultCoordinator);
       const { description: _desc, ...noDesc } = validProjectData;
 
       const res = await request(app)
@@ -144,7 +136,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 400 when sponsor is missing", async () => {
-      const { coordToken } = await setupCourse();
+      const { token: coordToken } =
+        await registerAndGetToken(defaultCoordinator);
       const { sponsor: _sponsor, ...noSponsor } = validProjectData;
 
       const res = await request(app)
@@ -157,7 +150,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return 400 when year is below 2020", async () => {
-      const { coordToken } = await setupCourse();
+      const { token: coordToken } =
+        await registerAndGetToken(defaultCoordinator);
 
       const res = await request(app)
         .post("/api/projects/")
@@ -190,7 +184,8 @@ describe("Project Routes - /api/projects", () => {
     });
 
     it("should return empty array when no projects exist", async () => {
-      const { coordToken } = await setupCourse();
+      const { token: coordToken } =
+        await registerAndGetToken(defaultCoordinator);
 
       const res = await request(app)
         .get("/api/projects/")

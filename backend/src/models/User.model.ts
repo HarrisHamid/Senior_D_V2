@@ -11,7 +11,6 @@ export interface IUser extends Document {
   school?: string;
   major?: string;
   verificationNeeded: boolean;
-  course?: string;
   groupId?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -64,12 +63,6 @@ const UserSchema = new Schema<IUser>(
     verificationNeeded: {
       type: Boolean,
       default: false,
-    },
-    course: {
-      type: String,
-      ref: "Course",
-      default: null,
-      index: true,
     },
     groupId: {
       type: String,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { GridPattern } from "@/components/ui/grid-pattern";
@@ -32,9 +32,6 @@ export default function Signup() {
 
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const courseCode = searchParams.get("courseCode");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -134,9 +131,7 @@ export default function Signup() {
         role: "student",
         major,
       });
-      navigate(
-        courseCode ? `/dashboard?courseCode=${courseCode}` : "/dashboard",
-      );
+      navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {

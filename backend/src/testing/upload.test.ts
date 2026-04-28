@@ -17,7 +17,7 @@ import {
   authHeader,
   TestUser,
 } from "./helpers/auth";
-import { validCourseData, validProjectData } from "./helpers/fixtures";
+import { validProjectData } from "./helpers/fixtures";
 
 const FIXTURES = path.join(__dirname, "fixtures");
 const PDF_PATH = path.join(FIXTURES, "test.pdf");
@@ -42,24 +42,18 @@ describe("Upload Routes - /api/uploads", () => {
     await clearTestDB();
   });
 
-  // Helper: register coordinator + create course + create project
+  // Helper: register coordinator + create project
   const setupProject = async (coordinator?: TestUser) => {
     const { token: coordToken, userId } = await registerAndGetToken(
       coordinator || defaultCoordinator,
     );
-    const courseRes = await request(app)
-      .post("/api/courses/")
-      .set(authHeader(coordToken))
-      .send(validCourseData);
-    const course = courseRes.body.data.course;
-
     const projectRes = await request(app)
       .post("/api/projects/")
       .set(authHeader(coordToken))
-      .send({ ...validProjectData, courseId: course._id });
+      .send(validProjectData);
     const project = projectRes.body.data.project;
 
-    return { coordToken, userId, course, project };
+    return { coordToken, userId, project };
   };
 
   // =====================================================================

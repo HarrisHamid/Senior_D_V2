@@ -10,7 +10,6 @@ export interface User {
   major?: string;
   verificationNeeded?: boolean;
   groupId?: string;
-  course?: string;
 }
 
 export interface LoginRequest {
@@ -43,23 +42,10 @@ export interface UserResponse {
   };
 }
 
-export interface Course {
-  id: string;
-  programName: string;
-  courseNumber: string;
-  section: string;
-  semester: string;
-  year: number;
-  code: string;
-  coordinatorId: string;
-  isOpen: boolean;
-}
-
 export interface Project {
   id: string;
   name: string;
   description: string;
-  courseId?: string;
   advisors: Advisor[];
   sponsors: Sponsor[];
   requiredMajors: MajorRequirement[];
@@ -89,7 +75,6 @@ export interface Group {
   id: string;
   groupNumber: string;
   code: string;
-  courseId?: string;
   members: GroupMember[];
   interestedProjects: string[];
   status: "Open" | "Closed";

@@ -2,7 +2,6 @@ import { Document, Schema, model, Types } from "mongoose";
 
 // Typescript Interface
 export interface IProject extends Document {
-  courseId?: string;
   userId: Types.ObjectId;
   name: string;
   description: string;
@@ -19,11 +18,6 @@ export interface IProject extends Document {
 // Mongoose Schema
 const ProjectSchema = new Schema<IProject>(
   {
-    courseId: {
-      type: String,
-      required: false,
-      index: true,
-    },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",

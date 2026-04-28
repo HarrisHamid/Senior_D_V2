@@ -12,7 +12,6 @@ import Dashboard from "./pages/Dashboard";
 import Group from "./pages/Group";
 import BrowseGroups from "./pages/BrowseGroups";
 import Profile from "./pages/Profile";
-import CreateCourse from "./pages/CreateCourse";
 import CreateProject from "./pages/CreateProject";
 import MyProjects from "./pages/MyProjects";
 import NotFound from "./pages/NotFound";
@@ -49,7 +48,6 @@ function App() {
           </Route>
 
           <Route element={<RoleRoute allowedRoles={["course coordinator"]} />}>
-            <Route path="/course/create" element={<CreateCourse />} />
             <Route path="/project/add" element={<CreateProject />} />
             <Route path="/my-projects" element={<MyProjects />} />
           </Route>

@@ -350,7 +350,7 @@ describe("Auth Routes - /api/auth", () => {
       expect(res.body.data.user.name).toBe(defaultStudent.name);
     });
 
-    it("should return user data including verificationNeeded, course, and groupId fields", async () => {
+    it("should return user data including verificationNeeded and groupId fields", async () => {
       const registerRes = await request(app)
         .post("/api/auth/register")
         .send(defaultStudent);
@@ -361,7 +361,6 @@ describe("Auth Routes - /api/auth", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(res.body.data.user).toHaveProperty("verificationNeeded");
-      expect(res.body.data.user).toHaveProperty("course");
       expect(res.body.data.user).toHaveProperty("groupId");
     });
 

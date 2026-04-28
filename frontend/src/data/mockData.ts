@@ -1,29 +1,4 @@
-import type { Course, Project, Group } from "@/types";
-
-export const mockCourses: Course[] = [
-  {
-    id: "1",
-    programName: "Computer Science",
-    courseNumber: "CS 492",
-    section: "A",
-    semester: "Fall",
-    year: 2024,
-    code: "CS492FA",
-    coordinatorId: "1",
-    isOpen: true,
-  },
-  {
-    id: "2",
-    programName: "Computer Engineering",
-    courseNumber: "CPE 490",
-    section: "B",
-    semester: "Spring",
-    year: 2025,
-    code: "CPE490B",
-    coordinatorId: "1",
-    isOpen: true,
-  },
-];
+import type { Project, Group } from "@/types";
 
 export const mockProjects: Project[] = [
   {
@@ -31,7 +6,6 @@ export const mockProjects: Project[] = [
     name: "AI-Powered Healthcare Diagnostic System",
     description:
       "Develop a machine learning system to assist doctors in diagnosing diseases from medical imaging data. The system should use computer vision and deep learning to analyze X-rays, MRIs, and CT scans.",
-    courseId: "1",
     advisors: [{ name: "Dr. Sarah Johnson", email: "sjohnson@stevens.edu" }],
     sponsors: [{ name: "Stevens Medical Center", email: "smc@stevens.edu" }],
     requiredMajors: [
@@ -47,7 +21,7 @@ export const mockProjects: Project[] = [
     name: "Smart Campus Energy Management",
     description:
       "Create an IoT-based system to monitor and optimize energy consumption across the Stevens campus. Include real-time monitoring, predictive analytics, and automated control systems.",
-    courseId: "1",
+
     advisors: [
       { name: "Dr. Michael Chen", email: "mchen@stevens.edu" },
       { name: "Dr. Emily Roberts", email: "eroberts@stevens.edu" },
@@ -71,7 +45,7 @@ export const mockProjects: Project[] = [
     name: "Blockchain-Based Supply Chain Tracker",
     description:
       "Develop a decentralized application for tracking products through the supply chain using blockchain technology. Focus on transparency, security, and real-time updates.",
-    courseId: "1",
+
     advisors: [{ name: "Dr. James Wilson", email: "jwilson@stevens.edu" }],
     sponsors: [
       { name: "Global Logistics Inc.", email: "contact@globallogistics.com" },
@@ -87,7 +61,7 @@ export const mockProjects: Project[] = [
     name: "Augmented Reality Navigation System",
     description:
       "Create an AR mobile application to help visitors navigate the Stevens campus. Include indoor positioning, 3D wayfinding, and points of interest.",
-    courseId: "1",
+
     advisors: [{ name: "Dr. Lisa Anderson", email: "landerson@stevens.edu" }],
     sponsors: [
       { name: "Stevens Innovation Center", email: "innovation@stevens.edu" },
@@ -105,7 +79,7 @@ export const mockProjects: Project[] = [
     name: "Cybersecurity Threat Detection Platform",
     description:
       "Build an advanced threat detection system using machine learning to identify and respond to cybersecurity threats in real-time. Include network monitoring and automated response capabilities.",
-    courseId: "2",
+
     advisors: [{ name: "Dr. Robert Martinez", email: "rmartinez@stevens.edu" }],
     sponsors: [
       { name: "CyberSecure Solutions", email: "info@cybersecure.com" },
@@ -123,7 +97,7 @@ export const mockProjects: Project[] = [
     name: "Autonomous Drone Delivery System",
     description:
       "Design and implement an autonomous drone system for package delivery on campus. Include obstacle avoidance, route optimization, and secure package handling.",
-    courseId: "2",
+
     advisors: [{ name: "Dr. Amanda Taylor", email: "ataylor@stevens.edu" }],
     sponsors: [{ name: "Stevens Robotics Lab", email: "robotics@stevens.edu" }],
     requiredMajors: [
@@ -139,7 +113,7 @@ export const mockProjects: Project[] = [
     name: "Mental Health Support Chatbot",
     description:
       "Develop an AI-powered chatbot to provide mental health support and resources to students. Use natural language processing and sentiment analysis.",
-    courseId: "1",
+
     advisors: [{ name: "Dr. Patricia Lee", email: "plee@stevens.edu" }],
     sponsors: [
       { name: "Stevens Counseling Center", email: "counseling@stevens.edu" },
@@ -157,7 +131,7 @@ export const mockProjects: Project[] = [
     name: "Sustainable Transportation Analytics",
     description:
       "Create a data analytics platform to track and optimize sustainable transportation options in Hoboken. Include bike-sharing, electric vehicles, and public transit.",
-    courseId: "2",
+
     advisors: [{ name: "Dr. David Brown", email: "dbrown@stevens.edu" }],
     sponsors: [
       { name: "City of Hoboken", email: "transportation@hoboken.gov" },
@@ -177,7 +151,7 @@ export const mockGroups: Group[] = [
     id: "1",
     groupNumber: "G001",
     code: "ABC1234567",
-    courseId: "1",
+
     members: [
       { userId: "1", name: "John Doe", email: "jdoe@stevens.edu" },
       { userId: "2", name: "Jane Smith", email: "jsmith@stevens.edu" },
@@ -191,7 +165,7 @@ export const mockGroups: Group[] = [
     id: "2",
     groupNumber: "G002",
     code: "XYZ9876543",
-    courseId: "1",
+
     members: [
       { userId: "4", name: "Sarah Williams", email: "swilliams@stevens.edu" },
       { userId: "5", name: "Tom Brown", email: "tbrown@stevens.edu" },
@@ -203,7 +177,7 @@ export const mockGroups: Group[] = [
     id: "3",
     groupNumber: "G003",
     code: "DEF5554444",
-    courseId: "1",
+
     members: [
       { userId: "6", name: "Emily Davis", email: "edavis@stevens.edu" },
       { userId: "7", name: "Chris Wilson", email: "cwilson@stevens.edu" },
@@ -216,7 +190,7 @@ export const mockGroups: Group[] = [
     id: "4",
     groupNumber: "G004",
     code: "GHI1112223",
-    courseId: "2",
+
     members: [
       { userId: "9", name: "Rachel Green", email: "rgreen@stevens.edu" },
       { userId: "10", name: "Ross Geller", email: "rgeller@stevens.edu" },

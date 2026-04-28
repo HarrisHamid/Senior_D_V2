@@ -15,7 +15,6 @@ import {
   authHeader,
   TestUser,
 } from "./helpers/auth";
-import { validCourseData } from "./helpers/fixtures";
 import { Group } from "../models/Group.model";
 import { Project } from "../models/Project.model";
 
@@ -32,25 +31,10 @@ describe("Group Routes - /api/groups", () => {
     await clearTestDB();
   });
 
-  // Helper: register coordinator + create course
-  const setupCourse = async (coordinator?: TestUser) => {
-    const { token: coordToken, userId } = await registerAndGetToken(
-      coordinator || defaultCoordinator,
-    );
-    const courseRes = await request(app)
-      .post("/api/courses/")
-      .set(authHeader(coordToken))
-      .send(validCourseData);
-    return { coordToken, userId, course: courseRes.body.data.course };
-  };
-
-  // Helper: register coordinator + course + register student + student creates group
+  // Helper: register coordinator + register student + student creates group
   const setupGroup = async (student?: TestUser, coordinator?: TestUser) => {
-    const {
-      coordToken,
-      userId: coordUserId,
-      course,
-    } = await setupCourse(coordinator);
+    const { token: coordToken, userId: coordUserId } =
+      await registerAndGetToken(coordinator || defaultCoordinator);
     const { token: studentToken, userId: studentId } =
       await registerAndGetToken(student || defaultStudent);
 
@@ -64,7 +48,6 @@ describe("Group Routes - /api/groups", () => {
       coordUserId,
       studentToken,
       studentId,
-      course,
       group: groupRes.body.data,
     };
   };
@@ -129,7 +112,8 @@ describe("Group Routes - /api/groups", () => {
     });
 
     it("should return 403 when called by a Coordinator", async () => {
-      const { coordToken } = await setupCourse();
+      const { token: coordToken } =
+        await registerAndGetToken(defaultCoordinator);
 
       const res = await request(app)
         .post("/api/groups/")
@@ -400,7 +384,8 @@ describe("Group Routes - /api/groups", () => {
     });
 
     it("should return empty array when no groups exist", async () => {
-      const { coordToken } = await setupCourse();
+      const { token: coordToken } =
+        await registerAndGetToken(defaultCoordinator);
 
       const res = await request(app)
         .get("/api/groups/")

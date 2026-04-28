@@ -236,24 +236,3 @@ export const sendJoinRequestResponseEmail = async (
     html: `<p>Hi ${esc(requesterName)},</p><p>${esc(body)}</p>`,
   });
 };
-
-/**
- * Notify a course coordinator when a student joins their course.
- */
-export const sendStudentJoinedCourseEmail = async (
-  coordinatorEmail: string,
-  coordinatorName: string,
-  studentName: string,
-  courseName: string,
-): Promise<void> => {
-  await provider.send({
-    to: coordinatorEmail,
-    subject: `${studentName} joined your course`,
-    text: `Hi ${coordinatorName},\n\n${studentName} has joined your course "${courseName}".\n\nLog in to the Senior Design Marketplace to view your course roster.`,
-    html: `
-      <p>Hi ${esc(coordinatorName)},</p>
-      <p><strong>${esc(studentName)}</strong> has joined your course <strong>"${esc(courseName)}"</strong>.</p>
-      <p>Log in to the Senior Design Marketplace to view your course roster.</p>
-    `,
-  });
-};

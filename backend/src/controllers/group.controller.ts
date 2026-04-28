@@ -556,32 +556,6 @@ export const getGroupById = async (
   }
 };
 
-// Get all groups by course
-export const getAllGroupsByCourse = async (
-  req: AuthRequest,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { courseId } = req.params;
-
-    const groups = await Group.find({ courseId });
-
-    res.status(200).json({
-      success: true,
-      data: groups.map((g) => ({
-        ...g.toObject(),
-        numberOfMembers: g.groupMembers.length,
-      })),
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch groups",
-      error: (error as Error).message,
-    });
-  }
-};
-
 // Get all groups (global view)
 export const getAllGroups = async (
   _req: AuthRequest,

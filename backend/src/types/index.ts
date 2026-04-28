@@ -8,7 +8,6 @@ export interface IUser {
   school?: string;
   major?: string;
   verificationNeeded: boolean;
-  course?: string;
   groupId?: string;
 }
 

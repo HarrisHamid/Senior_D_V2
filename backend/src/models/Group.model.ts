@@ -11,7 +11,6 @@ export interface IJoinRequest {
 export interface IGroup extends Document {
   groupNumber: number;
   name?: string;
-  courseId?: string;
   groupMembers: Types.ObjectId[];
   groupCode?: string;
   isOpen: boolean;
@@ -32,11 +31,6 @@ const GroupSchema = new Schema<IGroup>(
       type: String,
       required: false,
       trim: true,
-    },
-    courseId: {
-      type: String,
-      required: false,
-      index: true,
     },
     groupMembers: {
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
@@ -97,8 +91,6 @@ const GroupSchema = new Schema<IGroup>(
     timestamps: true, // Adds createdAt and updatedAt fields
   },
 );
-
-GroupSchema.index({ courseId: 1, name: 1 });
 
 // Export Model
 export const Group = model<IGroup>("Group", GroupSchema);

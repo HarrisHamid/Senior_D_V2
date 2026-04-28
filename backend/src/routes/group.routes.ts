@@ -8,7 +8,6 @@ import {
   updateGroupName,
   getGroupById,
   getAllGroups,
-  getAllGroupsByCourse,
   toggleStatus,
   toggleVisibility,
   respondToJoinRequest,
@@ -43,12 +42,6 @@ router.patch(
 // Shared routes (any authenticated user)
 // NOTE: static paths before /:groupId to avoid route collision
 router.get("/", getAllGroups);
-
-router.get(
-  "/course/:courseId",
-  validateRequest(groupSchemas.courseId),
-  getAllGroupsByCourse,
-);
 
 router.get(
   "/interested/:projectId",

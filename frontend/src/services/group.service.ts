@@ -14,7 +14,6 @@ export interface JoinRequest {
 
 export interface GroupData {
   _id: string;
-  courseId?: string;
   groupNumber: number;
   name?: string;
   groupCode?: string;
@@ -60,13 +59,6 @@ export const groupService = {
     const response = await api.patch<GroupResponse>("/groups/join", {
       groupCode: code,
     });
-    return response.data;
-  },
-
-  async getAllGroupsByCourse(courseId: string): Promise<GroupsResponse> {
-    const response = await api.get<GroupsResponse>(
-      `/groups/course/${courseId}`,
-    );
     return response.data;
   },
 

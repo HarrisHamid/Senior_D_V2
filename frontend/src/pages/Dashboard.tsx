@@ -471,7 +471,7 @@ const CoordinatorDashboard = () => {
                   Coordinator Dashboard
                 </h1>
                 <p className="text-gray-400 mt-1.5 text-sm">
-                  Manage your courses and monitor progress.
+                  Manage projects and monitor progress.
                 </p>
               </div>
             </div>
