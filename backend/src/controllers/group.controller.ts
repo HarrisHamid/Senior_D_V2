@@ -5,6 +5,7 @@ import { Group } from "../models/Group.model";
 import { Project } from "../models/Project.model";
 import User from "../models/User.model";
 import { generateUniqueGroupCode } from "../utils/codeGenerator";
+import { nextSequence } from "../models/Counter.model";
 import {
   sendGroupInterestEmail,
   sendJoinRequestEmail,
@@ -23,16 +24,22 @@ export const createNewGroup = async (
       return;
     }
 
+    if (user.groupId) {
+      res.status(409).json({
+        success: false,
+        message:
+          "You already belong to a group. Leave it before creating a new one.",
+      });
+      return;
+    }
+
     const { isPublic = true, name } = req.body;
 
     const groupCode = await generateUniqueGroupCode(
       Group as unknown as import("mongoose").Model<{ groupCode: string }>,
     );
 
-    const lastGroup = await Group.findOne({})
-      .sort({ groupNumber: -1 })
-      .select("groupNumber");
-    const groupNumber = (lastGroup?.groupNumber ?? 0) + 1;
+    const groupNumber = await nextSequence("groupNumber");
 
     // Use provided name or auto-generate so every group has a stored name
     const effectiveName = name?.trim() || `Group ${groupNumber}`;
