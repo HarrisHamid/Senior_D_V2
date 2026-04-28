@@ -1,9 +1,18 @@
 import { Response } from "express";
 import fs from "fs";
-import { AuthRequest } from "../types";
-import { Project } from "../models/Project.model";
+import { AuthRequest, IUser } from "../types";
+import { Project, IProject } from "../models/Project.model";
 import { UploadedFile } from "../models/UploadedFile.model";
 import { Types } from "mongoose";
+
+// Returns true if the user is the owning coordinator or a member of the assigned group.
+function canAccessProjectFiles(user: IUser, project: IProject): boolean {
+  if (user.role === "course coordinator") {
+    return project.userId.toString() === user._id.toString();
+  }
+  if (!project.assignedGroup) return false;
+  return user.groupId?.toString() === project.assignedGroup.toString();
+}
 
 const serializeUploadedFile = (file: {
   _id: unknown;
@@ -40,11 +49,17 @@ export const uploadFile = async (
 
     const project = await Project.findById(projectId);
     if (!project) {
-      // Clean up orphaned file if project not found
-      if (req.file) {
-        fs.unlink(req.file.path, () => {});
-      }
+      if (req.file) fs.unlink(req.file.path, () => {});
       res.status(404).json({ success: false, error: "Project not found" });
+      return;
+    }
+
+    if (!canAccessProjectFiles(user, project)) {
+      if (req.file) fs.unlink(req.file.path, () => {});
+      res.status(403).json({
+        success: false,
+        error: "You do not have permission to upload files to this project",
+      });
       return;
     }
 
@@ -97,6 +112,14 @@ export const listFiles = async (
       return;
     }
 
+    if (!canAccessProjectFiles(user, project)) {
+      res.status(403).json({
+        success: false,
+        error: "You do not have permission to view files for this project",
+      });
+      return;
+    }
+
     const files = await UploadedFile.find({ projectId })
       .select("-path -__v")
       .sort({ createdAt: -1 });
@@ -130,6 +153,20 @@ export const downloadFile = async (
     }
 
     const { projectId, fileId } = req.params;
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      res.status(404).json({ success: false, error: "Project not found" });
+      return;
+    }
+
+    if (!canAccessProjectFiles(user, project)) {
+      res.status(403).json({
+        success: false,
+        error: "You do not have permission to download files from this project",
+      });
+      return;
+    }
 
     const file = await UploadedFile.findOne({ _id: fileId, projectId });
     if (!file) {

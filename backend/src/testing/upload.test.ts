@@ -89,7 +89,7 @@ describe("Upload Routes - /api/uploads", () => {
       expect(res.body.data.file.__v).toBeUndefined();
     });
 
-    it("should allow a Student to upload and return 201", async () => {
+    it("should return 403 when an unassigned student tries to upload", async () => {
       const { project } = await setupProject();
       const { token: studentToken } = await registerAndGetToken(defaultStudent);
 
@@ -98,8 +98,8 @@ describe("Upload Routes - /api/uploads", () => {
         .set(authHeader(studentToken))
         .attach("file", TXT_PATH, { contentType: "text/plain" });
 
-      expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
     });
 
     it("should return 400 for a disallowed file type", async () => {
@@ -298,8 +298,7 @@ describe("Upload Routes - /api/uploads", () => {
 
     it("should return 200 when owning coordinator deletes a file", async () => {
       const { coordToken, project } = await setupProject();
-      const { token: studentToken } = await registerAndGetToken(defaultStudent);
-      const fileId = await uploadFile(studentToken, project._id);
+      const fileId = await uploadFile(coordToken, project._id);
 
       const res = await request(app)
         .delete(`/api/uploads/${project._id}/${fileId}`)
@@ -323,7 +322,7 @@ describe("Upload Routes - /api/uploads", () => {
     });
 
     it("should return 403 when a non-owning coordinator tries to delete", async () => {
-      const { project } = await setupProject();
+      const { coordToken: coord1Token, project } = await setupProject();
       const coord2: TestUser = {
         name: "Coordinator Two",
         email: "coord2@stevens.edu",
@@ -331,11 +330,7 @@ describe("Upload Routes - /api/uploads", () => {
         role: "course coordinator",
       };
       const { token: coord2Token } = await registerAndGetToken(coord2);
-
-      // Upload using supertest with coord2 token (they are authenticated but not owner)
-      // First upload with a valid user (student) so we have a file to try to delete
-      const { token: studentToken } = await registerAndGetToken(defaultStudent);
-      const fileId = await uploadFile(studentToken, project._id);
+      const fileId = await uploadFile(coord1Token, project._id);
 
       const res = await request(app)
         .delete(`/api/uploads/${project._id}/${fileId}`)
