@@ -44,18 +44,20 @@ export const loginSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  body: z.object({
-    name: z
-      .string()
-      .min(1)
-      .max(100)
-      .regex(
-        /^[a-zA-Z\s'-]+$/,
-        "Name can only contain letters, spaces, hyphens, and apostrophes",
-      )
-      .optional(),
-    email: z.string().email().optional(),
-  }),
+  body: z
+    .object({
+      name: z
+        .string()
+        .min(1)
+        .max(100)
+        .regex(
+          /^[a-zA-Z\s'-]+$/,
+          "Name can only contain letters, spaces, hyphens, and apostrophes",
+        )
+        .optional(),
+      email: z.string().email().optional(),
+    })
+    .strict(),
 });
 
 export const changePasswordSchema = z.object({
