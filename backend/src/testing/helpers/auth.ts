@@ -42,6 +42,7 @@ export const registerAndGetToken = async (
       userId: created._id.toString(),
       email: created.email,
       role: "course coordinator",
+      tokenVersion: created.tokenVersion,
     });
     return { token, userId: created._id.toString() };
   }

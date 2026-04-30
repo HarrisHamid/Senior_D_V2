@@ -1,5 +1,6 @@
 import { Response } from "express";
 import User from "../models/User.model";
+import { generateToken, sendTokenCookie } from "../utils/jwt.utils";
 import { AuthRequest } from "../types";
 
 export const getProfile = async (
@@ -159,7 +160,17 @@ export const changePassword = async (
     }
 
     user.password = newPassword;
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
+
+    // Re-issue a cookie with the updated tokenVersion so this session stays valid
+    const token = generateToken({
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      tokenVersion: user.tokenVersion,
+    });
+    sendTokenCookie(res, token);
 
     res.status(200).json({
       success: true,

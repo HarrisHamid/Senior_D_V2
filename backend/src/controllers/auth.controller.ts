@@ -44,6 +44,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       userId: user._id.toString(),
       email: user.email,
       role: user.role,
+      tokenVersion: user.tokenVersion,
     });
 
     // Send token as cookie
@@ -109,6 +110,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       userId: user._id.toString(),
       email: user.email,
       role: user.role,
+      tokenVersion: user.tokenVersion,
     });
 
     // Send token as cookie
@@ -324,6 +326,7 @@ export const resetPassword = async (
     }
 
     user.password = password;
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
 
     await PasswordResetToken.deleteOne({ _id: record._id });

@@ -161,6 +161,20 @@ export const joinGroup = async (
       return;
     }
 
+    const pendingCount = await Group.countDocuments({
+      joinRequests: {
+        $elemMatch: { userId: new Types.ObjectId(user._id), status: "pending" },
+      },
+    });
+    if (pendingCount >= 5) {
+      res.status(429).json({
+        success: false,
+        message:
+          "You have too many pending join requests. Wait for responses before requesting more.",
+      });
+      return;
+    }
+
     group.joinRequests.push({
       userId: new Types.ObjectId(user._id),
       status: "pending",
@@ -602,11 +616,12 @@ export const toggleStatus = async (
       return;
     }
 
-    const isMember = group.groupMembers.some(
-      (id) => id.toString() === user?._id,
-    );
-    if (!isMember) {
-      res.status(403).json({ success: false, message: "Forbidden" });
+    const leaderId = group.groupMembers[0];
+    if (!leaderId || leaderId.toString() !== user?._id) {
+      res.status(403).json({
+        success: false,
+        message: "Only the group leader can change group status",
+      });
       return;
     }
 

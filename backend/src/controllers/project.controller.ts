@@ -1,8 +1,10 @@
+import fs from "fs";
 import { Response } from "express";
 import { Types } from "mongoose";
 import { AuthRequest } from "../types";
 import { Project } from "../models/Project.model";
 import { Group } from "../models/Group.model";
+import { UploadedFile } from "../models/UploadedFile.model";
 import User from "../models/User.model";
 import {
   sendGroupAssignedEmail,
@@ -251,18 +253,23 @@ export const deleteProject = async (
 
     // Clean up group references
     await Promise.all([
-      // Clear assigned group's reference back to this project
       project.assignedGroup
         ? Group.findByIdAndUpdate(project.assignedGroup, {
             assignedProject: null,
           })
         : Promise.resolve(),
-      // Remove this project from all groups' interestedProjects arrays
       Group.updateMany(
         { interestedProjects: id },
         { $pull: { interestedProjects: id } },
       ),
     ]);
+
+    // Delete uploaded files for this project
+    const uploadedFiles = await UploadedFile.find({ projectId: id });
+    for (const file of uploadedFiles) {
+      fs.unlink(file.path, () => {});
+    }
+    await UploadedFile.deleteMany({ projectId: id });
 
     await Project.findByIdAndDelete(id);
 

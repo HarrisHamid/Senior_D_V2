@@ -18,6 +18,7 @@ const samplePayload: JwtPayload = {
   userId: "64abc123def456789012abcd",
   email: "jwt-test@example.com",
   role: "student",
+  tokenVersion: 0,
 };
 
 describe("JWT Token - generateToken / verifyToken", () => {

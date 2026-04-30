@@ -53,6 +53,16 @@ export const authenticate = async (
       return;
     }
 
+    // Reject tokens issued before a password change
+    const tokenVersion = decoded.tokenVersion ?? 0;
+    if (tokenVersion !== user.tokenVersion) {
+      res.status(401).json({
+        success: false,
+        error: "Session expired. Please log in again.",
+      });
+      return;
+    }
+
     // Attach user to request
     req.user = {
       _id: user._id.toString(),

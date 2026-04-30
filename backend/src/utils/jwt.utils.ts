@@ -7,6 +7,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   role: "student" | "course coordinator";
+  tokenVersion: number;
 }
 
 // Generate JWT token

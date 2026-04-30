@@ -12,9 +12,10 @@ export interface IUser extends Document {
   major?: string;
   verificationNeeded: boolean;
   groupId?: string;
+  tokenVersion: number;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>; // Method to compare passwords
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 // Mogoose Schema
@@ -69,6 +70,10 @@ const UserSchema = new Schema<IUser>(
       ref: "Group",
       default: null,
       index: true,
+    },
+    tokenVersion: {
+      type: Number,
+      default: 0,
     },
   },
   {
