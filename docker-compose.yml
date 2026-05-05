@@ -3,8 +3,6 @@ services:
     image: mongo:7
     container_name: senior-d-mongo
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -23,7 +21,7 @@ services:
       mongo:
         condition: service_healthy
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 5000
       MONGO_URI: mongodb://mongo:27017/senior_d
       # Override these for your deployment — set actual server hostname/domain
@@ -35,8 +33,6 @@ services:
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
       EMAIL_FROM: ${EMAIL_FROM:-no-reply@seniordesignmarketplace.local}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
-    ports:
-      - "5000:5000"
     volumes:
       - backend-uploads:/app/uploads
 
@@ -46,7 +42,7 @@ services:
       dockerfile: Dockerfile
       args:
         # Must point to the backend's public URL at build time
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+        VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: senior-d-frontend
     restart: unless-stopped
     depends_on:
