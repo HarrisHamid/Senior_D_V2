@@ -8,6 +8,7 @@ import connectDB from "./config/db";
 import routes from "./routes";
 import { env, validateEnv } from "./config/env";
 import { generalLimiter } from "./middleware/rateLimiter";
+import { pruneOrphanedFileRecords } from "./utils/pruneOrphanedFiles";
 
 const app = express();
 
@@ -84,7 +85,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 // Only start the server when not in test mode
 if (process.env.NODE_ENV !== "test") {
   validateEnv();
-  connectDB();
+  connectDB().then(() => pruneOrphanedFileRecords());
 
   const PORT = parseInt(env.PORT, 10);
   app.listen(PORT, () => {

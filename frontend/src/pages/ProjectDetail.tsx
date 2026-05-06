@@ -28,7 +28,17 @@ import {
   Download,
   Trash2,
   Upload,
+  Eye,
+  Loader2,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { projectService } from "@/services/project.service";
@@ -64,6 +74,15 @@ const FileIcon = ({ mimetype }: { mimetype: string }) => {
     return <FileText className={cls} />;
   return <File className={cls} />;
 };
+
+const PREVIEWABLE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "application/pdf",
+  "text/plain",
+]);
 
 const statusLabel = (project: ProjectData) => {
   if (project.assignedGroup) return "Assigned";
@@ -161,6 +180,12 @@ const ProjectDetail = () => {
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [previewFile, setPreviewFile] = useState<UploadedFileData | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewText, setPreviewText] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   const canSeeFiles = () => !!user;
 
@@ -293,6 +318,38 @@ const ProjectDetail = () => {
       toast.error(message);
     } finally {
       setDeletingFileId(null);
+    }
+  };
+
+  const handlePreviewClose = () => {
+    if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
+    setPreviewFile(null);
+    setPreviewBlobUrl(null);
+    setPreviewText(null);
+    setPreviewLoading(false);
+    setPreviewError(null);
+  };
+
+  const handlePreview = async (file: UploadedFileData) => {
+    if (!id) return;
+    setPreviewFile(file);
+    setPreviewBlobUrl(null);
+    setPreviewText(null);
+    setPreviewError(null);
+    setPreviewLoading(true);
+    try {
+      const blob = await UploadService.downloadFile(id, file._id);
+      if (file.mimetype === "text/plain") {
+        setPreviewText(await blob.text());
+      } else {
+        setPreviewBlobUrl(URL.createObjectURL(blob));
+      }
+    } catch {
+      setPreviewError(
+        "This file could not be loaded. It may no longer exist on the server.",
+      );
+    } finally {
+      setPreviewLoading(false);
     }
   };
 
@@ -514,6 +571,15 @@ const ProjectDetail = () => {
                           </p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
+                          {PREVIEWABLE_TYPES.has(file.mimetype) && (
+                            <button
+                              onClick={() => handlePreview(file)}
+                              className="p-1.5 rounded-md text-muted-foreground hover:text-[#9B2335] hover:bg-white transition-colors"
+                              title="Preview"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleDownload(file)}
                             className="p-1.5 rounded-md text-muted-foreground hover:text-[#9B2335] hover:bg-white transition-colors"
@@ -852,6 +918,75 @@ const ProjectDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* File preview dialog */}
+      <Dialog
+        open={!!previewFile}
+        onOpenChange={(open) => !open && handlePreviewClose()}
+      >
+        <DialogContent className="max-w-3xl w-full">
+          <DialogHeader>
+            <DialogTitle className="truncate pr-8">
+              {previewFile?.originalName ?? "Preview"}
+            </DialogTitle>
+            <DialogDescription>
+              {previewFile && formatFileSize(previewFile.size)}
+              {previewFile?.createdAt && (
+                <> · {new Date(previewFile.createdAt!).toLocaleDateString()}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="overflow-auto">
+            {previewLoading && (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {!previewLoading && previewError && (
+              <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  {previewError}
+                </p>
+              </div>
+            )}
+            {!previewLoading &&
+              previewBlobUrl &&
+              previewFile?.mimetype.startsWith("image/") && (
+                <img
+                  src={previewBlobUrl}
+                  alt={previewFile!.originalName}
+                  className="max-w-full h-auto mx-auto rounded"
+                />
+              )}
+            {!previewLoading &&
+              previewBlobUrl &&
+              previewFile?.mimetype === "application/pdf" && (
+                <iframe
+                  src={previewBlobUrl}
+                  title={previewFile!.originalName}
+                  className="w-full rounded border-0"
+                  style={{ height: "75vh" }}
+                />
+              )}
+            {!previewLoading && previewText !== null && (
+              <pre className="whitespace-pre-wrap break-words text-sm font-mono bg-gray-50 rounded p-4 max-h-[60vh] overflow-y-auto">
+                {previewText}
+              </pre>
+            )}
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => previewFile && handleDownload(previewFile)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200"
+            >
+              <Download className="w-4 h-4" />
+              Download
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
