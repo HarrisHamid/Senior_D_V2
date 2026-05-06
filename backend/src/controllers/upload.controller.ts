@@ -5,8 +5,8 @@ import { Project, IProject } from "../models/Project.model";
 import { UploadedFile } from "../models/UploadedFile.model";
 import { Types } from "mongoose";
 
-// Returns true if the user is the owning coordinator or a member of the assigned group.
-function canAccessProjectFiles(user: IUser, project: IProject): boolean {
+// Returns true if the user can upload files to this project (owning coordinator or assigned group member).
+function canUploadToProject(user: IUser, project: IProject): boolean {
   if (user.role === "course coordinator") {
     return project.userId.toString() === user._id.toString();
   }
@@ -54,7 +54,7 @@ export const uploadFile = async (
       return;
     }
 
-    if (!canAccessProjectFiles(user, project)) {
+    if (!canUploadToProject(user, project)) {
       if (req.file) fs.unlink(req.file.path, () => {});
       res.status(403).json({
         success: false,
@@ -106,17 +106,9 @@ export const listFiles = async (
 
     const { projectId } = req.params;
 
-    const project = await Project.findById(projectId);
-    if (!project) {
+    const projectExists = await Project.exists({ _id: projectId });
+    if (!projectExists) {
       res.status(404).json({ success: false, error: "Project not found" });
-      return;
-    }
-
-    if (!canAccessProjectFiles(user, project)) {
-      res.status(403).json({
-        success: false,
-        error: "You do not have permission to view files for this project",
-      });
       return;
     }
 
@@ -154,17 +146,9 @@ export const downloadFile = async (
 
     const { projectId, fileId } = req.params;
 
-    const project = await Project.findById(projectId);
-    if (!project) {
+    const projectExists = await Project.exists({ _id: projectId });
+    if (!projectExists) {
       res.status(404).json({ success: false, error: "Project not found" });
-      return;
-    }
-
-    if (!canAccessProjectFiles(user, project)) {
-      res.status(403).json({
-        success: false,
-        error: "You do not have permission to download files from this project",
-      });
       return;
     }
 

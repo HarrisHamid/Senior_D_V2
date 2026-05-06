@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { GridPattern } from "@/components/ui/grid-pattern";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,51 @@ import {
   ChevronDown,
   ChevronUp,
   GraduationCap,
+  Paperclip,
+  FileText,
+  FileImage,
+  FileVideo,
+  FileAudio,
+  File,
+  Download,
+  Trash2,
+  Upload,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { projectService } from "@/services/project.service";
 import type { ProjectData } from "@/services/project.service";
 import { groupService } from "@/services/group.service";
+import { UploadService } from "@/services/upload.service";
+
+interface UploadedFileData {
+  _id: string;
+  originalName: string;
+  filename: string;
+  mimetype: string;
+  size: number;
+  createdAt?: string;
+}
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const FileIcon = ({ mimetype }: { mimetype: string }) => {
+  const cls = "w-4 h-4 shrink-0";
+  if (mimetype.startsWith("image/")) return <FileImage className={cls} />;
+  if (mimetype.startsWith("video/")) return <FileVideo className={cls} />;
+  if (mimetype.startsWith("audio/")) return <FileAudio className={cls} />;
+  if (
+    mimetype === "application/pdf" ||
+    mimetype.includes("word") ||
+    mimetype.includes("text")
+  )
+    return <FileText className={cls} />;
+  return <File className={cls} />;
+};
 
 const statusLabel = (project: ProjectData) => {
   if (project.assignedGroup) return "Assigned";
@@ -96,7 +135,12 @@ const ProjectDetail = () => {
       _id: string;
       groupNumber: number;
       name?: string;
-      groupMembers: { _id: string; name: string; email: string; major?: string }[];
+      groupMembers: {
+        _id: string;
+        name: string;
+        email: string;
+        major?: string;
+      }[];
     }[]
   >([]);
   const [allGroups, setAllGroups] = useState<
@@ -111,6 +155,27 @@ const ProjectDetail = () => {
   const [groupAssigned, setGroupAssigned] = useState(false);
   const [interestLimitReached, setInterestLimitReached] = useState(false);
 
+  const [files, setFiles] = useState<UploadedFileData[]>([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const canSeeFiles = () => !!user;
+
+  const loadFiles = async (projectId: string) => {
+    setFilesLoading(true);
+    try {
+      const res = await UploadService.listFiles(projectId);
+      setFiles(res.data?.files ?? []);
+    } catch {
+      // non-fatal: user may not have access
+    } finally {
+      setFilesLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
     projectService
@@ -118,6 +183,7 @@ const ProjectDetail = () => {
       .then(async (res) => {
         const p = res.data.project;
         setProject(p);
+        if (canSeeFiles()) loadFiles(id);
         if (user?.role === "course coordinator") {
           const [interestedRes, allGroupsRes] = await Promise.all([
             groupService.getAllInterestedGroups(id),
@@ -146,6 +212,7 @@ const ProjectDetail = () => {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.role, user?.groupId]);
 
   const handleShowInterest = async () => {
@@ -177,6 +244,55 @@ const ProjectDetail = () => {
       toast.error(message);
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleUpload = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0 || !id) return;
+    const file = fileList[0];
+    setUploading(true);
+    try {
+      const res = await UploadService.uploadFile(id, file);
+      setFiles((prev) => [res.data.file, ...prev]);
+      toast.success(`"${file.name}" uploaded successfully`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Upload failed.";
+      toast.error(message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDownload = async (file: UploadedFileData) => {
+    if (!id) return;
+    try {
+      const blob = await UploadService.downloadFile(id, file._id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.originalName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to download file.");
+    }
+  };
+
+  const handleDeleteFile = async (fileId: string) => {
+    if (!id) return;
+    setDeletingFileId(fileId);
+    try {
+      await UploadService.deleteFile(id, fileId);
+      setFiles((prev) => prev.filter((f) => f._id !== fileId));
+      toast.success("File deleted.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Delete failed.";
+      toast.error(message);
+    } finally {
+      setDeletingFileId(null);
     }
   };
 
@@ -294,6 +410,132 @@ const ProjectDetail = () => {
                     </span>
                   ))}
                 </div>
+              </Panel>
+            )}
+
+            {/* Files */}
+            {project && canSeeFiles() && (
+              <Panel>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Paperclip className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Files
+                    </p>
+                  </div>
+                  {user?.role === "course coordinator" && (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      {uploading ? "Uploading…" : "Upload"}
+                    </button>
+                  )}
+                </div>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => handleUpload(e.target.files)}
+                />
+
+                {/* Drop zone (coordinator only) */}
+                {user?.role === "course coordinator" && (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDragOver(true);
+                    }}
+                    onDragLeave={() => setIsDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragOver(false);
+                      handleUpload(e.dataTransfer.files);
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="mb-4 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 py-5 cursor-pointer transition-colors"
+                    style={{
+                      borderColor: isDragOver ? "#9B2335" : "#e5e7eb",
+                      background: isDragOver
+                        ? "rgba(155,35,53,0.04)"
+                        : "transparent",
+                    }}
+                  >
+                    <Upload className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {isDragOver
+                        ? "Drop to upload"
+                        : "Drag & drop a file, or click to browse"}
+                    </span>
+                  </div>
+                )}
+
+                {/* File list */}
+                {filesLoading ? (
+                  <p className="text-sm text-muted-foreground">
+                    Loading files…
+                  </p>
+                ) : files.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No files uploaded yet.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {files.map((file) => (
+                      <div
+                        key={file._id}
+                        className="flex items-center gap-3 p-3 rounded-lg"
+                        style={{
+                          background:
+                            "linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%)",
+                          border: "1px solid #e5e7eb",
+                        }}
+                      >
+                        <div className="text-muted-foreground shrink-0">
+                          <FileIcon mimetype={file.mimetype} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-[#0d0d0d] truncate">
+                            {file.originalName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(file.size)}
+                            {file.createdAt && (
+                              <>
+                                {" "}
+                                ·{" "}
+                                {new Date(file.createdAt).toLocaleDateString()}
+                              </>
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => handleDownload(file)}
+                            className="p-1.5 rounded-md text-muted-foreground hover:text-[#9B2335] hover:bg-white transition-colors"
+                            title="Download"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
+                          {user?.role === "course coordinator" && (
+                            <button
+                              onClick={() => handleDeleteFile(file._id)}
+                              disabled={deletingFileId === file._id}
+                              className="p-1.5 rounded-md text-muted-foreground hover:text-red-600 hover:bg-white transition-colors disabled:opacity-40"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </Panel>
             )}
 
