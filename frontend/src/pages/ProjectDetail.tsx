@@ -170,6 +170,7 @@ const ProjectDetail = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [assigning, setAssigning] = useState(false);
+  const [rejectingGroupId, setRejectingGroupId] = useState<string | null>(null);
   const [alreadyInterested, setAlreadyInterested] = useState(false);
   const [groupAssigned, setGroupAssigned] = useState(false);
   const [interestLimitReached, setInterestLimitReached] = useState(false);
@@ -256,6 +257,20 @@ const ProjectDetail = () => {
     }
   };
 
+  const handleRemoveInterest = async () => {
+    if (!user?.groupId) return;
+    try {
+      await groupService.removeInterestedProject(user.groupId, id!);
+      setAlreadyInterested(false);
+      setInterestLimitReached(false);
+      toast.success("Interest removed.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to remove interest.";
+      toast.error(message);
+    }
+  };
+
   const handleAssignGroup = async (groupId: string) => {
     if (!groupId) return;
     setAssigning(true);
@@ -269,6 +284,22 @@ const ProjectDetail = () => {
       toast.error(message);
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleRejectInterest = async (groupId: string) => {
+    if (!id) return;
+    setRejectingGroupId(groupId);
+    try {
+      await groupService.rejectGroupInterest(groupId, id);
+      setInterestedGroups((prev) => prev.filter((g) => g._id !== groupId));
+      toast.success("Interest rejected.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to reject interest.";
+      toast.error(message);
+    } finally {
+      setRejectingGroupId(null);
     }
   };
 
@@ -615,6 +646,18 @@ const ProjectDetail = () => {
                     <p className="text-sm text-muted-foreground">
                       Your group is already assigned to a project.
                     </p>
+                  ) : alreadyInterested ? (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <p className="text-sm text-muted-foreground flex-1">
+                        Your group has expressed interest in this project.
+                      </p>
+                      <button
+                        onClick={handleRemoveInterest}
+                        className="shrink-0 inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold border border-gray-300 text-gray-700 hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                      >
+                        Remove Interest
+                      </button>
+                    </div>
                   ) : interestLimitReached ? (
                     <p className="text-sm text-muted-foreground">
                       Your group has reached the maximum of 4 interested
@@ -628,16 +671,9 @@ const ProjectDetail = () => {
                       </p>
                       <button
                         onClick={handleShowInterest}
-                        disabled={alreadyInterested}
-                        className={`shrink-0 inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed ${
-                          alreadyInterested
-                            ? "bg-gray-100 text-gray-600 border border-gray-200"
-                            : "text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none"
-                        }`}
+                        className="shrink-0 inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200"
                       >
-                        {alreadyInterested
-                          ? "Interest Registered"
-                          : "Express Interest"}
+                        Express Interest
                       </button>
                     </div>
                   )}
@@ -704,13 +740,31 @@ const ProjectDetail = () => {
                               )}
                             </button>
                             {!project.assignedGroup && (
-                              <button
-                                disabled={assigning}
-                                onClick={() => handleAssignGroup(group._id)}
-                                className="ml-3 shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                Assign
-                              </button>
+                              <div className="ml-3 flex items-center gap-1.5 shrink-0">
+                                <button
+                                  disabled={
+                                    rejectingGroupId === group._id || assigning
+                                  }
+                                  onClick={() =>
+                                    handleRejectInterest(group._id)
+                                  }
+                                  className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {rejectingGroupId === group._id
+                                    ? "Rejecting…"
+                                    : "Reject"}
+                                </button>
+                                <button
+                                  disabled={
+                                    assigning ||
+                                    rejectingGroupId === group._id
+                                  }
+                                  onClick={() => handleAssignGroup(group._id)}
+                                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  Assign
+                                </button>
+                              </div>
                             )}
                           </div>
                           {isExpanded && group.groupMembers?.length > 0 && (

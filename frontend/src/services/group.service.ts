@@ -177,4 +177,15 @@ export const groupService = {
     );
     return response.data;
   },
+
+  async rejectGroupInterest(
+    groupId: string,
+    projectId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await api.delete<{
+      success: boolean;
+      message: string;
+    }>(`/groups/${groupId}/reject-interest`, { data: { projectId } });
+    return response.data;
+  },
 };

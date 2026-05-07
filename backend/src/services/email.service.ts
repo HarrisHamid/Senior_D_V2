@@ -214,6 +214,31 @@ export const sendJoinRequestEmail = async (
 };
 
 /**
+ * Notify all members of a group that a coordinator has rejected their interest in a project.
+ */
+export const sendGroupInterestRejectedEmail = async (
+  memberEmails: string[],
+  projectName: string,
+  coordinatorName: string,
+  groupNumber: number,
+): Promise<void> => {
+  await Promise.all(
+    memberEmails.map((email) =>
+      provider.send({
+        to: email,
+        subject: `Your group's interest in "${projectName}" was not accepted`,
+        text: `Hi,\n\nYour group (Group ${groupNumber}) has had its interest in the project "${projectName}" removed by ${coordinatorName}.\n\nLog in to the Senior Design Marketplace to explore other available projects.`,
+        html: `
+          <p>Hi,</p>
+          <p>Your group (<strong>Group ${groupNumber}</strong>) has had its interest in the project <strong>"${esc(projectName)}"</strong> removed by ${esc(coordinatorName)}.</p>
+          <p>Log in to the Senior Design Marketplace to explore other available projects.</p>
+        `,
+      }),
+    ),
+  );
+};
+
+/**
  * Notify a student that their request to join a group was approved or rejected.
  */
 export const sendJoinRequestResponseEmail = async (

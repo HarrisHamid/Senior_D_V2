@@ -13,6 +13,7 @@ import {
   respondToJoinRequest,
   addInterestedProject,
   removeInterestedProject,
+  rejectGroupInterest,
   getAllInterestedGroups,
 } from "../controllers/group.controller";
 import { authenticate, requireRole } from "../middleware/auth.middleware";
@@ -92,6 +93,13 @@ router.delete(
   requireRole("student"),
   validateRequest(groupSchemas.interestedProject),
   removeInterestedProject,
+);
+
+router.delete(
+  "/:groupId/reject-interest",
+  requireRole("course coordinator"),
+  validateRequest(groupSchemas.interestedProject),
+  rejectGroupInterest,
 );
 
 router.delete(

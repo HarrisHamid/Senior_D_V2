@@ -8,6 +8,7 @@ import { generateUniqueGroupCode } from "../utils/codeGenerator";
 import { nextSequence } from "../models/Counter.model";
 import {
   sendGroupInterestEmail,
+  sendGroupInterestRejectedEmail,
   sendJoinRequestEmail,
   sendJoinRequestResponseEmail,
 } from "../services/email.service";
@@ -863,6 +864,72 @@ export const removeInterestedProject = async (
     res.status(500).json({
       success: false,
       message: "Failed to remove project",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Coordinator rejects a group's interest in their project
+export const rejectGroupInterest = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user;
+    const { groupId } = req.params;
+    const { projectId } = req.body as { projectId: string };
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      res.status(404).json({ success: false, message: "Project not found" });
+      return;
+    }
+
+    if (project.userId.toString() !== user?._id) {
+      res.status(403).json({ success: false, message: "Forbidden" });
+      return;
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      res.status(404).json({ success: false, message: "Group not found" });
+      return;
+    }
+
+    const isInterested = group.interestedProjects.some(
+      (id) => id.toString() === projectId,
+    );
+    if (!isInterested) {
+      res.status(400).json({
+        success: false,
+        message: "Group has not expressed interest in this project",
+      });
+      return;
+    }
+
+    group.interestedProjects = group.interestedProjects.filter(
+      (id) => id.toString() !== projectId,
+    );
+    await group.save();
+
+    // Fire-and-forget: notify group members their interest was rejected
+    User.find({ _id: { $in: group.groupMembers } })
+      .select("email")
+      .then((members) =>
+        sendGroupInterestRejectedEmail(
+          members.map((m) => m.email),
+          project.name,
+          user!.name,
+          group.groupNumber,
+        ),
+      )
+      .catch(console.error);
+
+    res.status(200).json({ success: true, message: "Interest rejected" });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to reject interest",
       error: (error as Error).message,
     });
   }
