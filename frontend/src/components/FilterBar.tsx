@@ -27,6 +27,7 @@ export interface FilterConfig {
   type: FilterType;
   options?: FilterOption[];
   placeholder?: string;
+  clearOnChange?: string[];
 }
 
 interface FilterBarProps {
@@ -103,13 +104,18 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
     setSearchParams(newParams);
   };
 
-  const handleSelectChange = (id: string, value: string) => {
+  const handleSelectChange = (
+    id: string,
+    value: string,
+    config: FilterConfig,
+  ) => {
     const newParams = new URLSearchParams(searchParams);
     if (value === "all") {
       newParams.delete(id);
     } else {
       newParams.set(id, value);
     }
+    config.clearOnChange?.forEach((key) => newParams.delete(key));
     setSearchParams(newParams);
   };
 
@@ -198,10 +204,14 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
                 <Label>{config.label}</Label>
                 <Select
                   value={selected}
-                  onValueChange={(val) => handleSelectChange(config.id, val)}
+                  onValueChange={(val) =>
+                    handleSelectChange(config.id, val, config)
+                  }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={config.placeholder || `All ${config.label}`} />
+                    <SelectValue
+                      placeholder={config.placeholder || `All ${config.label}`}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
@@ -261,13 +271,15 @@ export const FilterBar = ({ configs }: FilterBarProps) => {
           onClick={clearAll}
           className="w-full relative inline-flex items-center justify-center px-4 py-2 rounded-[10px] text-sm font-medium text-foreground overflow-hidden transition-all duration-200"
           style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(242,242,242,0.72) 100%)",
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(242,242,242,0.72) 100%)",
             boxShadow: "0 0 0 1px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.07)",
           }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLElement).style.boxShadow =
               "0 0 0 1px rgba(0,0,0,0.13), 0 2px 6px rgba(0,0,0,0.10)";
-            (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+            (e.currentTarget as HTMLElement).style.transform =
+              "translateY(-1px)";
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLElement).style.boxShadow =

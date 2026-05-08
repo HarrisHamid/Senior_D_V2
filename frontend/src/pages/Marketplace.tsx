@@ -108,6 +108,7 @@ const Marketplace = () => {
       label: "School",
       type: "select",
       placeholder: "All Schools",
+      clearOnChange: ["majors"],
       options: SCHOOLS.map((s) => ({
         id: `school-${s.label}`,
         label: s.label,
