@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { ProjectData } from "@/services/project.service";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const projectStatus = (p: ProjectData) => {
   if (p.assignedGroup) return "Assigned";
@@ -123,3 +124,35 @@ export const ProjectCard = ({ project }: { project: ProjectData }) => {
     </div>
   );
 };
+
+export const ProjectCardSkeleton = () => (
+  <div
+    className="relative bg-white rounded-xl overflow-hidden"
+    style={{
+      boxShadow: "0 0 0 1px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05)",
+    }}
+  >
+    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-100" />
+    <div className="p-5">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-5 w-14 rounded-full shrink-0" />
+      </div>
+      <Skeleton className="h-4 w-full mb-1.5" />
+      <Skeleton className="h-4 w-5/6 mb-4" />
+      <Skeleton className="h-3 w-32 mb-1.5" />
+      <div className="flex gap-1.5 mb-4">
+        <Skeleton className="h-5 w-16 rounded-md" />
+        <Skeleton className="h-5 w-20 rounded-md" />
+        <Skeleton className="h-5 w-14 rounded-md" />
+      </div>
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-16 rounded-md" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <Skeleton className="h-7 w-24 rounded-lg" />
+      </div>
+    </div>
+  </div>
+);

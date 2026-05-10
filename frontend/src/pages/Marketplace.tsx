@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { projectService } from "@/services/project.service";
 import type { ProjectData } from "@/services/project.service";
 import { FilterBar, type FilterConfig } from "@/components/FilterBar";
-import { ProjectCard } from "@/components/ProjectCard";
+import { ProjectCard, ProjectCardSkeleton } from "@/components/ProjectCard";
 import { GridPattern } from "@/components/ui/grid-pattern";
 import Pagination from "@/components/Pagination";
 
@@ -247,9 +247,11 @@ const Marketplace = () => {
 
           <div className="flex-1">
             {loading ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">
-                Loading projects…
-              </p>
+              <div className="grid gap-5 md:grid-cols-2">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <ProjectCardSkeleton key={i} />
+                ))}
+              </div>
             ) : (
               <>
                 <div className="mb-5 text-sm text-muted-foreground">

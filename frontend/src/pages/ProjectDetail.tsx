@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { GridPattern } from "@/components/ui/grid-pattern";
@@ -393,8 +394,57 @@ const ProjectDetail = () => {
           className="fill-gray-100/60 stroke-gray-200/60"
         />
         <Navbar />
-        <div className="relative mx-auto max-w-5xl px-4 py-24 text-center">
-          <p className="text-muted-foreground">Loading project…</p>
+        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
+          <Skeleton className="h-4 w-12 mb-8" />
+          <div className="mb-8">
+            <div className="flex gap-2 mb-3">
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-4 w-10" />
+            </div>
+            <Skeleton className="h-12 w-2/3" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-white rounded-xl p-6" style={cardStyle}>
+                <Skeleton className="h-3 w-24 mb-3" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+              <div className="bg-white rounded-xl p-6" style={cardStyle}>
+                <Skeleton className="h-3 w-40 mb-3" />
+                <div className="flex flex-wrap gap-1.5">
+                  <Skeleton className="h-6 w-20 rounded-md" />
+                  <Skeleton className="h-6 w-28 rounded-md" />
+                  <Skeleton className="h-6 w-24 rounded-md" />
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-6" style={cardStyle}>
+                <Skeleton className="h-3 w-10 mb-4" />
+                <Skeleton className="h-10 w-full rounded-lg mb-2" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl p-6" style={cardStyle}>
+                <Skeleton className="h-3 w-16 mb-3" />
+                <div className="flex items-center gap-2 mb-4">
+                  <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+                  <Skeleton className="h-5 w-32" />
+                </div>
+                <Skeleton className="h-3 w-20 mb-2" />
+                <Skeleton className="h-14 w-full rounded-lg" />
+              </div>
+              <div className="bg-white rounded-xl p-6" style={cardStyle}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <Skeleton className="h-14 w-full rounded-lg" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -564,9 +614,10 @@ const ProjectDetail = () => {
 
                 {/* File list */}
                 {filesLoading ? (
-                  <p className="text-sm text-muted-foreground">
-                    Loading files…
-                  </p>
+                  <div className="space-y-2">
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                  </div>
                 ) : files.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     No files uploaded yet.
@@ -756,8 +807,7 @@ const ProjectDetail = () => {
                                 </button>
                                 <button
                                   disabled={
-                                    assigning ||
-                                    rejectingGroupId === group._id
+                                    assigning || rejectingGroupId === group._id
                                   }
                                   onClick={() => handleAssignGroup(group._id)}
                                   className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(155,35,53,0.35)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"

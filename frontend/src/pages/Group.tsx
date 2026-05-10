@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { GridPattern } from "@/components/ui/grid-pattern";
@@ -268,8 +269,74 @@ const Group = () => {
           className="fill-gray-100/60 stroke-gray-200/60"
         />
         <Navbar />
-        <div className="relative z-10 mx-auto max-w-5xl px-4 py-16 text-center">
-          <p className="text-gray-400 text-sm">Loading group…</p>
+        <div className="relative z-10 mx-auto max-w-5xl px-4 py-10">
+          {/* Header */}
+          <div className="mb-10 flex items-start gap-4">
+            <Skeleton className="w-[3px] h-14 rounded-full" />
+            <div>
+              <Skeleton className="h-3 w-16 mb-2" />
+              <Skeleton className="h-9 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+          {/* Two-column layout */}
+          <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
+            {/* Left column */}
+            <div className="flex flex-col gap-5">
+              {/* Members card */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="h-[3px] bg-gray-200" />
+                <div className="p-6">
+                  <Skeleton className="h-3 w-28 mb-6" />
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-4 py-3.5 px-3"
+                    >
+                      <Skeleton className="h-11 w-11 rounded-full shrink-0" />
+                      <div className="flex-1">
+                        <Skeleton className="h-4 w-32 mb-1" />
+                        <Skeleton className="h-3 w-44" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Interested projects card */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="h-[3px] bg-gray-200" />
+                <div className="p-6">
+                  <Skeleton className="h-3 w-36 mb-1" />
+                  <Skeleton className="h-3 w-20 mb-5" />
+                  {[0, 1].map((i) => (
+                    <div
+                      key={i}
+                      className="flex gap-3 p-4 rounded-xl border border-gray-100 mb-2.5"
+                    >
+                      <div className="flex-1">
+                        <Skeleton className="h-4 w-3/4 mb-2" />
+                        <Skeleton className="h-3 w-full mb-1" />
+                        <Skeleton className="h-3 w-2/3" />
+                      </div>
+                      <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {/* Right column */}
+            <div>
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="h-[3px] bg-gray-200" />
+                <div className="p-6 space-y-2">
+                  <Skeleton className="h-3 w-16 mb-3" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
