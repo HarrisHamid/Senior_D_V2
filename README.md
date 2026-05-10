@@ -2,6 +2,20 @@
 
 A full-stack web application for managing senior design courses, student groups, and project assignments. Built with TypeScript, React, Express, and MongoDB.
 
+## Features
+
+- **Project marketplace** — browse, search, and filter senior design projects by school, major, sponsor, and status
+- **Group management** — create or join groups, manage membership, toggle open/closed and public/private status
+- **Interest system** — student groups express interest in up to 4 projects; coordinators assign groups to projects
+- **Email verification** — numeric code sent on registration via Resend
+
+## Roles
+
+| Role                   | How created                          | Capabilities                                                            |
+| ---------------------- | ------------------------------------ | ----------------------------------------------------------------------- |
+| **Student**            | Self-register via `/signup`          | Join a course, create/join groups, browse marketplace, express interest |
+| **Course Coordinator** | Created directly in DB (or via seed) | Create courses & projects, manage assignments, view stats, export       |
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) v22+
@@ -13,78 +27,34 @@ A full-stack web application for managing senior design courses, student groups,
 ```
 Senior_D_V2/
 ├── backend/                # Express API server
+│   ├── Dockerfile
 │   └── src/
 │       ├── config/         # Environment & DB config
 │       ├── controllers/    # Route handlers
-│       ├── middleware/     # Auth & validation middleware
+│       ├── middleware/     # Auth, validation, rate limiting, uploads
 │       ├── models/         # Mongoose schemas
 │       ├── routes/         # Express route definitions
+│       ├── services/       # Email & verification services
+│       ├── testing/        # Jest test suite & helpers
 │       ├── types/          # TypeScript type definitions
-│       ├── utils/          # Utility functions
+│       ├── utils/          # Utility functions (XLSX builder, etc.)
 │       ├── validation/     # Zod validation schemas
+│       ├── seed.ts         # Database seeder
 │       └── server.ts       # Server entry point
 ├── frontend/               # React + Vite application
+│   ├── Dockerfile
 │   └── src/
-│       ├── components/     # React components
-│       ├── contexts/       # React Context (Auth)
+│       ├── components/     # Shared React components
+│       ├── contexts/       # Auth context
 │       ├── pages/          # Page components
-│       ├── services/       # API service layer
+│       ├── services/       # Axios API service layer
 │       ├── styles/         # CSS files
 │       ├── types/          # TypeScript type definitions
-│       ├── App.tsx         # Root component with routes
+│       ├── App.tsx         # Root component & route definitions
 │       └── main.tsx        # Entry point
-└── .github/workflows/      # CI/CD pipeline
+├── docker-compose.yml      # Full-stack container setup
+└── .github/workflows/      # CI pipeline (lint, build, test)
 ```
-
-## Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/HarrisHamid/Senior_D_V2.git
-cd Senior_D_V2
-```
-
-### 2. Set up the backend
-
-```bash
-cd backend
-npm install
-```
-
-Create a `.env` file in the `backend/` directory:
-
-```env
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/senior_d
-NODE_ENV=development
-CORS_ORIGIN=http://localhost:5173
-
-# JWT Configuration
-JWT_SECRET=your_jwt_secret_here
-JWT_EXPIRES_IN=7d
-JWT_COOKIE_EXPIRE=7
-```
-
-> **Required:** `JWT_SECRET` and `MONGO_URI` must be set. All other variables have defaults.
-
-Start the backend dev server:
-
-```bash
-npm run dev
-```
-
-The API will be available at `http://localhost:5000`. Health check at `GET http://localhost:5000/`.
-
-### 3. Set up the frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173`.
 
 ## Available Scripts
 
@@ -95,10 +65,12 @@ The frontend will be available at `http://localhost:5173`.
 | Dev server   | `npm run dev`          | Runs with ts-node-dev (auto-restart on changes) |
 | Build        | `npm run build`        | Compiles TypeScript to `dist/`                  |
 | Start        | `npm start`            | Runs compiled server from `dist/server.js`      |
+| Seed         | `npm run seed`         | Seeds the database via `src/seed.ts`            |
+| Test         | `npm test`             | Runs full Jest test suite                       |
+| Test (watch) | `npm run test:watch`   | Jest in watch mode                              |
 | Lint         | `npm run lint`         | ESLint checks on `src/`                         |
 | Format       | `npm run format`       | Prettier format (write)                         |
-| Format check | `npm run format:check` | Prettier check (no write)                       |
-| Test         | `npm test`             | Run test suite                                  |
+| Format check | `npm run format:check` | Prettier check (no write — used in CI)          |
 
 ### Frontend (`/frontend`)
 
@@ -108,3 +80,47 @@ The frontend will be available at `http://localhost:5173`.
 | Build      | `npm run build`   | TypeScript check + Vite production build |
 | Preview    | `npm run preview` | Preview production build locally         |
 | Lint       | `npm run lint`    | ESLint checks                            |
+
+## Pages
+
+| Route                                        | Page                | Access                                   |
+| -------------------------------------------- | ------------------- | ---------------------------------------- |
+| `/`                                          | Home                | Public                                   |
+| `/login`, `/signup`                          | Login, Signup       | Public only (redirects if authenticated) |
+| `/forgot-password`, `/reset-password/:token` | Password reset flow | Any                                      |
+| `/dashboard`                                 | Dashboard           | Authenticated                            |
+| `/marketplace`                               | Project marketplace | Authenticated                            |
+| `/project/:id`                               | Project detail      | Authenticated                            |
+| `/profile`                                   | User profile        | Authenticated                            |
+| `/verify-email`                              | Email verification  | Authenticated                            |
+| `/group`                                     | My group            | Student only                             |
+| `/browse-groups`                             | Browse all groups   | Student only                             |
+| `/project/add`                               | Create project      | Coordinator only                         |
+| `/my-projects`                               | Manage projects     | Coordinator only                         |
+
+## Docker
+
+A `docker-compose.yml` is included that runs MongoDB, the backend API, and the frontend (served via Nginx) as a single stack.
+
+```bash
+# Required — set a strong secret
+export JWT_SECRET=your_jwt_secret_here
+
+# Optional overrides (all have defaults)
+export CORS_ORIGIN=http://localhost:8080
+export FRONTEND_URL=http://localhost:8080
+export VITE_API_URL=/api
+
+docker compose up --build
+```
+
+The app will be available at `http://localhost:8080`. The Nginx container proxies `/api/` requests to the backend and serves the React SPA for all other routes.
+
+Uploaded files are persisted in a named Docker volume (`backend-uploads`).
+
+## CI
+
+GitHub Actions runs on every push and pull request to `main`/`develop`:
+
+- **Backend:** Prettier check → ESLint → TypeScript build → Jest tests
+- **Frontend:** ESLint → Vite build (with `VITE_API_URL` set)
