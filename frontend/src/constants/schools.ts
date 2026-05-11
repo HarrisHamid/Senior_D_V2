@@ -49,3 +49,5 @@ export const SCHOOLS = [
     majors: ["Artificial Intelligence", "Computer Science", "Cybersecurity"],
   },
 ] as const;
+
+export const ALL_MAJORS = SCHOOLS.flatMap((s) => [...s.majors]);

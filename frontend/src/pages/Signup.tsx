@@ -88,10 +88,10 @@ export default function Signup() {
       setError("Please enter a valid email address");
       return;
     }
-    // if (!trimmedEmail.endsWith("@stevens.edu")) {
-    //   setError("You must use a Stevens email address (@stevens.edu)");
-    //   return;
-    // }
+    if (!trimmedEmail.endsWith("@stevens.edu")) {
+      setError("You must use a Stevens email address (@stevens.edu)");
+      return;
+    }
 
     // Password validation
     if (password.length < 8) {

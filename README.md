@@ -1,6 +1,6 @@
 # Senior Design Marketplace
 
-A full-stack web application for managing senior design courses, student groups, and project assignments. Built with TypeScript, React, Express, and MongoDB.
+A full-stack web application for managing senior design project assignments and group formation. Built with MERN techstack.
 
 ## Features
 
@@ -11,10 +11,10 @@ A full-stack web application for managing senior design courses, student groups,
 
 ## Roles
 
-| Role                   | How created                          | Capabilities                                                            |
-| ---------------------- | ------------------------------------ | ----------------------------------------------------------------------- |
-| **Student**            | Self-register via `/signup`          | Join a course, create/join groups, browse marketplace, express interest |
-| **Course Coordinator** | Created directly in DB (or via seed) | Create courses & projects, manage assignments, view stats, export       |
+| Role                   | How created                 | Capabilities                                                            |
+| ---------------------- | --------------------------- | ----------------------------------------------------------------------- |
+| **Student**            | Self-register via `/signup` | Join a course, create/join groups, browse marketplace, express interest |
+| **Course Coordinator** | Created directly in DB      | Create courses & projects, manage assignments, view stats, export       |
 
 ## Prerequisites
 
@@ -81,42 +81,9 @@ Senior_D_V2/
 | Preview    | `npm run preview` | Preview production build locally         |
 | Lint       | `npm run lint`    | ESLint checks                            |
 
-## Pages
-
-| Route                                        | Page                | Access                                   |
-| -------------------------------------------- | ------------------- | ---------------------------------------- |
-| `/`                                          | Home                | Public                                   |
-| `/login`, `/signup`                          | Login, Signup       | Public only (redirects if authenticated) |
-| `/forgot-password`, `/reset-password/:token` | Password reset flow | Any                                      |
-| `/dashboard`                                 | Dashboard           | Authenticated                            |
-| `/marketplace`                               | Project marketplace | Authenticated                            |
-| `/project/:id`                               | Project detail      | Authenticated                            |
-| `/profile`                                   | User profile        | Authenticated                            |
-| `/verify-email`                              | Email verification  | Authenticated                            |
-| `/group`                                     | My group            | Student only                             |
-| `/browse-groups`                             | Browse all groups   | Student only                             |
-| `/project/add`                               | Create project      | Coordinator only                         |
-| `/my-projects`                               | Manage projects     | Coordinator only                         |
-
 ## Docker
 
 A `docker-compose.yml` is included that runs MongoDB, the backend API, and the frontend (served via Nginx) as a single stack.
-
-```bash
-# Required — set a strong secret
-export JWT_SECRET=your_jwt_secret_here
-
-# Optional overrides (all have defaults)
-export CORS_ORIGIN=http://localhost:8080
-export FRONTEND_URL=http://localhost:8080
-export VITE_API_URL=/api
-
-docker compose up --build
-```
-
-The app will be available at `http://localhost:8080`. The Nginx container proxies `/api/` requests to the backend and serves the React SPA for all other routes.
-
-Uploaded files are persisted in a named Docker volume (`backend-uploads`).
 
 ## CI
 
