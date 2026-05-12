@@ -1,6 +1,5 @@
 name: Test and Lint
 
-# Run tests and linting on pull requests and pushes to main
 on:
   pull_request:
     branches:

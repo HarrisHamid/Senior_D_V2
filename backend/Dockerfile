@@ -9,7 +9,6 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
 
-# Trim dev dependencies for the runtime image
 RUN npm prune --omit=dev
 
 # ─── Runtime stage ───────────────────────────────────────────────────────────
@@ -27,7 +26,6 @@ COPY --from=build --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
 COPY --chown=nodejs:nodejs package.json ./
 
-# Uploads land here; mount a volume in compose/production.
 RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app/uploads
 VOLUME ["/app/uploads"]
 

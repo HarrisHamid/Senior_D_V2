@@ -1,6 +1,7 @@
 # Stress-Test QA Plan — Senior Design Marketplace
 
 ## Context
+
 The site is feature-complete and you want to stress-test every flow before launch — for both `student` and `course coordinator` roles. This document is a structured QA checklist covering every feature, plus a separate section calling out **suspected bugs / weak spots** discovered while reading the code so you can prioritize them.
 
 Use it like a punch list: work top-to-bottom, check things off, file issues for anything that fails.
@@ -12,6 +13,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 ## Section 1 — Authentication & Account Lifecycle
 
 ### 1.1 Registration ([Signup.tsx](frontend/src/pages/Signup.tsx), [auth.controller.ts:15](backend/src/controllers/auth.controller.ts#L15))
+
 - [ ] Register a new student with valid Stevens email → lands on `/verify-email`
 - [ ] Register with **non-Stevens email** (e.g. `foo@gmail.com`) → blocked by [user.validation.ts](backend/src/validation/user.validation.ts)
 - [ ] Register with **duplicate email** → 400 "User already exists"
@@ -22,6 +24,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Click "Create Account" twice rapidly → no duplicate accounts (button should disable)
 
 ### 1.2 Email verification ([VerifyEmail.tsx](frontend/src/pages/VerifyEmail.tsx))
+
 - [ ] Enter wrong 6-digit code → "Invalid or expired" toast
 - [ ] Enter correct code → `verificationNeeded=false`, redirect to `/dashboard`
 - [ ] Try non-numeric input → filtered out by `/\D/g`
@@ -33,6 +36,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Already-verified user tries to access `/verify-email` directly → behaviour? (verify it's not a soft-lock)
 
 ### 1.3 Login / Logout ([Login.tsx](frontend/src/pages/Login.tsx), [LogoutScreen.tsx](frontend/src/pages/LogoutScreen.tsx))
+
 - [ ] Correct credentials → redirect to `/dashboard`, JWT cookie set
 - [ ] Wrong password → 401, no token issued
 - [ ] Non-existent email → 401 (same message — no enumeration leak)
@@ -44,6 +48,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Login in tab A, logout in tab B, refresh tab A → tab A should detect deauth (next API call 401s)
 
 ### 1.4 Password reset ([ForgotPassword.tsx](frontend/src/pages/ForgotPassword.tsx), [ResetPassword.tsx](frontend/src/pages/ResetPassword.tsx))
+
 - [ ] Forgot password for **existing** email → 200, email arrives
 - [ ] Forgot password for **non-existent** email → still 200 (no enumeration)
 - [ ] Click reset link → land on `/reset-password/:token`
@@ -54,6 +59,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] After reset, login with **old** password → fails
 
 ### 1.5 Profile & password change ([Profile.tsx](frontend/src/pages/Profile.tsx))
+
 - [ ] Edit first/last name → saves, navbar updates
 - [ ] Try invalid name chars → blocked
 - [ ] Email field is read-only → confirm
@@ -66,6 +72,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 ## Section 2 — Course Coordinator Flows
 
 ### 2.1 Create / manage projects ([CreateProject.tsx](frontend/src/pages/CreateProject.tsx), [MyProjects.tsx](frontend/src/pages/MyProjects.tsx), [project.controller.ts](backend/src/controllers/project.controller.ts))
+
 - [ ] Create project with all fields → appears in marketplace
 - [ ] Create project with no advisors / no contacts / no majors → defaults to empty arrays
 - [ ] Add advisor with malformed email (`foo`, `foo@`, `foo@bar`) → blocked
@@ -86,6 +93,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Filter "My Projects" by Open / Closed / Assigned → counts match
 
 ### 2.2 Assign / unassign groups to projects ([ProjectDetail.tsx](frontend/src/pages/ProjectDetail.tsx))
+
 - [ ] Open a project → "Interested Groups" list shows every group with the project in `interestedProjects`
 - [ ] Expand interested group → see all members, names, majors, mailto-links work
 - [ ] Click "Assign" on an interested group → email sent to all members ([sendGroupAssignedEmail](backend/src/services/email.service.ts)), project flips to closed, group flips to closed, group's `interestedProjects` is cleared, project removed from **other** groups' interest lists
@@ -100,6 +108,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 ## Section 3 — Student Flows
 
 ### 3.1 Create / join groups ([Dashboard.tsx](frontend/src/pages/Dashboard.tsx), [BrowseGroups.tsx](frontend/src/pages/BrowseGroups.tsx), [Group.tsx](frontend/src/pages/Group.tsx))
+
 - [ ] Create public group with custom name → success, you become leader
 - [ ] Create public group with no name → auto-named `Group N` where N is course's next number
 - [ ] Try to create with duplicate name (case-insensitive) → 409
@@ -116,6 +125,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Browse Groups Info popup → members list populates with name, email, major
 
 ### 3.2 Group leader actions ([Group.tsx](frontend/src/pages/Group.tsx))
+
 - [ ] Edit group name (pencil icon) → uniqueness check, save with Enter, cancel with Escape
 - [ ] Toggle visibility (public ↔ private) → works
 - [ ] Toggle status (open ↔ closed) → works
@@ -131,6 +141,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Copy group code button → clipboard contains code, toast appears
 
 ### 3.3 Group member actions
+
 - [ ] Toggle status as **non-leader** member → currently succeeds (see bugs — likely intentional but worth confirming)
 - [ ] Add a project to interested list (1, 2, 3, 4) → all succeed, coordinator gets email each time
 - [ ] Add a 5th project → 400 "interest limit of 4 reached"
@@ -142,6 +153,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Last member leaves → group is deleted; verify via `/api/groups/course/:courseId`
 
 ### 3.4 Project marketplace & detail ([Marketplace.tsx](frontend/src/pages/Marketplace.tsx), [ProjectDetail.tsx](frontend/src/pages/ProjectDetail.tsx))
+
 - [ ] Search by name, description, sponsor → matches case-insensitive
 - [ ] Search with regex special chars (`.*+?^$`) → does NOT cause crash (escaped on backend)
 - [ ] Filter by School → majors checklist updates
@@ -164,6 +176,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 ## Section 4 — Cross-Cutting & Security
 
 ### 4.1 Authorization bypass attempts (use curl/Postman)
+
 - [ ] Student calls `POST /api/projects` → 403
 - [ ] Student calls `GET /api/courses/:id/export` → 403
 - [ ] Coordinator calls `POST /api/groups` → 403
@@ -172,6 +185,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Forge cookie with valid signature but unknown userId → 401 (user lookup fails)
 
 ### 4.2 Validation surface
+
 - [ ] Submit ObjectId-shaped params with 23 / 25 chars → 400
 - [ ] Submit body with extra unknown fields → ignored, not stored
 - [ ] Submit nested objects with prototype pollution payloads (`__proto__`, `constructor`) → no impact
@@ -179,22 +193,26 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Submit very long strings (1 MB description) → server handles gracefully
 
 ### 4.3 Rate limiting
+
 - [ ] authLimiter on register/login/forgot/reset → 11th request in 15min → 429
 - [ ] verificationLimiter on verify/resend → 6th in 15min → 429
 - [ ] After window expires → counter resets
 - [ ] Restart server → in-memory counter resets (this is fine; just confirm)
 
 ### 4.4 File upload permission gaps (likely bugs — see Section 5)
+
 - [ ] Student NOT in any group uploads file to a project → currently succeeds
 - [ ] Student in Group A uploads file to a project that Group B is interested in → currently succeeds
 - [ ] Student downloads any file via direct URL → currently succeeds (no membership check)
 
 ### 4.5 Concurrency
+
 - [ ] Two students join the same public group simultaneously (use two terminals with curl) → both end up in `groupMembers`
 - [ ] Two students rapidly create groups → check `groupNumber` increments cleanly (this is the racy spot — see bugs)
 - [ ] Two leaders approve the same join request (impossible state but test anyway) → 2nd one gets 404
 
 ### 4.6 Frontend resilience
+
 - [ ] Disconnect network mid-request → graceful error toast, not infinite loading
 - [ ] 500 from server → Sonner toast shows the error (api interceptor unwraps `error.response.data.message`)
 - [ ] Spam-click "Create Group" / "Join" / "Express Interest" → only one mutation lands (verify button disables on submit)
@@ -205,6 +223,7 @@ How to test: run backend (`cd backend && npm run dev`), frontend (`cd frontend &
 - [ ] Resize browser to mobile width → Navbar collapses, hamburger menu works
 
 ### 4.7 Email side-effects (tail `/tmp/dev-emails.log`)
+
 - [ ] Register → verification email
 - [ ] Forgot password → reset email
 - [ ] Group expresses interest in project → project coordinator email (one per `addInterestedProject` call)
@@ -286,6 +305,7 @@ This is a single linear scenario that exercises most of the system. Run it as a 
 ---
 
 ## How to verify
+
 - Backend tests: `cd backend && npm test` — should pass before and after fixes.
 - Manual: open two browsers (Chrome regular + incognito), log in as coordinator and student, run through the relevant sections in parallel.
 - File system: `ls backend/uploads/` to confirm files land + are deleted as expected.
@@ -293,6 +313,7 @@ This is a single linear scenario that exercises most of the system. Run it as a 
 - Database spot-checks: `mongosh senior_d` and inspect `users`, `groups`, `projects`, `verificationcodes`, `passwordresettokens` after key actions.
 
 ## Critical files (for filing bugs)
+
 - Auth: [backend/src/controllers/auth.controller.ts](backend/src/controllers/auth.controller.ts), [backend/src/middleware/auth.middleware.ts](backend/src/middleware/auth.middleware.ts)
 - Groups: [backend/src/controllers/group.controller.ts](backend/src/controllers/group.controller.ts), [backend/src/models/Group.model.ts](backend/src/models/Group.model.ts)
 - Projects: [backend/src/controllers/project.controller.ts](backend/src/controllers/project.controller.ts)
