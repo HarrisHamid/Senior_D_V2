@@ -194,7 +194,7 @@ export const joinGroup = async (
             leader.email,
             leader.name,
             user.name,
-            group.groupNumber,
+            group.name ?? `Group ${group.groupNumber}`,
           );
         })
         .catch(console.error);
@@ -284,7 +284,7 @@ export const respondToJoinRequest = async (
         return sendJoinRequestResponseEmail(
           requester.email,
           requester.name,
-          group.groupNumber,
+          group.name ?? `Group ${group.groupNumber}`,
           status === "approved",
         );
       })
@@ -782,7 +782,7 @@ export const addInterestedProject = async (
           coordinator.email,
           coordinator.name,
           project.name,
-          group.groupNumber,
+          group.name ?? `Group ${group.groupNumber}`,
           members.map((m) => m.name),
         );
       })
@@ -920,7 +920,7 @@ export const rejectGroupInterest = async (
           members.map((m) => m.email),
           project.name,
           user!.name,
-          group.groupNumber,
+          group.name ?? `Group ${group.groupNumber}`,
         ),
       )
       .catch(console.error);

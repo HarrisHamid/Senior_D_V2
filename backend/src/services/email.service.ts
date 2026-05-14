@@ -124,7 +124,7 @@ export const sendGroupInterestEmail = async (
   coordinatorEmail: string,
   coordinatorName: string,
   projectName: string,
-  groupNumber: number,
+  groupName: string,
   memberNames: string[],
 ): Promise<void> => {
   const memberList = memberNames.map((n) => `• ${n}`).join("\n");
@@ -132,11 +132,11 @@ export const sendGroupInterestEmail = async (
 
   await provider.send({
     to: coordinatorEmail,
-    subject: `Group ${groupNumber} expressed interest in "${projectName}"`,
-    text: `Hi ${coordinatorName},\n\nGroup ${groupNumber} has expressed interest in your project "${projectName}".\n\nGroup members:\n${memberList}\n\nLog in to the Senior Design Marketplace to review and manage group assignments.`,
+    subject: `${groupName} expressed interest in "${projectName}"`,
+    text: `Hi ${coordinatorName},\n\n${groupName} has expressed interest in your project "${projectName}".\n\nGroup members:\n${memberList}\n\nLog in to the Senior Design Marketplace to review and manage group assignments.`,
     html: `
       <p>Hi ${esc(coordinatorName)},</p>
-      <p><strong>Group ${groupNumber}</strong> has expressed interest in your project <strong>"${esc(projectName)}"</strong>.</p>
+      <p><strong>${esc(groupName)}</strong> has expressed interest in your project <strong>"${esc(projectName)}"</strong>.</p>
       <p>Group members:</p>
       <ul>${memberListHtml}</ul>
       <p>Log in to the Senior Design Marketplace to review and manage group assignments.</p>
@@ -199,15 +199,15 @@ export const sendJoinRequestEmail = async (
   leaderEmail: string,
   leaderName: string,
   requesterName: string,
-  groupNumber: number,
+  groupName: string,
 ): Promise<void> => {
   await provider.send({
     to: leaderEmail,
-    subject: `${requesterName} wants to join Group ${groupNumber}`,
-    text: `Hi ${leaderName},\n\n${requesterName} has requested to join your group (Group ${groupNumber}).\n\nLog in to the Senior Design Marketplace to approve or reject the request.`,
+    subject: `${requesterName} wants to join ${groupName}`,
+    text: `Hi ${leaderName},\n\n${requesterName} has requested to join your group (${groupName}).\n\nLog in to the Senior Design Marketplace to approve or reject the request.`,
     html: `
       <p>Hi ${esc(leaderName)},</p>
-      <p><strong>${esc(requesterName)}</strong> has requested to join your group (<strong>Group ${groupNumber}</strong>).</p>
+      <p><strong>${esc(requesterName)}</strong> has requested to join your group (<strong>${esc(groupName)}</strong>).</p>
       <p>Log in to the Senior Design Marketplace to approve or reject the request.</p>
     `,
   });
@@ -220,17 +220,17 @@ export const sendGroupInterestRejectedEmail = async (
   memberEmails: string[],
   projectName: string,
   coordinatorName: string,
-  groupNumber: number,
+  groupName: string,
 ): Promise<void> => {
   await Promise.all(
     memberEmails.map((email) =>
       provider.send({
         to: email,
         subject: `Your group's interest in "${projectName}" was not accepted`,
-        text: `Hi,\n\nYour group (Group ${groupNumber}) has had its interest in the project "${projectName}" removed by ${coordinatorName}.\n\nLog in to the Senior Design Marketplace to explore other available projects.`,
+        text: `Hi,\n\nYour group (${groupName}) has had its interest in the project "${projectName}" removed by ${coordinatorName}.\n\nLog in to the Senior Design Marketplace to explore other available projects.`,
         html: `
           <p>Hi,</p>
-          <p>Your group (<strong>Group ${groupNumber}</strong>) has had its interest in the project <strong>"${esc(projectName)}"</strong> removed by ${esc(coordinatorName)}.</p>
+          <p>Your group (<strong>${esc(groupName)}</strong>) has had its interest in the project <strong>"${esc(projectName)}"</strong> removed by ${esc(coordinatorName)}.</p>
           <p>Log in to the Senior Design Marketplace to explore other available projects.</p>
         `,
       }),
@@ -244,15 +244,15 @@ export const sendGroupInterestRejectedEmail = async (
 export const sendJoinRequestResponseEmail = async (
   requesterEmail: string,
   requesterName: string,
-  groupNumber: number,
+  groupName: string,
   approved: boolean,
 ): Promise<void> => {
   const subject = approved
-    ? `Your request to join Group ${groupNumber} was approved`
-    : `Your request to join Group ${groupNumber} was declined`;
+    ? `Your request to join ${groupName} was approved`
+    : `Your request to join ${groupName} was declined`;
   const body = approved
-    ? `Congratulations! Your request to join Group ${groupNumber} has been approved. Log in to the Senior Design Marketplace to view your group.`
-    : `Your request to join Group ${groupNumber} has been declined. You can request to join another group using their group code.`;
+    ? `Congratulations! Your request to join ${groupName} has been approved. Log in to the Senior Design Marketplace to view your group.`
+    : `Your request to join ${groupName} has been declined. You can request to join another group using their group code.`;
 
   await provider.send({
     to: requesterEmail,
