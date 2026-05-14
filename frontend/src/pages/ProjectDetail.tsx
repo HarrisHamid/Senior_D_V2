@@ -188,6 +188,8 @@ const ProjectDetail = () => {
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingProject, setDeletingProject] = useState(false);
 
   const canSeeFiles = () => !!user;
 
@@ -475,6 +477,22 @@ const ProjectDetail = () => {
     );
   }
 
+  const handleDeleteProject = async () => {
+    if (!id) return;
+    setDeletingProject(true);
+    try {
+      await projectService.deleteProject(id);
+      toast.success("Project deleted successfully.");
+      setShowDeleteDialog(false);
+      navigate("/my-projects");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete project.";
+      toast.error(message);
+    } finally {
+      setDeletingProject(false);
+    }
+  };
+
   const status = statusLabel(project);
 
   return (
@@ -498,26 +516,39 @@ const ProjectDetail = () => {
 
         {/* Page header */}
         <div className="mb-8">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-              style={statusStyles[status]}
-            >
-              {status}
-            </span>
-            <span
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-              style={pillStyle}
-            >
-              {project.internal ? "Internal" : "External"}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {project.year}
-            </span>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  style={statusStyles[status]}
+                >
+                  {status}
+                </span>
+                <span
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  style={pillStyle}
+                >
+                  {project.internal ? "Internal" : "External"}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {project.year}
+                </span>
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[#0d0d0d]">
+                {project.name}
+              </h1>
+            </div>
+            {user?.role === "course coordinator" && project.userId === user.id && (
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                className="mt-1 flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 transition-all duration-200 shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            )}
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[#0d0d0d]">
-            {project.name}
-          </h1>
         </div>
 
         {/* Two-column layout */}
@@ -1089,6 +1120,26 @@ const ProjectDetail = () => {
               Download
             </button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete project confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={(open) => { if (!open) setShowDeleteDialog(false); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Project?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{project.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={deletingProject}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteProject} disabled={deletingProject}>
+              {deletingProject ? "Deleting…" : "Delete"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

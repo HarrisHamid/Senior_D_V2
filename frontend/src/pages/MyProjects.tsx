@@ -1,13 +1,16 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FolderOpen, ArrowRight, Plus, Search } from "lucide-react";
+import { FolderOpen, ArrowRight, Plus, Search, Trash2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { GridPattern } from "@/components/ui/grid-pattern";
 import { projectService } from "@/services/project.service";
 import { groupService } from "@/services/group.service";
 import type { ProjectData } from "@/services/project.service";
 import Pagination from "@/components/Pagination";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const PAGE_SIZE = 20;
 
@@ -22,6 +25,8 @@ const MyProjects = () => {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -77,7 +82,21 @@ const MyProjects = () => {
     page * PAGE_SIZE,
   );
 
-
+  const handleDeleteProject = async () => {
+    if (!deleteProjectId) return;
+    setDeleting(true);
+    try {
+      await projectService.deleteProject(deleteProjectId);
+      setMyProjects((prev) => prev.filter(({ project }) => project._id !== deleteProjectId));
+      toast.success("Project deleted successfully.");
+      setDeleteProjectId(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete project.";
+      toast.error(message);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-gray-50/40 overflow-hidden">
@@ -251,12 +270,21 @@ const MyProjects = () => {
                       </div>
                     </div>
 
-                    <Link
-                      to={`/project/${project._id}`}
-                      className="flex items-center gap-1.5 text-sm font-semibold text-[#9B2335] hover:text-[#7f1d2d] transition-colors shrink-0 ml-4"
-                    >
-                      View <ArrowRight className="w-4 h-4" />
-                    </Link>
+                    <div className="flex items-center gap-3 shrink-0 ml-4">
+                      <button
+                        onClick={() => setDeleteProjectId(project._id)}
+                        className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Delete project"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <Link
+                        to={`/project/${project._id}`}
+                        className="flex items-center gap-1.5 text-sm font-semibold text-[#9B2335] hover:text-[#7f1d2d] transition-colors"
+                      >
+                        View <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
                   </div>
                 );
               })}
@@ -266,6 +294,25 @@ const MyProjects = () => {
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       </div>
+
+      <Dialog open={!!deleteProjectId} onOpenChange={(open) => { if (!open) setDeleteProjectId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Project?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this project? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setDeleteProjectId(null)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteProject} disabled={deleting}>
+              {deleting ? "Deleting…" : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
