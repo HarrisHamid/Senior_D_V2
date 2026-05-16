@@ -161,8 +161,7 @@ const IconBadge = ({ icon: Icon }: { icon: React.ElementType }) => (
 const projectStatusStyle = (project: PopulatedProject) => {
   if (project.assignedGroup)
     return { label: "Assigned", bg: "#f5f3ff", color: "#6d28d9" };
-  if (project.isOpen)
-    return { label: "Open", bg: "#ecfdf5", color: "#065f46" };
+  if (project.isOpen) return { label: "Open", bg: "#ecfdf5", color: "#065f46" };
   return { label: "Closed", bg: "#f3f4f6", color: "#6b7280" };
 };
 
@@ -195,8 +194,10 @@ const ProjectCard = ({
     <div
       className="rounded-xl border overflow-hidden transition-colors"
       style={{
-        borderColor: variant === "assigned" ? "rgba(155,35,53,0.15)" : "#f3f4f6",
-        background: variant === "assigned" ? "rgba(155,35,53,0.03)" : "transparent",
+        borderColor:
+          variant === "assigned" ? "rgba(155,35,53,0.15)" : "#f3f4f6",
+        background:
+          variant === "assigned" ? "rgba(155,35,53,0.03)" : "transparent",
       }}
     >
       {/* ── header row ── */}
@@ -261,7 +262,10 @@ const ProjectCard = ({
           {/* Majors */}
           {(project.majors ?? []).length > 0 && (
             <div>
-              <p className="text-[10px] font-bold uppercase text-gray-400 mb-1.5" style={{ letterSpacing: "0.14em" }}>
+              <p
+                className="text-[10px] font-bold uppercase text-gray-400 mb-1.5"
+                style={{ letterSpacing: "0.14em" }}
+              >
                 Recommended Majors
               </p>
               <div className="flex flex-wrap gap-1">
@@ -280,7 +284,10 @@ const ProjectCard = ({
           {/* Sponsor + contacts */}
           {project.sponsor && (
             <div>
-              <p className="text-[10px] font-bold uppercase text-gray-400 mb-1.5" style={{ letterSpacing: "0.14em" }}>
+              <p
+                className="text-[10px] font-bold uppercase text-gray-400 mb-1.5"
+                style={{ letterSpacing: "0.14em" }}
+              >
                 Sponsor
               </p>
               <div className="flex items-center gap-2 mb-2">
@@ -288,7 +295,10 @@ const ProjectCard = ({
                   className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                   style={{ background: "rgba(155,35,53,0.08)" }}
                 >
-                  <Building2 className="w-3.5 h-3.5" style={{ color: "#9B2335" }} />
+                  <Building2
+                    className="w-3.5 h-3.5"
+                    style={{ color: "#9B2335" }}
+                  />
                 </div>
                 <span className="text-sm font-semibold text-gray-800">
                   {project.sponsor}
@@ -301,7 +311,9 @@ const ProjectCard = ({
                       key={i}
                       className="flex items-start justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100"
                     >
-                      <span className="text-xs font-medium text-gray-700">{c.name}</span>
+                      <span className="text-xs font-medium text-gray-700">
+                        {c.name}
+                      </span>
                       <a
                         href={`mailto:${c.email}`}
                         className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#9B2335] transition-colors"
@@ -319,7 +331,10 @@ const ProjectCard = ({
           {/* Advisors */}
           {(project.advisors ?? []).length > 0 && (
             <div>
-              <p className="text-[10px] font-bold uppercase text-gray-400 mb-1.5" style={{ letterSpacing: "0.14em" }}>
+              <p
+                className="text-[10px] font-bold uppercase text-gray-400 mb-1.5"
+                style={{ letterSpacing: "0.14em" }}
+              >
                 Advisors
               </p>
               <div className="space-y-1.5">
@@ -328,7 +343,9 @@ const ProjectCard = ({
                     key={i}
                     className="flex items-start justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100"
                   >
-                    <span className="text-xs font-medium text-gray-700">{a.name}</span>
+                    <span className="text-xs font-medium text-gray-700">
+                      {a.name}
+                    </span>
                     <a
                       href={`mailto:${a.email}`}
                       className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#9B2335] transition-colors"
@@ -346,7 +363,10 @@ const ProjectCard = ({
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <Paperclip className="w-3.5 h-3.5 text-gray-400" />
-              <p className="text-[10px] font-bold uppercase text-gray-400" style={{ letterSpacing: "0.14em" }}>
+              <p
+                className="text-[10px] font-bold uppercase text-gray-400"
+                style={{ letterSpacing: "0.14em" }}
+              >
                 Attachments
               </p>
             </div>
@@ -970,9 +990,6 @@ const Group = () => {
                   <div className="flex items-center justify-between mb-5">
                     <div>
                       <SectionLabel>Assigned Project</SectionLabel>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Your group has been matched
-                      </p>
                     </div>
                     <IconBadge icon={FolderOpen} />
                   </div>
@@ -1277,7 +1294,10 @@ const Group = () => {
         </Dialog>
 
         {/* File Preview Dialog */}
-        <Dialog open={!!previewFile} onOpenChange={(open) => !open && closePreview()}>
+        <Dialog
+          open={!!previewFile}
+          onOpenChange={(open) => !open && closePreview()}
+        >
           <DialogContent className="max-w-3xl w-full">
             <DialogHeader>
               <DialogTitle className="truncate pr-8">
@@ -1294,23 +1314,29 @@ const Group = () => {
                 </div>
               )}
               {!previewLoading && previewError && (
-                <p className="text-sm text-gray-400 text-center py-12">{previewError}</p>
+                <p className="text-sm text-gray-400 text-center py-12">
+                  {previewError}
+                </p>
               )}
-              {!previewLoading && previewBlobUrl && previewFile?.file.mimetype.startsWith("image/") && (
-                <img
-                  src={previewBlobUrl}
-                  alt={previewFile.file.originalName}
-                  className="max-w-full h-auto mx-auto rounded"
-                />
-              )}
-              {!previewLoading && previewBlobUrl && previewFile?.file.mimetype === "application/pdf" && (
-                <iframe
-                  src={previewBlobUrl}
-                  title={previewFile.file.originalName}
-                  className="w-full rounded border-0"
-                  style={{ height: "70vh" }}
-                />
-              )}
+              {!previewLoading &&
+                previewBlobUrl &&
+                previewFile?.file.mimetype.startsWith("image/") && (
+                  <img
+                    src={previewBlobUrl}
+                    alt={previewFile.file.originalName}
+                    className="max-w-full h-auto mx-auto rounded"
+                  />
+                )}
+              {!previewLoading &&
+                previewBlobUrl &&
+                previewFile?.file.mimetype === "application/pdf" && (
+                  <iframe
+                    src={previewBlobUrl}
+                    title={previewFile.file.originalName}
+                    className="w-full rounded border-0"
+                    style={{ height: "70vh" }}
+                  />
+                )}
               {!previewLoading && previewText !== null && (
                 <pre className="whitespace-pre-wrap break-words text-sm font-mono bg-gray-50 rounded p-4 max-h-[60vh] overflow-y-auto">
                   {previewText}
@@ -1320,7 +1346,8 @@ const Group = () => {
             <div className="flex justify-end mt-2">
               <button
                 onClick={() =>
-                  previewFile && downloadFile(previewFile.file, previewFile.projectId)
+                  previewFile &&
+                  downloadFile(previewFile.file, previewFile.projectId)
                 }
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#9B2335] hover:bg-[#7f1d2d] transition-colors"
               >

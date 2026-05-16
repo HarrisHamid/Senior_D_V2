@@ -66,7 +66,7 @@ const Marketplace = () => {
     },
     {
       id: "majors",
-      label: "Recommended Majors",
+      label: "Majors",
       type: "checkbox",
       options: visibleMajors.map((m) => ({
         id: `major-${m}`,
@@ -76,7 +76,7 @@ const Marketplace = () => {
     },
     {
       id: "status",
-      label: "Status",
+      label: "Project Status",
       type: "radio",
       options: [
         { id: "status-open", label: "Open", value: "Open" },
@@ -174,9 +174,6 @@ const Marketplace = () => {
       <Navbar />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-10">
-          <p className="text-sm text-muted-foreground tracking-wide mb-1">
-            Explore available senior design projects
-          </p>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[#0d0d0d]">
             Project{" "}
             <span
