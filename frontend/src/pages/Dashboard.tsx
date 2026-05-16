@@ -146,9 +146,6 @@ const StudentDashboard = () => {
                 <h1 className="text-[2rem] font-bold text-gray-900 tracking-tight leading-none">
                   Welcome back, {firstName}.
                 </h1>
-                <p className="text-gray-400 mt-1.5 text-sm">
-                  Browse projects and manage your group.
-                </p>
               </div>
             </div>
           </div>
