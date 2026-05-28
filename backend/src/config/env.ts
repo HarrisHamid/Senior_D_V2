@@ -57,6 +57,10 @@ export const env = {
     "60",
   ),
   RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
+  SMTP_HOST: getEnvVarWithDefault("SMTP_HOST", "nexus.stevens.edu"),
+  SMTP_PORT: getEnvVarWithDefault("SMTP_PORT", "25"),
+  SMTP_USER: process.env.SMTP_USER ?? "",
+  SMTP_PASS: process.env.SMTP_PASS ?? "",
 } as const;
 
 // Validate all required env vars on app startup

@@ -1,4 +1,5 @@
 import fs from "fs";
+import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { env } from "../config/env";
 
@@ -43,6 +44,31 @@ class DisabledEmailProvider implements EmailProvider {
   }
 }
 
+class SmtpEmailProvider implements EmailProvider {
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: Number(env.SMTP_PORT),
+      secure: false,
+      ...(env.SMTP_USER
+        ? { auth: { user: env.SMTP_USER, pass: env.SMTP_PASS } }
+        : {}),
+    });
+  }
+
+  async send(input: SendEmailInput): Promise<void> {
+    await this.transporter.sendMail({
+      from: env.EMAIL_FROM,
+      to: input.to,
+      subject: input.subject,
+      text: input.text,
+      html: input.html,
+    });
+  }
+}
+
 class ResendEmailProvider implements EmailProvider {
   private client: Resend;
 
@@ -68,6 +94,8 @@ const resolveEmailProvider = (): EmailProvider => {
   switch (env.EMAIL_PROVIDER) {
     case "resend":
       return new ResendEmailProvider();
+    case "smtp":
+      return new SmtpEmailProvider();
     case "disabled":
       return new DisabledEmailProvider();
     case "console":
