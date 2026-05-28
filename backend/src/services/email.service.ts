@@ -52,6 +52,9 @@ class SmtpEmailProvider implements EmailProvider {
       host: env.SMTP_HOST,
       port: Number(env.SMTP_PORT),
       secure: false,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
       ...(env.SMTP_USER
         ? { auth: { user: env.SMTP_USER, pass: env.SMTP_PASS } }
         : {}),
