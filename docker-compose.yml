@@ -30,9 +30,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
       JWT_EXPIRE: ${JWT_EXPIRE:-7d}
       JWT_COOKIE_EXPIRE: ${JWT_COOKIE_EXPIRE:-7}
-      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
       EMAIL_FROM: ${EMAIL_FROM:-no-reply@seniordesignmarketplace.local}
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-nexus.stevens.edu}
+      SMTP_PORT: ${SMTP_PORT:-25}
     volumes:
       - backend-uploads:/app/uploads
 
