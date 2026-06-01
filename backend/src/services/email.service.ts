@@ -96,6 +96,13 @@ class ResendEmailProvider implements EmailProvider {
 const resolveEmailProvider = (): EmailProvider => {
   switch (env.EMAIL_PROVIDER) {
     case "resend":
+      if (!env.RESEND_API_KEY) {
+        console.warn(
+          "EMAIL_PROVIDER=resend was configured but RESEND_API_KEY is missing. " +
+            "Falling back to SMTP provider.",
+        );
+        return new SmtpEmailProvider();
+      }
       return new ResendEmailProvider();
     case "smtp":
       return new SmtpEmailProvider();

@@ -38,7 +38,7 @@ export const env = {
   PORT: getEnvVarWithDefault("PORT", "5000"),
   NODE_ENV: getEnvVarWithDefault("NODE_ENV", "development"),
   CORS_ORIGIN: getEnvVarWithDefault("CORS_ORIGIN", "http://localhost:5173"),
-  EMAIL_PROVIDER: getEnvVarWithDefault("EMAIL_PROVIDER", "console"),
+  EMAIL_PROVIDER: getEnvVarWithDefault("EMAIL_PROVIDER", "smtp"),
   EMAIL_FROM: getEnvVarWithDefault(
     "EMAIL_FROM",
     "no-reply@seniordesignmarketplace.local",
