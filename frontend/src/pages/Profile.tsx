@@ -21,7 +21,6 @@ import {
   Users,
 } from "lucide-react";
 import { groupService } from "@/services/group.service";
-import type { GroupData } from "@/services/group.service";
 import type { ProjectData } from "@/services/project.service";
 
 const passwordRequirements = [
@@ -56,7 +55,6 @@ const Profile = () => {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [groupData, setGroupData] = useState<GroupData | null>(null);
   const [assignedProject, setAssignedProject] = useState<ProjectData | null>(null);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -68,7 +66,6 @@ const Profile = () => {
       try {
         const groupRes = await groupService.getGroupById(user.groupId!);
         const group = groupRes.data;
-        setGroupData(group);
         if (group.assignedProject) {
           // Backend populates assignedProject — it's already the full project object
           setAssignedProject(group.assignedProject as unknown as ProjectData);
@@ -80,7 +77,7 @@ const Profile = () => {
       }
     };
     load();
-  }, [user?.groupId, user?.role]);
+  }, [user]);
 
   if (!user) return null;
 
