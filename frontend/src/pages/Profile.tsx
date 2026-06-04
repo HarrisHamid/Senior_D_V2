@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,14 @@ import {
   EyeOff,
   Check,
   Lock,
+  Briefcase,
+  Building2,
+  Calendar,
+  Users,
 } from "lucide-react";
+import { groupService } from "@/services/group.service";
+import type { GroupData } from "@/services/group.service";
+import type { ProjectData } from "@/services/project.service";
 
 const passwordRequirements = [
   { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
@@ -49,6 +56,31 @@ const Profile = () => {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [groupData, setGroupData] = useState<GroupData | null>(null);
+  const [assignedProject, setAssignedProject] = useState<ProjectData | null>(null);
+  const [isLoadingProject, setIsLoadingProject] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
+  useEffect(() => {
+    if (!user || user.role !== "student" || !user.groupId) return;
+    const load = async () => {
+      setIsLoadingProject(true);
+      try {
+        const groupRes = await groupService.getGroupById(user.groupId!);
+        const group = groupRes.data;
+        setGroupData(group);
+        if (group.assignedProject) {
+          // Backend populates assignedProject — it's already the full project object
+          setAssignedProject(group.assignedProject as unknown as ProjectData);
+        }
+      } catch {
+        // show empty state
+      } finally {
+        setIsLoadingProject(false);
+      }
+    };
+    load();
+  }, [user?.groupId, user?.role]);
 
   if (!user) return null;
 
@@ -149,7 +181,7 @@ const Profile = () => {
       />
       <Navbar />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
+      <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-start gap-4">
@@ -178,9 +210,9 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="space-y-5">
+        <div className="flex flex-col lg:flex-row gap-5 items-start">
           {/* Profile Information Card */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+          <div className="flex-1 min-w-0 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
             <div
               className="h-[3px]"
               style={{
@@ -365,6 +397,132 @@ const Profile = () => {
               </div>
             </div>
           </div>
+
+          {/* Current Project Card — students only */}
+          {user.role === "student" && (
+            <div className="w-full lg:w-72 shrink-0 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+              <div
+                className="h-[3px]"
+                style={{
+                  background:
+                    "linear-gradient(to right, #9B2335, #c23b52, rgba(155,35,53,0.2))",
+                }}
+              />
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <p
+                    className="text-[10px] font-bold uppercase text-gray-400"
+                    style={{ letterSpacing: "0.18em" }}
+                  >
+                    Current Project
+                  </p>
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: "rgba(155,35,53,0.08)" }}
+                  >
+                    <Briefcase className="w-4 h-4" style={{ color: "#9B2335" }} />
+                  </div>
+                </div>
+
+                {isLoadingProject ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
+                  </div>
+                ) : !user.groupId ? (
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-5 h-5 text-gray-300" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-700 mb-1">No Group Yet</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">You haven't joined a group.</p>
+                  </div>
+                ) : !assignedProject ? (
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                      <Briefcase className="w-5 h-5 text-gray-300" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-700 mb-1">No Project Assigned</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">Your group hasn't been assigned a project yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-base font-bold text-gray-900 leading-snug mb-2">
+                        {assignedProject.name}
+                      </p>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide ${
+                          assignedProject.isOpen
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {assignedProject.isOpen ? "Open" : "Closed"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <p className={`text-xs text-gray-500 leading-relaxed ${showFullDescription ? "" : "line-clamp-3"}`}>
+                        {assignedProject.description}
+                      </p>
+                      <button
+                        onClick={() => setShowFullDescription((v) => !v)}
+                        className="mt-1 text-[11px] font-semibold text-[#9B2335] hover:text-[#7f1d2d] transition-colors"
+                      >
+                        {showFullDescription ? "Show less" : "Read more"}
+                      </button>
+                    </div>
+
+                    <div className="space-y-3 pt-1 border-t border-gray-100">
+                      {assignedProject.sponsor && (
+                        <div className="flex items-start gap-2.5 pt-3">
+                          <Building2 className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-0.5">
+                              Sponsor
+                            </p>
+                            <p className="text-xs font-medium text-gray-700">
+                              {assignedProject.sponsor}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-start gap-2.5">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-0.5">
+                            Year
+                          </p>
+                          <p className="text-xs font-medium text-gray-700">
+                            {assignedProject.year}
+                          </p>
+                        </div>
+                      </div>
+
+                      {assignedProject.advisors?.length > 0 && (
+                        <div className="flex items-start gap-2.5">
+                          <Users className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-0.5">
+                              {assignedProject.advisors.length > 1 ? "Advisors" : "Advisor"}
+                            </p>
+                            <div className="space-y-0.5">
+                              {assignedProject.advisors.map((a, i) => (
+                                <p key={i} className="text-xs font-medium text-gray-700">
+                                  {a.name}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
