@@ -52,6 +52,8 @@ class SmtpEmailProvider implements EmailProvider {
       host: env.SMTP_HOST,
       port: Number(env.SMTP_PORT),
       secure: false,
+      // Campus relay (nexus.stevens.edu) presents a self-signed cert on STARTTLS
+      tls: { rejectUnauthorized: false },
       connectionTimeout: 5000,
       greetingTimeout: 5000,
       socketTimeout: 10000,
